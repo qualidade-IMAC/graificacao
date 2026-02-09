@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMAC - Gestão de Gratificação</title>
+    <!-- Tailwind CSS para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- jsPDF para relatórios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --imac-yellow: #EAB308;
+            --ios-bg: #F2F2F7;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--ios-bg);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ios-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-active {
+            color: var(--imac-yellow);
+            transform: scale(1.1);
+        }
+
+        /* Estilização da barra de rolagem */
+        ::-webkit-scrollbar { width: 0px; }
+
+        .modal-enter { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .calendar-day.has-irr {
+            border: 2px solid #fee2e2;
+            color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .btn-press:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- Header Principal -->
+    <header id="main-header" class="bg-[#EAB308] pt-12 pb-8 px-6 rounded-b-[40px] shadow-lg relative overflow-hidden text-white">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+                <div id="logo-container" class="w-12 h-12 bg-white rounded-xl flex items-center justify-center overflow-hidden p-1">
+                    <span class="font-bold text-yellow-600 text-xs">IMAC</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl leading-none">Controle de Qualidade</h1>
+                    <p class="text-yellow-100 text-[10px] opacity-80 uppercase tracking-widest mt-1">Gratificação Mensal</p>
+                </div>
+            </div>
+            <button onclick="switchTab('settings')" class="bg-white/20 p-2 rounded-full backdrop-blur-md">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl p-5 shadow-sm text-gray-800">
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-gray-500 font-medium text-xs uppercase tracking-tighter">Status da Fábrica</span>
+                <span id="global-progress" class="text-[#EAB308] font-bold text-2xl">0%</span>
+            </div>
+            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-[#EAB308] h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+            <p id="sector-count" class="text-[9px] text-gray-400 mt-2 text-right uppercase font-bold">0 setores verificados</p>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main id="app-content" class="mt-4 px-4">
+        <!-- Dashboard View (Default) -->
+        <div id="view-dashboard" class="view hidden space-y-6">
+            <section>
+                <h2 class="text-gray-900 font-bold text-lg mb-4 ml-1">Setores</h2>
+                <div id="sectors-list" class="grid gap-4">
+                    <!-- Gerado via JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Equipe View -->
+        <div id="view-employees" class="view hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-900">Colaboradores</h2>
+                <button onclick="openModal('employee-modal')" class="bg-[#EAB308] text-white p-2 rounded-xl shadow-md btn-press">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="employees-list" class="space-y-4">
+                <!-- Gerado via JS -->
+            </div>
+        </div>
+
+        <!-- Calendário View -->
+        <div id="view-history" class="view hidden space-y-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Irregularidades</h2>
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm">
+                    <button onclick="changeMonth(-1)" class="text-gray-400"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <span id="current-month-display" class="text-xs font-bold uppercase w-24 text-center">Janeiro 2024</span>
+                    <button onclick="changeMonth(1)" class="text-gray-400"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+            
+            <div id="calendar-grid" class="grid grid-cols-7 gap-2 bg-white p-4 rounded-3xl shadow-sm">
+                <!-- Gerado via JS -->
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Registros no Mês</h3>
+                <div id="month-irregularities" class="space-y-3">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Configurações View -->
+        <div id="view-settings" class="view hidden space-y-8">
+            <section class="bg-white rounded-3xl p-6 shadow-sm space-y-6">
+                <h2 class="text-lg font-bold">Customização</h2>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Logo da Empresa</label>
+                    <div class="flex items-center gap-4">
+                        <div id="logo-preview" class="w-16 h-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                            <i data-lucide="image" class="text-gray-300"></i>
+                        </div>
+                        <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="handleLogo(event)">
+                        <label for="logo-input" class="bg-[#EAB308] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer btn-press">Upload Logo</label>
+                    </div>
+                </div>
+                <button onclick="exportPDF()" class="w-full bg-black text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 btn-press">
+                    <i data-lucide="download" class="w-5 h-5"></i> Exportar PDF
+                </button>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold">Gestão de Setores</h2>
+                    <button onclick="addNewSector()" class="text-[#EAB308]"><i data-lucide="plus-circle"></i></button>
+                </div>
+                <div id="settings-sectors-list" class="space-y-3"></div>
+            </section>
+
+            <section class="space-y-4 pb-12">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold">Critérios de Desconto</h2>
+                    <button onclick="addNewCriterion()" class="text-[#EAB308]"><i data-lucide="plus-circle"></i></button>
+                </div>
+                <div id="settings-criteria-list" class="space-y-3"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Barra de Navegação -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-white/80 backdrop-blur-xl border border-white/20 rounded-[30px] h-18 shadow-2xl z-40 flex items-center justify-around px-4 py-3">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+            <i data-lucide="layout-grid" class="w-6 h-6"></i>
+            <span class="text-[9px] font-bold uppercase">Início</span>
+        </button>
+        <button onclick="switchTab('employees')" id="nav-employees" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+            <i data-lucide="users" class="w-6 h-6"></i>
+            <span class="text-[9px] font-bold uppercase">Equipe</span>
+        </button>
+        <div class="relative -top-6">
+            <button onclick="openIrregularityModal()" class="bg-[#EAB308] text-white p-4 rounded-full shadow-lg btn-press border-4 border-[#F2F2F7]">
+                <i data-lucide="plus" class="w-8 h-8"></i>
+            </button>
+        </div>
+        <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+            <i data-lucide="calendar" class="w-6 h-6"></i>
+            <span class="text-[9px] font-bold uppercase">Histórico</span>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+            <span class="text-[9px] font-bold uppercase">Config</span>
+        </button>
+    </nav>
+
+    <!-- Modais -->
+    <div id="employee-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-8 modal-enter">
+            <h2 class="text-2xl font-bold mb-6">Novo Colaborador</h2>
+            <div class="space-y-4">
+                <input id="new-emp-name" placeholder="Nome completo" class="w-full bg-gray-50 border-none rounded-2xl p-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="new-emp-sector" class="bg-gray-50 border-none rounded-2xl p-4 text-sm"></select>
+                    <select id="new-emp-role" class="bg-gray-50 border-none rounded-2xl p-4 text-sm">
+                        <option value="liderado">Liderado</option>
+                        <option value="lider">Líder</option>
+                    </select>
+                </div>
+                <input id="new-emp-date" type="date" class="w-full bg-gray-50 border-none rounded-2xl p-4">
+                <div class="flex gap-4 pt-4">
+                    <button onclick="closeModal('employee-modal')" class="flex-1 font-bold text-gray-400">Cancelar</button>
+                    <button onclick="saveEmployee()" class="flex-[2] bg-[#EAB308] text-white py-4 rounded-2xl font-bold btn-press">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="irr-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-8 modal-enter">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Nova Ocorrência</h2>
+                <span id="irr-date-display" class="text-xs font-bold text-[#EAB308] bg-yellow-50 px-3 py-1 rounded-full">--/--/--</span>
+            </div>
+            <div class="space-y-4">
+                <select id="irr-emp" class="w-full bg-gray-50 border-none rounded-2xl p-4"></select>
+                <select id="irr-crit" class="w-full bg-gray-50 border-none rounded-2xl p-4"></select>
+                <textarea id="irr-desc" placeholder="Detalhes da irregularidade..." class="w-full bg-gray-50 border-none rounded-2xl p-4 h-24 resize-none"></textarea>
+                <div class="flex gap-4 pt-4">
+                    <button onclick="closeModal('irr-modal')" class="flex-1 font-bold text-gray-400">Voltar</button>
+                    <button onclick="saveIrregularity()" class="flex-[2] bg-red-500 text-white py-4 rounded-2xl font-bold btn-press">Registrar Desconto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Estado Inicial ---
+        let state = {
+            employees: JSON.parse(localStorage.getItem('imac_employees')) || [],
+            sectors: JSON.parse(localStorage.getItem('imac_sectors')) || [
+                { id: '1', name: 'Banheiro Feminino', checklist: 100, spreadsheet: 'ok' },
+                { id: '2', name: 'Banheiro Masculino', checklist: 100, spreadsheet: 'ok' }
+            ],
+            criteria: JSON.parse(localStorage.getItem('imac_criteria')) || [
+                { id: '1', name: 'Uso de EPI', percentage: 10 },
+                { id: '2', name: 'Limpeza de Bancada', percentage: 5 }
+            ],
+            irregularities: JSON.parse(localStorage.getItem('imac_irregularities')) || [],
+            config: JSON.parse(localStorage.getItem('imac_config')) || { logo: '' },
+            currentViewDate: new Date(),
+            activeTab: 'dashboard' // Definindo a aba ativa inicial
+        };
+
+        function saveState() {
+            localStorage.setItem('imac_employees', JSON.stringify(state.employees));
+            localStorage.setItem('imac_sectors', JSON.stringify(state.sectors));
+            localStorage.setItem('imac_criteria', JSON.stringify(state.criteria));
+            localStorage.setItem('imac_irregularities', JSON.stringify(state.irregularities));
+            localStorage.setItem('imac_config', JSON.stringify(state.config));
+            render();
+        }
+
+        // --- Navegação ---
+        function switchTab(tabId) {
+            state.activeTab = tabId; // Atualizando o estado da aba
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active', 'text-[#EAB308]'));
+            document.getElementById('nav-' + tabId).classList.add('tab-active', 'text-[#EAB308]');
+            
+            if (tabId === 'history') renderCalendar();
+            lucide.createIcons();
+        }
+
+        // --- Modais ---
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // --- Lógica de Negócio ---
+        function calculateGratification(emp) {
+            if (emp.status === 'vacation' || emp.status === 'warning') return 0;
+            
+            let total = 100;
+            const sector = state.sectors.find(s => s.id === emp.sectorId);
+            
+            // Penalidade Setorial (Coletiva)
+            if (sector) {
+                if (sector.checklist < 85 || sector.spreadsheet !== 'ok') {
+                    total -= 20; 
+                }
+            }
+
+            // Penalidades Individuais (Mês atual)
+            const monthStr = state.currentViewDate.toISOString().slice(0, 7);
+            const irrs = state.irregularities.filter(i => i.empId === emp.id && i.date.startsWith(monthStr));
+            irrs.forEach(irr => {
+                const crit = state.criteria.find(c => c.id === irr.critId);
+                if (crit) total -= crit.percentage;
+            });
+
+            // Pro-rata
+            const hireDate = new Date(emp.hireDate);
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            if (hireDate > firstDay) {
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const daysWorked = daysInMonth - hireDate.getDate() + 1;
+                total = (total * (daysWorked / daysInMonth));
+            }
+
+            return Math.max(0, total).toFixed(1);
+        }
+
+        // --- Renderização ---
+        function render() {
+            // Dashboard
+            const sectorsList = document.getElementById('sectors-list');
+            sectorsList.innerHTML = state.sectors.map(s => `
+                <div class="ios-card p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-yellow-50 p-3 rounded-xl text-[#EAB308]"><i data-lucide="percent" class="w-5 h-5"></i></div>
+                        <div>
+                            <h3 class="font-bold text-xs uppercase tracking-wide">${s.name}</h3>
+                            <div class="flex gap-2 mt-1">
+                                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${s.checklist >= 85 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">Check: ${s.checklist}%</span>
+                                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${s.spreadsheet === 'ok' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">Planilha: ${s.spreadsheet.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-gray-300 w-5 h-5"></i>
+                </div>
+            `).join('');
+
+            // Equipe
+            const empList = document.getElementById('employees-list');
+            empList.innerHTML = state.employees.map(e => `
+                <div class="ios-card p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-yellow-50 text-[#EAB308] flex items-center justify-center font-bold text-lg">
+                                ${e.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800">${e.name}</h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${state.sectors.find(s => s.id === e.sectorId)?.name || 'S/ SETOR'}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <select onchange="updateEmpStatus('${e.id}', this.value)" class="text-[10px] font-bold uppercase bg-gray-50 border-none p-1 rounded-lg">
+                                <option value="active" ${e.status === 'active' ? 'selected' : ''}>Ativo</option>
+                                <option value="vacation" ${e.status === 'vacation' ? 'selected' : ''}>Férias</option>
+                                <option value="warning" ${e.status === 'warning' ? 'selected' : ''}>Advertência</option>
+                            </select>
+                            <button onclick="deleteEmployee('${e.id}')" class="text-gray-200 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                        <div class="bg-gray-50/50 p-3 rounded-2xl">
+                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Gratificação</p>
+                            <p class="text-xl font-black ${calculateGratification(e) > 0 ? 'text-green-600' : 'text-gray-400'}">${calculateGratification(e)}%</p>
+                        </div>
+                        <div class="bg-gray-50/50 p-3 rounded-2xl">
+                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Status Base</p>
+                            <span class="text-xs font-bold ${e.status === 'active' ? 'text-green-500' : 'text-red-400'}">${e.status === 'active' ? '● APTO' : '○ INAPTO'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Settings Lists
+            const setSectorsList = document.getElementById('settings-sectors-list');
+            setSectorsList.innerHTML = state.sectors.map(s => `
+                <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100">
+                    <span class="font-bold text-xs uppercase tracking-tighter">${s.name}</span>
+                    <div class="flex gap-2">
+                        <input type="number" value="${s.checklist}" onblur="updateSector('${s.id}', 'checklist', this.value)" class="w-12 bg-gray-50 text-xs p-1 text-center rounded-lg border-none">
+                        <select onchange="updateSector('${s.id}', 'spreadsheet', this.value)" class="bg-gray-50 text-[10px] font-bold p-1 rounded-lg border-none uppercase">
+                            <option value="ok" ${s.spreadsheet === 'ok' ? 'selected' : ''}>OK</option>
+                            <option value="pending" ${s.spreadsheet === 'pending' ? 'selected' : ''}>Pendente</option>
+                        </select>
+                        <button onclick="deleteSector('${s.id}')"><i data-lucide="trash" class="w-4 h-4 text-red-200"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            const setCritList = document.getElementById('settings-criteria-list');
+            setCritList.innerHTML = state.criteria.map(c => `
+                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-gray-100">
+                    <span class="text-sm font-medium">${c.name}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="text-red-500 font-bold text-sm">-${c.percentage}%</span>
+                        <button onclick="deleteCriterion('${c.id}')"><i data-lucide="trash" class="w-4 h-4 text-gray-200"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Modais Selects
+            document.getElementById('new-emp-sector').innerHTML = state.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('irr-emp').innerHTML = `<option value="">Escolha o colaborador...</option>` + state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            document.getElementById('irr-crit').innerHTML = `<option value="">Critério violado...</option>` + state.criteria.map(c => `<option value="${c.id}">${c.name} (-${c.percentage}%)</option>`).join('');
+
+            // Header Config
+            if (state.config.logo) {
+                document.getElementById('logo-container').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+                document.getElementById('logo-preview').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+            }
+
+            // Global Metrics
+            const okSectors = state.sectors.filter(s => s.checklist >= 85 && s.spreadsheet === 'ok').length;
+            const perc = state.sectors.length ? (okSectors / state.sectors.length * 100).toFixed(0) : 0;
+            document.getElementById('global-progress').innerText = perc + '%';
+            document.getElementById('progress-bar').style.width = perc + '%';
+            document.getElementById('sector-count').innerText = `${okSectors}/${state.sectors.length} setores conformes`;
+
+            lucide.createIcons();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const monthDisp = document.getElementById('current-month-display');
+            const date = state.currentViewDate;
+            
+            monthDisp.innerText = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+            
+            let html = ['D','S','T','Q','Q','S','S'].map(d => `<div class="text-[10px] text-gray-400 font-bold text-center py-2">${d}</div>`).join('');
+            
+            for (let i = 0; i < firstDay; i++) html += '<div></div>';
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasIrr = state.irregularities.some(i => i.date === dateStr);
+                html += `
+                    <button onclick="openIrregularityModal('${dateStr}')" class="aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all ${hasIrr ? 'has-irr' : 'bg-gray-50 text-gray-700'}">
+                        ${day}
+                    </button>
+                `;
+            }
+            grid.innerHTML = html;
+
+            const irrMonth = state.irregularities.filter(i => i.date.startsWith(date.toISOString().slice(0, 7)));
+            document.getElementById('month-irregularities').innerHTML = irrMonth.length ? irrMonth.map(irr => {
+                const emp = state.employees.find(e => e.id === irr.empId);
+                const crit = state.criteria.find(c => c.id === irr.critId);
+                return `
+                    <div class="ios-card p-4 border-l-4 border-red-400 flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase">${irr.date.split('-').reverse().join('/')} • ${crit?.name}</p>
+                            <p class="font-bold text-sm">${emp?.name}</p>
+                            <p class="text-xs text-gray-500 italic mt-1 leading-tight">"${irr.desc}"</p>
+                        </div>
+                        <button onclick="deleteIrregularity('${irr.id}')" class="text-gray-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+            }).join('') : '<p class="text-center text-xs text-gray-400 py-4">Sem ocorrências registradas.</p>';
+            
+            lucide.createIcons();
+        }
+
+        // --- Ações ---
+        function changeMonth(step) {
+            state.currentViewDate.setMonth(state.currentViewDate.getMonth() + step);
+            renderCalendar();
+            render();
+        }
+
+        function handleLogo(e) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                state.config.logo = reader.result;
+                saveState();
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        function saveEmployee() {
+            const name = document.getElementById('new-emp-name').value;
+            if (!name) return;
+            state.employees.push({
+                id: Date.now().toString(),
+                name,
+                sectorId: document.getElementById('new-emp-sector').value,
+                role: document.getElementById('new-emp-role').value,
+                hireDate: document.getElementById('new-emp-date').value || new Date().toISOString().split('T')[0],
+                status: 'active'
+            });
+            closeModal('employee-modal');
+            saveState();
+        }
+
+        function deleteEmployee(id) { if(confirm('Excluir colaborador?')) { state.employees = state.employees.filter(e => e.id !== id); saveState(); } }
+        function updateEmpStatus(id, status) { 
+            const emp = state.employees.find(e => e.id === id);
+            if(emp) { emp.status = status; saveState(); }
+        }
+
+        function openIrregularityModal(date) {
+            const d = date || new Date().toISOString().split('T')[0];
+            document.getElementById('irr-date-display').innerText = d.split('-').reverse().join('/');
+            document.getElementById('irr-date-display').dataset.date = d;
+            openModal('irr-modal');
+        }
+
+        function saveIrregularity() {
+            const empId = document.getElementById('irr-emp').value;
+            const critId = document.getElementById('irr-crit').value;
+            if (!empId || !critId) return;
+            
+            state.irregularities.push({
+                id: Date.now().toString(),
+                empId,
+                critId,
+                date: document.getElementById('irr-date-display').dataset.date,
+                desc: document.getElementById('irr-desc').value
+            });
+            closeModal('irr-modal');
+            saveState();
+            
+            // Correção do erro: Usando state.activeTab em vez de activeTab
+            if(state.activeTab === 'history') renderCalendar();
+        }
+
+        function deleteIrregularity(id) { state.irregularities = state.irregularities.filter(i => i.id !== id); saveState(); renderCalendar(); }
+
+        function addNewSector() {
+            const name = prompt("Nome do Setor:");
+            if(name) { state.sectors.push({ id: Date.now().toString(), name, checklist: 100, spreadsheet: 'ok' }); saveState(); }
+        }
+
+        function updateSector(id, field, val) {
+            const sector = state.sectors.find(s => s.id === id);
+            if(sector) { sector[field] = field === 'checklist' ? parseInt(val) : val; saveState(); }
+        }
+
+        function deleteSector(id) { if(confirm('Excluir setor?')) { state.sectors = state.sectors.filter(s => s.id !== id); saveState(); } }
+
+        function addNewCriterion() {
+            const name = prompt("Nome do Critério:");
+            const perc = prompt("Porcentagem de Desconto:");
+            if(name && perc) { state.criteria.push({ id: Date.now().toString(), name, percentage: parseInt(perc) }); saveState(); }
+        }
+
+        function deleteCriterion(id) { state.criteria = state.criteria.filter(c => c.id !== id); saveState(); }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            if(state.config.logo) doc.addImage(state.config.logo, 'PNG', 10, 10, 25, 25);
+            doc.setFontSize(18);
+            doc.text("Relatório de Conformidades IMAC", 40, 20);
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 40, 28);
+
+            const tableData = state.irregularities.map(irr => [
+                irr.date,
+                state.employees.find(e => e.id === irr.empId)?.name || 'N/A',
+                state.criteria.find(c => c.id === irr.critId)?.name || 'N/A',
+                irr.desc
+            ]);
+
+            doc.autoTable({
+                startY: 40,
+                head: [['Data', 'Colaborador', 'Critério', 'Descrição']],
+                body: tableData,
+                headStyles: { fillColor: [234, 179, 8] }
+            });
+
+            doc.save('relatorio-imac.pdf');
+        }
+
+        // --- Inicialização ---
+        window.onload = () => {
+            switchTab('dashboard');
+            render();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
