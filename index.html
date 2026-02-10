@@ -205,6 +205,24 @@
                 </button>
             </section>
 
+            <section class="bg-white rounded-3xl p-6 shadow-sm space-y-6">
+                <h2 class="text-lg font-bold">Dados do Sistema</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="downloadBackup()" class="bg-blue-50 text-blue-600 py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-2 hover:bg-blue-100 transition-colors btn-press">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Backup (JSON)
+                    </button>
+                    <label class="bg-green-50 text-green-600 py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-2 hover:bg-green-100 transition-colors cursor-pointer btn-press">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                        Restaurar
+                        <input type="file" accept=".json" class="hidden" onchange="uploadBackup(event)">
+                    </label>
+                </div>
+                <button onclick="resetDatabase()" class="w-full bg-red-50 text-red-500 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-colors btn-press">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i> Apagar Todos os Dados
+                </button>
+            </section>
+
             <section class="space-y-4">
                 <div class="flex justify-between items-center px-1">
                     <h2 class="text-lg font-bold">Gestão de Setores</h2>
@@ -560,6 +578,47 @@
         // --- Helpers ---
         function formatCurrency(value) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        // --- Data Management Functions ---
+        function downloadBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_imac_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function uploadBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const newState = JSON.parse(e.target.result);
+                    if (confirm('Tem certeza que deseja restaurar este backup? Os dados atuais serão substituídos.')) {
+                        state = newState;
+                        saveState();
+                        alert('Dados restaurados com sucesso!');
+                        location.reload();
+                    }
+                } catch (err) {
+                    alert('Erro ao ler o arquivo de backup. Certifique-se de que é um JSON válido.');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetDatabase() {
+            if (confirm('ATENÇÃO: Isso apagará TODOS os dados (colaboradores, setores, histórico). Tem certeza absoluta?')) {
+                localStorage.clear();
+                alert('Banco de dados apagado.');
+                location.reload();
+            }
         }
 
         // --- Navegação ---
