@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMAC - Gestão de Gratificação</title>
-    <!-- Tailwind CSS para estilização rápida -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- jsPDF para relatórios -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -37,7 +37,6 @@
             transform: scale(1.1);
         }
 
-        /* Estilização da barra de rolagem */
         ::-webkit-scrollbar { width: 0px; }
 
         .modal-enter { animation: slideUp 0.3s ease-out; }
@@ -47,8 +46,8 @@
         }
 
         .calendar-day.has-irr {
-            background-color: #FEFCE8; /* Amarelo bem claro */
-            border: 2px solid #FDE047; /* Borda amarela mais visível */
+            background-color: #FEFCE8;
+            border: 2px solid #FDE047;
         }
         
         .irr-dot {
@@ -59,7 +58,29 @@
             display: inline-block;
         }
 
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #22c55e;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #22c55e;
+        }
+        
         .btn-press:active { transform: scale(0.95); }
+
+        /* Smooth expansion for textarea */
+        .desc-input-wrapper {
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+        }
+        .desc-input-wrapper.open {
+            max-height: 100px;
+            opacity: 1;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body class="pb-28">
@@ -83,29 +104,35 @@
 
         <div class="bg-white/95 backdrop-blur-sm rounded-3xl p-5 shadow-sm text-gray-800">
             <div class="flex justify-between items-end mb-2">
-                <span class="text-gray-500 font-medium text-xs uppercase tracking-tighter">Conformidade Global</span>
-                <span id="global-progress" class="text-[#EAB308] font-bold text-2xl">0%</span>
+                <span class="text-gray-500 font-medium text-xs uppercase tracking-tighter">Checklist Diário</span>
+                <span id="daily-progress-text" class="text-[#EAB308] font-bold text-2xl">0/0</span>
             </div>
             <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
-                <div id="progress-bar" class="bg-[#EAB308] h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+                <div id="daily-progress-bar" class="bg-[#EAB308] h-full rounded-full transition-all duration-700" style="width: 0%"></div>
             </div>
-            <p id="sector-count" class="text-[9px] text-gray-400 mt-2 text-right uppercase font-bold">0 setores verificados</p>
+            <p class="text-[9px] text-gray-400 mt-2 text-right uppercase font-bold">Colaboradores Avaliados Hoje</p>
         </div>
     </header>
 
     <!-- Conteúdo Principal -->
     <main id="app-content" class="mt-4 px-4">
-        <!-- Dashboard View (Default) -->
-        <div id="view-dashboard" class="view hidden space-y-6 animate-in fade-in">
-            <section>
-                <div class="flex items-center justify-between mb-4 ml-1">
-                    <h2 class="text-gray-900 font-bold text-lg">Auditoria de Setores</h2>
-                    <span class="text-[10px] text-gray-400 font-bold uppercase bg-white px-2 py-1 rounded-lg shadow-sm">Diário</span>
-                </div>
-                <div id="sectors-list" class="grid gap-4">
-                    <!-- Gerado via JS -->
-                </div>
-            </section>
+        <!-- Dashboard View (Checklist Diário) -->
+        <div id="view-dashboard" class="view hidden space-y-4 animate-in fade-in">
+            
+            <!-- Filtro de Setores (Tabs) -->
+            <div class="flex items-center justify-between ml-1 mb-2">
+                <h2 class="text-gray-900 font-bold text-lg">Selecionar Setor</h2>
+                <span class="text-[10px] text-gray-400 font-bold uppercase bg-white px-2 py-1 rounded-lg shadow-sm" id="today-date-display">--/--</span>
+            </div>
+            
+            <div id="sector-tabs" class="flex gap-2 overflow-x-auto pb-2 snap-x no-scrollbar">
+                <!-- Gerado via JS -->
+            </div>
+
+            <!-- Lista de Colaboradores para Checklist -->
+            <div id="sector-content-area" class="space-y-6 pt-2">
+                <!-- Gerado via JS -->
+            </div>
         </div>
 
         <!-- Equipe View -->
@@ -174,7 +201,7 @@
                     </div>
                 </div>
                 <button onclick="exportPDF()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 btn-press shadow-xl shadow-gray-200">
-                    <i data-lucide="file-down" class="w-5 h-5"></i> Exportar Relatório Detalhado
+                    <i data-lucide="file-down" class="w-5 h-5"></i> Exportar Extrato Financeiro
                 </button>
             </section>
 
@@ -199,8 +226,8 @@
     <!-- Barra de Navegação -->
     <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/90 backdrop-blur-xl border border-white/40 rounded-[35px] h-20 shadow-2xl z-40 flex items-center justify-around px-2 py-2">
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
-            <i data-lucide="layout-grid" class="w-6 h-6"></i>
-            <span class="text-[9px] font-bold uppercase tracking-tight">Setores</span>
+            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+            <span class="text-[9px] font-bold uppercase tracking-tight">Checklist</span>
         </button>
         <button onclick="switchTab('employees')" id="nav-employees" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
             <i data-lucide="users" class="w-6 h-6"></i>
@@ -221,8 +248,116 @@
         </button>
     </nav>
 
-    <!-- Modais -->
-    
+    <!-- Modal: Configuração de Planilhas (Settings) -->
+    <div id="sheet-config-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-6 modal-enter shadow-2xl h-[70vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-gray-900" id="sheet-config-title">Planilhas do Setor</h2>
+                <button onclick="closeModal('sheet-config-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="flex gap-2 mb-4">
+                <input id="new-sheet-name" class="flex-1 bg-gray-50 border-none rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-yellow-200" placeholder="Nome da Planilha...">
+                <button onclick="addSheetToSector()" class="bg-[#EAB308] text-white p-3 rounded-xl btn-press"><i data-lucide="plus" class="w-5 h-5"></i></button>
+            </div>
+
+            <div id="sheet-config-list" class="flex-1 overflow-y-auto space-y-2">
+                <!-- Lista de Planilhas -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Auditoria de Planilhas (Dashboard) -->
+    <div id="sheet-audit-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-6 modal-enter shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Conferência de Planilhas</h2>
+                <button onclick="closeModal('sheet-audit-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div id="sheet-audit-list" class="space-y-4 mb-6">
+                <!-- Lista de Checks -->
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="saveSheetAudit()" class="w-full bg-black text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">Concluir Conferência</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Avaliação Diária (COM JUSTIFICATIVA) -->
+    <div id="daily-check-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-6 modal-enter shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900" id="daily-check-name">Colaborador</h2>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest" id="daily-check-sector">Setor</p>
+                </div>
+                <div class="bg-yellow-50 p-2 rounded-full text-[#EAB308]">
+                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <!-- Higiene -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="sparkles" class="text-blue-400 w-5 h-5"></i>
+                            <span class="font-bold text-sm text-gray-700">Higiene (Barba/Unhas)</span>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="check-higiene" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 transition-all checked:right-0 checked:border-green-500" checked onchange="toggleDescInput(this, 'desc-higiene-wrapper')"/>
+                            <label for="check-higiene" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div id="desc-higiene-wrapper" class="desc-input-wrapper">
+                        <input id="desc-higiene" class="w-full mt-2 p-2 text-xs border border-red-200 rounded-lg bg-red-50 text-gray-700 placeholder-red-300 outline-none" placeholder="Descreva a irregularidade (ex: Barba grande)">
+                    </div>
+                </div>
+
+                <!-- Fardamento -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="shirt" class="text-purple-400 w-5 h-5"></i>
+                            <span class="font-bold text-sm text-gray-700">Fardamento Completo</span>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="check-fardamento" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 transition-all checked:right-0 checked:border-green-500" checked onchange="toggleDescInput(this, 'desc-fardamento-wrapper')"/>
+                            <label for="check-fardamento" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div id="desc-fardamento-wrapper" class="desc-input-wrapper">
+                        <input id="desc-fardamento" class="w-full mt-2 p-2 text-xs border border-red-200 rounded-lg bg-red-50 text-gray-700 placeholder-red-300 outline-none" placeholder="Descreva a irregularidade...">
+                    </div>
+                </div>
+
+                <!-- EPI -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="hard-hat" class="text-orange-400 w-5 h-5"></i>
+                            <span class="font-bold text-sm text-gray-700">Uso de EPI</span>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="check-epi" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 transition-all checked:right-0 checked:border-green-500" checked onchange="toggleDescInput(this, 'desc-epi-wrapper')"/>
+                            <label for="check-epi" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div id="desc-epi-wrapper" class="desc-input-wrapper">
+                        <input id="desc-epi" class="w-full mt-2 p-2 text-xs border border-red-200 rounded-lg bg-red-50 text-gray-700 placeholder-red-300 outline-none" placeholder="Qual EPI faltou?">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeModal('daily-check-modal')" class="flex-1 py-4 text-gray-400 font-bold hover:bg-gray-50 rounded-2xl">Cancelar</button>
+                <button onclick="submitDailyCheck()" class="flex-[2] bg-black text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Adicionar Colaborador -->
     <div id="employee-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[32px] p-8 modal-enter shadow-2xl">
@@ -245,9 +380,15 @@
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Admissão</label>
-                    <input id="new-emp-date" type="date" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Admissão</label>
+                        <input id="new-emp-date" type="date" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Valor (R$)</label>
+                        <input id="new-emp-value" type="number" step="0.01" placeholder="0,00" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none">
+                    </div>
                 </div>
                 <div class="flex gap-4 pt-4">
                     <button onclick="closeModal('employee-modal')" class="flex-1 font-bold text-gray-400 py-4 hover:bg-gray-50 rounded-2xl transition-colors">Cancelar</button>
@@ -257,14 +398,15 @@
         </div>
     </div>
 
-    <!-- Modal: Detalhes e Edição do Colaborador (NOVO) -->
+    <!-- Modal: Detalhes e Edição do Colaborador (ATUALIZADO) -->
     <div id="employee-details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[32px] p-0 modal-enter shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div class="bg-[#EAB308] p-6 pb-8 rounded-b-[32px] shadow-sm relative z-10 shrink-0">
                  <div class="flex justify-between items-start mb-4">
                      <button onclick="closeModal('employee-details-modal')" class="bg-white/20 p-2 rounded-full text-white backdrop-blur-md"><i data-lucide="x" class="w-5 h-5"></i></button>
-                     <div class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md">
-                         <span id="detail-emp-score-display" class="font-black text-white text-lg">100%</span>
+                     <div class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex flex-col items-end">
+                         <span class="text-[10px] text-white/80 font-bold uppercase">A Receber</span>
+                         <span id="detail-emp-score-display" class="font-black text-white text-lg">R$ 0,00</span>
                      </div>
                  </div>
                  <input id="detail-emp-name" class="bg-transparent text-white font-bold text-2xl w-full border-b border-white/30 focus:border-white outline-none placeholder-white/70" placeholder="Nome do Colaborador">
@@ -276,17 +418,16 @@
             </div>
 
             <div class="p-6 overflow-y-auto space-y-6 bg-white flex-1">
-                <!-- Seção de Ajuste Manual -->
-                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ajuste Manual</label>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggle" id="manual-score-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 checked:right-0 checked:border-[#EAB308] transition-all"/>
-                            <label for="manual-score-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer checked:bg-yellow-200"></label>
-                        </div>
+                <!-- Seção de Valor Base -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Valor Base</label>
+                        <p class="text-xs text-gray-400">Gratificação Mensal Total</p>
                     </div>
-                    <p class="text-[10px] text-gray-400 mb-3">Ative para ignorar o cálculo e definir a nota final.</p>
-                    <input id="manual-score-input" type="number" placeholder="0 - 100" class="w-full bg-white p-3 rounded-xl border-none outline-none font-bold text-gray-800 disabled:opacity-50" disabled>
+                    <div class="flex items-center gap-1 bg-white px-3 py-2 rounded-xl border border-gray-100">
+                        <span class="text-sm font-bold text-gray-400">R$</span>
+                        <input id="detail-emp-value" type="number" step="0.01" class="w-20 font-bold text-gray-800 outline-none text-right" placeholder="0,00">
+                    </div>
                 </div>
 
                 <!-- Seção de Histórico de Descontos -->
@@ -323,9 +464,20 @@
 
             <div class="space-y-4">
                 <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Adicionar Nova</h3>
+                
+                <!-- Novo Campo: Seleção de Setor para Filtro -->
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Filtrar por Setor</label>
+                    <select id="irr-sector" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none focus:ring-2 focus:ring-yellow-200" onchange="updateIrrEmployees(this.value)">
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+
                 <div>
                      <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Quem?</label>
-                    <select id="irr-emp" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none focus:ring-2 focus:ring-yellow-200"></select>
+                    <select id="irr-emp" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none focus:ring-2 focus:ring-yellow-200" disabled>
+                        <option value="">Selecione um setor primeiro...</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Motivo</label>
@@ -348,22 +500,52 @@
         let state = {
             employees: JSON.parse(localStorage.getItem('imac_employees')) || [],
             sectors: JSON.parse(localStorage.getItem('imac_sectors')) || [
-                { id: '1', name: 'Banheiro Feminino', checklist: 100, spreadsheet: 'ok' },
-                { id: '2', name: 'Banheiro Masculino', checklist: 100, spreadsheet: 'ok' },
-                { id: '3', name: 'Confeitaria', checklist: 100, spreadsheet: 'ok' }
+                { id: '1', name: 'Banheiro Feminino', checklist: 100, spreadsheet: 'ok', definedSheets: ['Limpeza Diária', 'Reposição de Papel'], sheetStatuses: {} },
+                { id: '2', name: 'Banheiro Masculino', checklist: 100, spreadsheet: 'ok', definedSheets: ['Limpeza Diária'], sheetStatuses: {} },
+                { id: '3', name: 'Confeitaria', checklist: 100, spreadsheet: 'ok', definedSheets: ['Controle de Temp.', 'Validade'], sheetStatuses: {} }
             ],
             criteria: JSON.parse(localStorage.getItem('imac_criteria')) || [
                 { id: '1', name: 'Uso de EPI', percentage: 10 },
-                { id: '2', name: 'Limpeza de Bancada', percentage: 5 },
-                { id: '3', name: 'Atraso', percentage: 2 }
+                { id: '2', name: 'Higiene (Barba/Unhas)', percentage: 5 },
+                { id: '3', name: 'Fardamento', percentage: 5 },
+                { id: '4', name: 'Atraso', percentage: 2 }
             ],
             irregularities: JSON.parse(localStorage.getItem('imac_irregularities')) || [],
             config: JSON.parse(localStorage.getItem('imac_config')) || { logo: '' },
+            dailyChecks: JSON.parse(localStorage.getItem('imac_daily')) || { date: '', checkedIds: [] },
             currentViewDate: new Date(),
             activeTab: 'dashboard',
             searchTerm: '',
-            editingEmpId: null // Rastreia quem está sendo editado no modal
+            editingEmpId: null,
+            checkingEmpId: null,
+            activeDailySectorId: null,
+            activeSheetConfigId: null
         };
+
+        // Ensure default structure
+        function ensureStructure() {
+            state.sectors.forEach(s => {
+                if(!s.definedSheets) s.definedSheets = [];
+                if(!s.sheetStatuses) s.sheetStatuses = {};
+            });
+            saveState();
+        }
+
+        // Garantir critérios padrão
+        function ensureDefaultCriteria() {
+            const defaults = [
+                { name: 'Higiene (Barba/Unhas)', percentage: 5 },
+                { name: 'Fardamento', percentage: 5 },
+                { name: 'Uso de EPI', percentage: 10 }
+            ];
+            
+            defaults.forEach(def => {
+                if (!state.criteria.some(c => c.name === def.name)) {
+                    state.criteria.push({ id: Date.now().toString() + Math.random(), ...def });
+                }
+            });
+            saveState();
+        }
 
         function saveState() {
             localStorage.setItem('imac_employees', JSON.stringify(state.employees));
@@ -371,7 +553,13 @@
             localStorage.setItem('imac_criteria', JSON.stringify(state.criteria));
             localStorage.setItem('imac_irregularities', JSON.stringify(state.irregularities));
             localStorage.setItem('imac_config', JSON.stringify(state.config));
+            localStorage.setItem('imac_daily', JSON.stringify(state.dailyChecks));
             render();
+        }
+
+        // --- Helpers ---
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         }
 
         // --- Navegação ---
@@ -393,7 +581,19 @@
             
             if (tabId === 'history') renderCalendar();
             if (tabId === 'employees') renderEmployees();
+            if (tabId === 'dashboard') {
+                // Selecionar o primeiro setor por padrão se nenhum estiver selecionado
+                if(!state.activeDailySectorId && state.sectors.length > 0) {
+                    state.activeDailySectorId = state.sectors[0].id;
+                }
+                renderDashboard();
+            }
             lucide.createIcons();
+        }
+
+        function switchSectorTab(sectorId) {
+            state.activeDailySectorId = sectorId;
+            renderDashboard();
         }
 
         function handleSearch(val) {
@@ -405,45 +605,220 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- Lógica de Negócio ---
-        function calculateGratification(emp) {
-            // Verifica se há ajuste manual
-            if (emp.manualScore !== undefined && emp.manualScore !== null && emp.manualScore !== '') {
-                return parseFloat(emp.manualScore).toFixed(1);
-            }
+        // --- Gestão de Planilhas (Settings) ---
+        function openSheetConfig(sectorId) {
+            state.activeSheetConfigId = sectorId;
+            const sector = state.sectors.find(s => s.id === sectorId);
+            document.getElementById('sheet-config-title').innerText = `Planilhas: ${sector.name}`;
+            renderSheetConfigList();
+            openModal('sheet-config-modal');
+        }
 
-            if (emp.status === 'vacation' || emp.status === 'warning') return 0;
+        function renderSheetConfigList() {
+            const sector = state.sectors.find(s => s.id === state.activeSheetConfigId);
+            const list = document.getElementById('sheet-config-list');
             
-            let total = 100;
+            if (sector.definedSheets.length === 0) {
+                list.innerHTML = `<p class="text-gray-400 text-sm text-center italic mt-4">Nenhuma planilha cadastrada.</p>`;
+            } else {
+                list.innerHTML = sector.definedSheets.map((sheet, index) => `
+                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <span class="text-sm font-medium text-gray-700">${sheet}</span>
+                        <button onclick="removeSheetFromSector(${index})" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        function addSheetToSector() {
+            const input = document.getElementById('new-sheet-name');
+            const name = input.value.trim();
+            if (!name) return;
+            
+            const sector = state.sectors.find(s => s.id === state.activeSheetConfigId);
+            sector.definedSheets.push(name);
+            // Inicializar status como pendente se não existir
+            if (sector.sheetStatuses[name] === undefined) {
+                sector.sheetStatuses[name] = false; 
+            }
+            
+            input.value = '';
+            saveState();
+            renderSheetConfigList();
+        }
+
+        function removeSheetFromSector(index) {
+            const sector = state.sectors.find(s => s.id === state.activeSheetConfigId);
+            const removedName = sector.definedSheets[index];
+            sector.definedSheets.splice(index, 1);
+            delete sector.sheetStatuses[removedName];
+            saveState();
+            renderSheetConfigList();
+        }
+
+        // --- Conferência de Planilhas (Dashboard) ---
+        function openSheetAudit(sectorId) {
+            state.activeSheetConfigId = sectorId; // Reusando ID
+            const sector = state.sectors.find(s => s.id === sectorId);
+            const list = document.getElementById('sheet-audit-list');
+            
+            // Garantir que sheetStatuses tem chaves para todas as definedSheets
+            sector.definedSheets.forEach(sheet => {
+                if (sector.sheetStatuses[sheet] === undefined) {
+                    sector.sheetStatuses[sheet] = false; // Padrão pendente
+                }
+            });
+
+            list.innerHTML = sector.definedSheets.map(sheet => {
+                const isChecked = sector.sheetStatuses[sheet];
+                return `
+                    <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <span class="font-bold text-sm text-gray-700">${sheet}</span>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="audit-${sheet}" 
+                                class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 transition-all checked:right-0 checked:border-green-500" 
+                                ${isChecked ? 'checked' : ''} 
+                                onchange="toggleSheetStatus('${sheet}')"/>
+                            <label for="audit-${sheet}" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            openModal('sheet-audit-modal');
+        }
+
+        function toggleSheetStatus(sheetName) {
+            const sector = state.sectors.find(s => s.id === state.activeSheetConfigId);
+            sector.sheetStatuses[sheetName] = !sector.sheetStatuses[sheetName];
+            
+            // Recalcular status geral do setor
+            const allOk = sector.definedSheets.every(s => sector.sheetStatuses[s]);
+            sector.spreadsheet = allOk ? 'ok' : 'pending';
+            
+            saveState();
+            // Se estiver na dashboard, atualiza
+            if (state.activeTab === 'dashboard') {
+                renderDashboard(); 
+            }
+        }
+
+        function saveSheetAudit() {
+            closeModal('sheet-audit-modal');
+            renderDashboard();
+        }
+
+        // --- Lógica Diária ---
+        function checkDailyReset() {
+            const today = new Date().toISOString().split('T')[0];
+            if (state.dailyChecks.date !== today) {
+                state.dailyChecks = { date: today, checkedIds: [] };
+                saveState();
+            }
+            document.getElementById('today-date-display').innerText = today.split('-').reverse().join('/');
+        }
+
+        function openDailyCheck(empId) {
+            state.checkingEmpId = empId;
+            const emp = state.employees.find(e => e.id === empId);
             const sector = state.sectors.find(s => s.id === emp.sectorId);
             
-            // Penalidade Setorial (Coletiva)
+            document.getElementById('daily-check-name').innerText = emp.name;
+            document.getElementById('daily-check-sector').innerText = sector ? sector.name : 'Sem Setor';
+            
+            // Reset toggles e inputs
+            ['higiene', 'fardamento', 'epi'].forEach(type => {
+                document.getElementById(`check-${type}`).checked = true;
+                document.getElementById(`desc-${type}`).value = '';
+                document.getElementById(`desc-${type}-wrapper`).classList.remove('open');
+            });
+            
+            openModal('daily-check-modal');
+        }
+
+        function toggleDescInput(toggle, wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            if (!toggle.checked) {
+                wrapper.classList.add('open');
+            } else {
+                wrapper.classList.remove('open');
+            }
+        }
+
+        function submitDailyCheck() {
+            if (!state.checkingEmpId) return;
+            const empId = state.checkingEmpId;
+            const today = new Date().toISOString().split('T')[0];
+
+            const checks = [
+                { id: 'check-higiene', descId: 'desc-higiene', name: 'Higiene (Barba/Unhas)' },
+                { id: 'check-fardamento', descId: 'desc-fardamento', name: 'Fardamento' },
+                { id: 'check-epi', descId: 'desc-epi', name: 'Uso de EPI' }
+            ];
+
+            checks.forEach(check => {
+                const el = document.getElementById(check.id);
+                if (!el.checked) {
+                    let crit = state.criteria.find(c => c.name.includes(check.name) || c.name === check.name);
+                    const descValue = document.getElementById(check.descId).value.trim();
+                    const finalDesc = descValue ? `Checklist: ${descValue}` : 'Falha no checklist diário';
+
+                    if (crit) {
+                        state.irregularities.push({
+                            id: Date.now().toString() + Math.random(),
+                            empId: empId,
+                            critId: crit.id,
+                            date: today,
+                            desc: finalDesc
+                        });
+                    }
+                }
+            });
+
+            if (!state.dailyChecks.checkedIds.includes(empId)) {
+                state.dailyChecks.checkedIds.push(empId);
+            }
+
+            saveState();
+            closeModal('daily-check-modal');
+            renderDashboard();
+        }
+
+        // --- Lógica de Negócio ---
+        function calculateGratification(emp) {
+            const baseValue = parseFloat(emp.baseValue) || 0;
+            if (emp.status === 'vacation' || emp.status === 'warning') return { percent: 0, value: 0 };
+            
+            let percent = 100;
+            const sector = state.sectors.find(s => s.id === emp.sectorId);
+            
             if (sector) {
                 if (sector.checklist < 85 || sector.spreadsheet !== 'ok') {
-                    total -= 20; 
+                    percent -= 20; 
                 }
             }
 
-            // Penalidades Individuais (Mês atual)
             const today = new Date(); 
             const monthStr = today.toISOString().slice(0, 7);
             const irrs = state.irregularities.filter(i => i.empId === emp.id && i.date.startsWith(monthStr));
             irrs.forEach(irr => {
                 const crit = state.criteria.find(c => c.id === irr.critId);
-                if (crit) total -= crit.percentage;
+                if (crit) percent -= crit.percentage;
             });
 
-            // Pro-rata
             const hireDate = new Date(emp.hireDate);
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            
+            let finalPercent = Math.max(0, percent);
+            let finalValue = (finalPercent / 100) * baseValue;
+
             if (hireDate > firstDay) {
                 const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
                 const daysWorked = daysInMonth - hireDate.getDate() + 1;
-                total = (total * (daysWorked / daysInMonth));
+                finalValue = (finalValue * (daysWorked / daysInMonth));
             }
 
-            return Math.max(0, total).toFixed(1);
+            return { percent: finalPercent.toFixed(1), value: finalValue.toFixed(2) };
         }
 
         // --- Gestão de Detalhes do Colaborador ---
@@ -452,60 +827,53 @@
             const emp = state.employees.find(e => e.id === id);
             if (!emp) return;
 
-            // Preencher dados básicos
             document.getElementById('detail-emp-name').value = emp.name;
             document.getElementById('detail-emp-date').value = emp.hireDate;
+            document.getElementById('detail-emp-value').value = emp.baseValue || 0;
             
-            // Preencher Select de Setor
             const sectorSelect = document.getElementById('detail-emp-sector');
             sectorSelect.innerHTML = state.sectors.map(s => `<option value="${s.id}" ${s.id === emp.sectorId ? 'selected' : ''}>${s.name}</option>`).join('');
 
-            // Preencher Score Manual
-            const manualToggle = document.getElementById('manual-score-toggle');
-            const manualInput = document.getElementById('manual-score-input');
+            const results = calculateGratification(emp);
+            document.getElementById('detail-emp-score-display').innerText = formatCurrency(results.value);
             
-            if (emp.manualScore !== undefined && emp.manualScore !== null && emp.manualScore !== '') {
-                manualToggle.checked = true;
-                manualInput.disabled = false;
-                manualInput.value = emp.manualScore;
-                manualInput.classList.remove('bg-gray-100');
-                manualInput.classList.add('bg-white');
-            } else {
-                manualToggle.checked = false;
-                manualInput.disabled = true;
-                manualInput.value = '';
-                manualInput.classList.add('bg-gray-100');
-            }
-
-            // Toggle Event
-            manualToggle.onclick = () => {
-                manualInput.disabled = !manualToggle.checked;
-                if (!manualToggle.checked) manualInput.value = '';
-                manualInput.focus();
-            };
-
-            // Exibir Score Atual
-            const currentScore = calculateGratification(emp);
-            document.getElementById('detail-emp-score-display').innerText = `${currentScore}%`;
-            
-            if (parseFloat(currentScore) < 70) {
-                 document.getElementById('detail-emp-score-display').parentElement.classList.add('bg-red-500');
-            } else {
-                 document.getElementById('detail-emp-score-display').parentElement.classList.remove('bg-red-500');
-            }
-
-
-            // Listar Descontos (Irregularidades) do Mês
             const today = new Date();
             const monthStr = today.toISOString().slice(0, 7);
             const irrs = state.irregularities.filter(i => i.empId === emp.id && i.date.startsWith(monthStr));
             
             const listContainer = document.getElementById('detail-irr-list');
-            if (irrs.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 border border-dashed border-gray-200 rounded-xl text-xs text-gray-400">Nenhuma irregularidade neste mês.</div>`;
-            } else {
-                listContainer.innerHTML = irrs.map(irr => {
+            let listHtml = '';
+            const baseVal = parseFloat(emp.baseValue) || 0;
+
+            const sector = state.sectors.find(s => s.id === emp.sectorId);
+            if (sector && (sector.checklist < 85 || sector.spreadsheet !== 'ok')) {
+                const penaltyVal = (20 / 100) * baseVal;
+                const reasons = [];
+                if(sector.checklist < 85) reasons.push(`Checklist Baixo (${sector.checklist}%)`);
+                if(sector.spreadsheet !== 'ok') reasons.push(`Planilha Pendente`);
+
+                listHtml += `
+                    <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex justify-between items-center shadow-sm">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded">SETOR</span>
+                                <span class="text-xs font-bold text-gray-800">Penalidade Setorial</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 italic mt-1">${reasons.join(' & ')}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-xs font-bold text-red-500">-${formatCurrency(penaltyVal)}</span>
+                            <span class="block text-[9px] text-gray-400 font-bold">(-20%)</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (irrs.length > 0) {
+                listHtml += irrs.map(irr => {
                     const crit = state.criteria.find(c => c.id === irr.critId);
+                    const discountValue = (crit.percentage / 100) * baseVal;
+                    
                     return `
                         <div class="bg-white p-3 rounded-xl border border-red-100 flex justify-between items-center shadow-sm">
                             <div>
@@ -516,7 +884,10 @@
                                 <p class="text-[10px] text-gray-400 italic mt-1">${irr.desc}</p>
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-xs font-bold text-red-500">-${crit?.percentage}%</span>
+                                <div class="text-right">
+                                    <span class="block text-xs font-bold text-red-500">-${formatCurrency(discountValue)}</span>
+                                    <span class="block text-[9px] text-gray-400 font-bold">(${crit?.percentage}%)</span>
+                                </div>
                                 <button onclick="deleteIrregularityFromDetails('${irr.id}')" class="bg-gray-50 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
@@ -524,9 +895,12 @@
                         </div>
                     `;
                 }).join('');
-                lucide.createIcons();
+            } else if (!listHtml) {
+                listHtml = `<div class="text-center p-4 border border-dashed border-gray-200 rounded-xl text-xs text-gray-400">Nenhum desconto aplicado.</div>`;
             }
 
+            listContainer.innerHTML = listHtml;
+            lucide.createIcons();
             openModal('employee-details-modal');
         }
 
@@ -538,26 +912,17 @@
             emp.name = document.getElementById('detail-emp-name').value;
             emp.sectorId = document.getElementById('detail-emp-sector').value;
             emp.hireDate = document.getElementById('detail-emp-date').value;
+            emp.baseValue = parseFloat(document.getElementById('detail-emp-value').value) || 0;
             
-            const manualToggle = document.getElementById('manual-score-toggle');
-            const manualInput = document.getElementById('manual-score-input');
-
-            if (manualToggle.checked && manualInput.value !== '') {
-                emp.manualScore = parseFloat(manualInput.value);
-            } else {
-                delete emp.manualScore; // Remove a propriedade se desativado
-            }
-
             saveState();
             closeModal('employee-details-modal');
-            renderEmployees(); // Atualiza a lista principal
+            renderEmployees();
         }
 
         function deleteIrregularityFromDetails(irrId) {
-            if(confirm('Remover este desconto e recalcular a nota?')) {
+            if(confirm('Remover este desconto e recalcular a gratificação?')) {
                 state.irregularities = state.irregularities.filter(i => i.id !== irrId);
                 saveState();
-                // Reabrir o modal para atualizar a lista e a nota
                 openEmployeeDetails(state.editingEmpId);
             }
         }
@@ -574,41 +939,153 @@
         }
 
         function renderDashboard() {
-            const sectorsList = document.getElementById('sectors-list');
-            sectorsList.innerHTML = state.sectors.map(s => `
-                <div class="ios-card p-4 flex flex-col gap-3 border border-white/50">
-                    <div class="flex items-center justify-between">
+            checkDailyReset();
+
+            const tabsContainer = document.getElementById('sector-tabs');
+            const contentArea = document.getElementById('sector-content-area');
+
+            // Renderizar Abas de Setor
+            if(state.sectors.length === 0) {
+                tabsContainer.innerHTML = '<span class="text-xs text-gray-400 italic px-2">Crie setores em Configurações.</span>';
+                contentArea.innerHTML = '';
+                return;
+            }
+
+            tabsContainer.innerHTML = state.sectors.map(s => {
+                const isActive = s.id === state.activeDailySectorId;
+                return `
+                    <button onclick="switchSectorTab('${s.id}')" class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${isActive ? 'bg-[#EAB308] text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100'}">
+                        ${s.name}
+                    </button>
+                `;
+            }).join('');
+
+            // Se nenhum setor selecionado, não renderiza lista
+            if(!state.activeDailySectorId) return;
+
+            const activeSector = state.sectors.find(s => s.id === state.activeDailySectorId);
+            
+            // Renderizar Lista de Funcionários do Setor
+            const sectorEmployees = state.employees.filter(e => e.status === 'active' && e.sectorId === state.activeDailySectorId);
+            const checkedIds = state.dailyChecks.checkedIds;
+            const pending = sectorEmployees.filter(e => !checkedIds.includes(e.id));
+            const done = sectorEmployees.filter(e => checkedIds.includes(e.id));
+
+            let html = '';
+
+            // Seção Pendentes
+            if (pending.length > 0) {
+                html += pending.map(e => `
+                    <div onclick="openDailyCheck('${e.id}')" class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-yellow-400 cursor-pointer active:scale-98 transition-transform flex items-center justify-between group">
                         <div class="flex items-center gap-3">
-                            <div class="bg-yellow-100 p-2.5 rounded-xl text-yellow-700">
-                                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-400 group-hover:bg-yellow-50 group-hover:text-[#EAB308] transition-colors">
+                                ${e.name.charAt(0)}
                             </div>
-                            <h3 class="font-bold text-sm uppercase tracking-wide text-gray-800">${s.name}</h3>
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">${e.name}</p>
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Pendente</p>
+                            </div>
                         </div>
-                        <div class="flex gap-2">
-                             <div class="flex flex-col items-end">
-                                <span class="text-[9px] font-bold text-gray-400 uppercase">Checklist</span>
-                                <input type="number" value="${s.checklist}" onblur="updateSector('${s.id}', 'checklist', this.value)" class="w-12 bg-gray-50 text-xs font-bold p-1 text-center rounded-lg border-none focus:ring-2 focus:ring-yellow-400 outline-none">
-                             </div>
-                             <div class="flex flex-col items-end">
-                                <span class="text-[9px] font-bold text-gray-400 uppercase">Planilha</span>
-                                <select onchange="updateSector('${s.id}', 'spreadsheet', this.value)" class="bg-gray-50 text-[10px] font-bold p-1.5 rounded-lg border-none uppercase outline-none ${s.spreadsheet === 'ok' ? 'text-green-600' : 'text-red-500'}">
-                                    <option value="ok" ${s.spreadsheet === 'ok' ? 'selected' : ''}>OK</option>
-                                    <option value="pending" ${s.spreadsheet === 'pending' ? 'selected' : ''}>Pendente</option>
-                                </select>
-                             </div>
+                        <i data-lucide="chevron-right" class="text-gray-300 w-5 h-5"></i>
+                    </div>
+                `).join('');
+            } else if (sectorEmployees.length > 0) {
+                html += `<div class="bg-green-50 p-6 rounded-2xl text-center border border-green-100">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mx-auto mb-2"></i>
+                    <p class="text-sm font-bold text-green-700">Equipe verificada!</p>
+                </div>`;
+            } else {
+                html += `<div class="text-center p-4 text-xs text-gray-400 italic">Nenhum colaborador neste setor.</div>`;
+            }
+
+            // Seção Concluídos
+            if (done.length > 0) {
+                html += `<div class="pt-2 mt-2">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Concluídos</h3>
+                    <div class="opacity-60 grayscale hover:grayscale-0 transition-all">
+                        ${done.map(e => `
+                            <div class="bg-gray-50 p-3 rounded-xl mb-2 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-bold"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                    <span class="text-xs font-medium text-gray-600">${e.name}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // --- CARTÃO DE AUDITORIA DO SETOR (RODAPÉ) ---
+            if (activeSector) {
+                // Determine button text and color based on defined sheets
+                let sheetButtonHtml = '';
+                if (!activeSector.definedSheets || activeSector.definedSheets.length === 0) {
+                    // Fallback to simple dropdown style behavior but interactive
+                    sheetButtonHtml = `
+                        <select onchange="updateSector('${activeSector.id}', 'spreadsheet', this.value)" class="w-full bg-white font-bold text-sm p-2.5 rounded-xl border border-gray-200 outline-none uppercase ${activeSector.spreadsheet === 'ok' ? 'text-green-600' : 'text-red-500'}">
+                            <option value="ok" ${activeSector.spreadsheet === 'ok' ? 'selected' : ''}>OK</option>
+                            <option value="pending" ${activeSector.spreadsheet === 'pending' ? 'selected' : ''}>Pendente</option>
+                        </select>
+                        <p class="text-[8px] text-gray-400 mt-1 text-center">Sem planilhas cadastradas</p>
+                    `;
+                } else {
+                    const sheetCount = activeSector.definedSheets.length;
+                    const checkedCount = activeSector.definedSheets.filter(s => activeSector.sheetStatuses && activeSector.sheetStatuses[s]).length;
+                    const isAllOk = sheetCount === checkedCount;
+                    const btnColor = isAllOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    const btnText = isAllOk ? 'TUDO OK' : `${sheetCount - checkedCount} PENDENTE(S)`;
+
+                    sheetButtonHtml = `
+                        <button onclick="openSheetAudit('${activeSector.id}')" class="w-full ${btnColor} font-bold text-sm p-2.5 rounded-xl border border-transparent hover:brightness-95 transition-all uppercase flex items-center justify-center gap-2">
+                            ${isAllOk ? '<i data-lucide="check" class="w-4 h-4"></i>' : '<i data-lucide="alert-circle" class="w-4 h-4"></i>'}
+                            ${btnText}
+                        </button>
+                        <p class="text-[8px] text-gray-400 mt-1 text-center cursor-pointer hover:text-yellow-600" onclick="openSheetAudit('${activeSector.id}')">Ver lista (${checkedCount}/${sheetCount})</p>
+                    `;
+                }
+
+                html += `
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-2 mb-4">
+                                <i data-lucide="clipboard-check" class="text-[#EAB308] w-5 h-5"></i>
+                                <h3 class="font-bold text-gray-800 uppercase text-sm">Auditoria do Setor</h3>
+                            </div>
+                            
+                            <div class="flex gap-4">
+                                <div class="flex-1 bg-gray-50 p-3 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Média Checklist</p>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" value="${activeSector.checklist}" onblur="updateSector('${activeSector.id}', 'checklist', this.value)" class="w-full bg-white font-bold text-lg p-2 text-center rounded-xl border border-gray-200 focus:border-yellow-400 outline-none">
+                                        <span class="text-xs font-bold text-gray-400">%</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-gray-50 p-3 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Planilhas</p>
+                                    ${sheetButtonHtml}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden mt-1">
-                        <div class="h-full rounded-full ${s.checklist >= 85 ? 'bg-green-500' : 'bg-red-500'}" style="width: ${Math.min(s.checklist, 100)}%"></div>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }
+
+            contentArea.innerHTML = html;
+            lucide.createIcons();
+
+            // Atualizar Header Metrics (Total do dia, independente do setor)
+            const allEmployees = state.employees.filter(e => e.status === 'active');
+            const totalCount = allEmployees.length;
+            const checkedCount = state.dailyChecks.checkedIds.length;
+            const perc = totalCount === 0 ? 0 : Math.round((checkedCount / totalCount) * 100);
+            
+            document.getElementById('daily-progress-text').innerText = `${checkedCount}/${totalCount}`;
+            document.getElementById('daily-progress-bar').style.width = `${perc}%`;
         }
 
         function renderEmployees() {
             const empList = document.getElementById('employees-list');
             
-            // Agrupar por setor
             const filteredEmps = state.employees.filter(e => {
                 const sectorName = state.sectors.find(s => s.id === e.sectorId)?.name.toLowerCase() || '';
                 return e.name.toLowerCase().includes(state.searchTerm) || sectorName.includes(state.searchTerm);
@@ -634,7 +1111,9 @@
                         <div class="space-y-3">
                 `;
                 
-                html += emps.map(e => `
+                html += emps.map(e => {
+                    const result = calculateGratification(e);
+                    return `
                     <div class="ios-card p-4 hover:shadow-md transition-shadow cursor-pointer relative group" onclick="openEmployeeDetails('${e.id}')">
                         <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <i data-lucide="edit-2" class="w-4 h-4 text-gray-300"></i>
@@ -660,19 +1139,21 @@
                         </div>
                         <div class="flex items-center justify-between pt-3 border-t border-gray-50">
                             <div>
-                                <p class="text-[9px] text-gray-400 uppercase font-bold">Gratificação</p>
-                                <div class="flex items-center gap-1">
-                                    <p class="text-lg font-black ${calculateGratification(e) > 0 ? 'text-green-600' : 'text-gray-300'}">${calculateGratification(e)}%</p>
-                                    ${e.manualScore ? '<i data-lucide="lock" class="w-3 h-3 text-gray-400" title="Ajuste Manual"></i>' : ''}
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">A Receber</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-lg font-black ${result.value > 0 ? 'text-green-600' : 'text-gray-300'}">
+                                        ${formatCurrency(result.value)}
+                                    </p>
+                                    <span class="text-[10px] font-bold text-gray-400">(${result.percent}%)</span>
                                 </div>
                             </div>
                              <div class="text-right">
-                                <p class="text-[9px] text-gray-400 uppercase font-bold">Admissão</p>
-                                <p class="text-xs font-medium text-gray-600">${new Date(e.hireDate).toLocaleDateString()}</p>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">Base</p>
+                                <p class="text-xs font-medium text-gray-600">${formatCurrency(e.baseValue || 0)}</p>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
                 
                 html += `</div></div>`;
             }
@@ -697,11 +1178,9 @@
             
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                // Filtra ocorrências do dia
                 const dayIrrs = state.irregularities.filter(i => i.date === dateStr);
                 const hasIrr = dayIrrs.length > 0;
                 
-                // Visualização de "Pílulas" ou Contadores dentro do dia
                 let indicatorsHtml = '';
                 if (hasIrr) {
                     indicatorsHtml = `
@@ -750,7 +1229,13 @@
             setSectorsList.innerHTML = state.sectors.map(s => `
                 <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100 shadow-sm">
                     <span class="font-bold text-xs uppercase tracking-tighter">${s.name}</span>
-                    <button onclick="deleteSector('${s.id}')" class="bg-red-50 p-2 rounded-lg text-red-400 hover:bg-red-100"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                    <div class="flex gap-2">
+                        <button onclick="openSheetConfig('${s.id}')" class="bg-blue-50 p-2 rounded-lg text-blue-500 hover:bg-blue-100 flex items-center gap-1">
+                            <i data-lucide="list" class="w-4 h-4"></i>
+                            <span class="text-[10px] font-bold">LISTA</span>
+                        </button>
+                        <button onclick="deleteSector('${s.id}')" class="bg-red-50 p-2 rounded-lg text-red-400 hover:bg-red-100"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                    </div>
                 </div>
             `).join('');
 
@@ -764,24 +1249,50 @@
                     </div>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
         function updateGlobalMetrics() {
             const okSectors = state.sectors.filter(s => s.checklist >= 85 && s.spreadsheet === 'ok').length;
             const perc = state.sectors.length ? (okSectors / state.sectors.length * 100).toFixed(0) : 0;
-            document.getElementById('global-progress').innerText = perc + '%';
-            document.getElementById('progress-bar').style.width = perc + '%';
-            document.getElementById('sector-count').innerText = `${okSectors}/${state.sectors.length} setores conformes`;
+            // No longer used in header but kept for logic safety
         }
 
         function updateModalSelects() {
             document.getElementById('new-emp-sector').innerHTML = state.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('irr-emp').innerHTML = `<option value="">Selecione...</option>` + state.employees.sort((a,b) => a.name.localeCompare(b.name)).map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            
+            // Populando os Setores no Modal de Ocorrência
+            document.getElementById('irr-sector').innerHTML = `<option value="">Selecione um setor...</option>` + state.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            
+            // Critérios
             document.getElementById('irr-crit').innerHTML = `<option value="">Selecione...</option>` + state.criteria.map(c => `<option value="${c.id}">${c.name} (-${c.percentage}%)</option>`).join('');
-             // Header Logo
+            
             if (state.config.logo) {
                 document.getElementById('logo-container').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
                 document.getElementById('logo-preview').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+            }
+        }
+
+        // Função para atualizar colaboradores no modal de ocorrência baseado no setor
+        function updateIrrEmployees(sectorId) {
+            const empSelect = document.getElementById('irr-emp');
+            if (!sectorId) {
+                empSelect.innerHTML = `<option value="">Selecione um setor primeiro...</option>`;
+                empSelect.disabled = true;
+                return;
+            }
+            
+            const sectorEmployees = state.employees
+                .filter(e => e.sectorId === sectorId)
+                .sort((a,b) => a.name.localeCompare(b.name));
+            
+            if (sectorEmployees.length === 0) {
+                empSelect.innerHTML = `<option value="">Nenhum colaborador neste setor</option>`;
+                empSelect.disabled = true;
+            } else {
+                empSelect.innerHTML = `<option value="">Selecione o colaborador...</option>` + 
+                    sectorEmployees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+                empSelect.disabled = false;
             }
         }
 
@@ -809,6 +1320,7 @@
                 sectorId: document.getElementById('new-emp-sector').value,
                 role: document.getElementById('new-emp-role').value,
                 hireDate: document.getElementById('new-emp-date').value || new Date().toISOString().split('T')[0],
+                baseValue: parseFloat(document.getElementById('new-emp-value').value) || 0,
                 status: 'active'
             });
             closeModal('employee-modal');
@@ -825,17 +1337,17 @@
             const d = date || new Date().toISOString().split('T')[0];
             const dateStr = d.split('-').reverse().join('/');
             
-            // Atualizar UI
             document.getElementById('irr-date-display').innerText = dateStr;
             document.getElementById('irr-date-display').dataset.date = d;
             
-            // Buscar ocorrências existentes para esta data
             const existingIrrs = state.irregularities.filter(i => i.date === d);
             const listContainer = document.getElementById('irr-existing-list');
             const listContent = document.getElementById('irr-list-content');
             
-            // Limpar formulário
-            document.getElementById('irr-emp').value = '';
+            // Resetar formulário
+            document.getElementById('irr-sector').value = '';
+            document.getElementById('irr-emp').innerHTML = '<option value="">Selecione um setor primeiro...</option>';
+            document.getElementById('irr-emp').disabled = true;
             document.getElementById('irr-crit').value = '';
             document.getElementById('irr-desc').value = '';
 
@@ -855,7 +1367,7 @@
                         </div>
                     `;
                 }).join('');
-                lucide.createIcons(); // Recarregar ícones dentro do modal
+                lucide.createIcons();
             } else {
                 listContainer.classList.add('hidden');
             }
@@ -879,10 +1391,7 @@
             });
             
             saveState();
-            
-            // Reabrir modal para mostrar a nova lista atualizada
             openIrregularityModal(dateVal);
-            
             if(state.activeTab === 'history') renderCalendar();
         }
 
@@ -892,33 +1401,38 @@
             renderCalendar(); 
         }
 
-        // Função específica para deletar de dentro do modal e atualizar a lista sem fechar
         function deleteIrregularityFromModal(id, date) {
             state.irregularities = state.irregularities.filter(i => i.id !== id);
             saveState();
-            openIrregularityModal(date); // Recarrega o modal
+            openIrregularityModal(date);
             if(state.activeTab === 'history') renderCalendar();
         }
 
         function addNewSector() {
             const name = prompt("Nome do Setor:");
-            if(name) { state.sectors.push({ id: Date.now().toString(), name, checklist: 100, spreadsheet: 'ok' }); saveState(); }
+            if(name) { state.sectors.push({ id: Date.now().toString(), name, checklist: 100, spreadsheet: 'ok', definedSheets: [], sheetStatuses: {} }); saveState(); renderSettings(); }
         }
 
         function updateSector(id, field, val) {
             const sector = state.sectors.find(s => s.id === id);
-            if(sector) { sector[field] = field === 'checklist' ? parseInt(val) : val; saveState(); }
+            if(sector) { 
+                sector[field] = field === 'checklist' ? parseInt(val) : val; 
+                saveState();
+                if (state.activeTab === 'dashboard') {
+                    renderDashboard();
+                }
+            }
         }
 
-        function deleteSector(id) { if(confirm('Excluir setor?')) { state.sectors = state.sectors.filter(s => s.id !== id); saveState(); } }
+        function deleteSector(id) { if(confirm('Excluir setor?')) { state.sectors = state.sectors.filter(s => s.id !== id); saveState(); renderSettings(); } }
 
         function addNewCriterion() {
             const name = prompt("Nome do Critério:");
             const perc = prompt("Porcentagem de Desconto:");
-            if(name && perc) { state.criteria.push({ id: Date.now().toString(), name, percentage: parseInt(perc) }); saveState(); }
+            if(name && perc) { state.criteria.push({ id: Date.now().toString(), name, percentage: parseInt(perc) }); saveState(); renderSettings(); }
         }
 
-        function deleteCriterion(id) { state.criteria = state.criteria.filter(c => c.id !== id); saveState(); }
+        function deleteCriterion(id) { state.criteria = state.criteria.filter(c => c.id !== id); saveState(); renderSettings(); }
 
         function exportPDF() {
             const { jsPDF } = window.jspdf;
@@ -927,72 +1441,135 @@
             // Header
             if(state.config.logo) doc.addImage(state.config.logo, 'PNG', 14, 10, 20, 20);
             doc.setFontSize(18);
-            doc.text("Relatório de Controle de Qualidade", 40, 20);
+            doc.text("Extrato de Gratificação Mensal", 40, 20);
             doc.setFontSize(10);
             doc.text(`Gerado em: ${new Date().toLocaleDateString()} | IMAC`, 40, 26);
 
-            // Tabela 1: Detalhe das Irregularidades
+            // Tabela 1: Irregularidades
             doc.setFontSize(12);
             doc.text("1. Detalhamento de Irregularidades", 14, 45);
             
             const tableData = state.irregularities.map(irr => {
                 const emp = state.employees.find(e => e.id === irr.empId);
                 const crit = state.criteria.find(c => c.id === irr.critId);
+                const baseVal = parseFloat(emp?.baseValue) || 0;
+                const discountVal = (crit.percentage / 100) * baseVal;
+                
                 return [
                     irr.date.split('-').reverse().join('/'),
                     emp?.name || 'Excluído',
-                    state.sectors.find(s => s.id === emp?.sectorId)?.name || '-',
                     crit?.name || '-',
-                    `-${crit?.percentage || 0}%`, // Nova coluna de valor descontado
-                    irr.desc
+                    `-${crit?.percentage || 0}%`,
+                    `- ${formatCurrency(discountVal)}`
                 ];
             });
 
             doc.autoTable({
                 startY: 50,
-                head: [['Data', 'Colaborador', 'Setor', 'Motivo', 'Desc.', 'Obs']],
+                head: [['Data', 'Colaborador', 'Motivo', 'Desc. %', 'Desc. R$']],
                 body: tableData,
                 headStyles: { fillColor: [234, 179, 8], textColor: 255, fontStyle: 'bold' },
                 columnStyles: {
-                    4: { textColor: [220, 38, 38], fontStyle: 'bold' } // Coluna de desconto em vermelho
+                    4: { textColor: [220, 38, 38], fontStyle: 'bold' }
                 },
                 styles: { fontSize: 8 }
             });
 
-            // Tabela 2: Resumo Financeiro (Notas Finais)
             let finalY = doc.lastAutoTable.finalY + 15;
             doc.setFontSize(12);
-            doc.text("2. Resumo de Pagamento (Gratificação)", 14, finalY);
+            doc.text("2. Resumo de Pagamentos por Setor", 14, finalY);
+            finalY += 5;
 
-            const summaryData = state.employees.sort((a,b) => a.name.localeCompare(b.name)).map(e => {
-                const finalScore = calculateGratification(e);
-                const discount = (100 - parseFloat(finalScore)).toFixed(1);
+            // Função Auxiliar para gerar linha da tabela
+            const getRow = (e) => {
+                const result = calculateGratification(e);
+                const baseVal = parseFloat(e.baseValue) || 0;
+                const totalDiscount = baseVal - parseFloat(result.value);
                 return [
                     e.name,
-                    state.sectors.find(s => s.id === e.sectorId)?.name || '-',
                     e.role.toUpperCase(),
-                    e.status === 'active' ? 'Ativo' : e.status.toUpperCase(),
-                    `${discount}%`,
-                    `${finalScore}%`
+                    formatCurrency(baseVal),
+                    `- ${formatCurrency(totalDiscount)}`,
+                    formatCurrency(parseFloat(result.value))
                 ];
-            });
+            };
 
-            doc.autoTable({
-                startY: finalY + 5,
-                head: [['Colaborador', 'Setor', 'Cargo', 'Status', 'Total Desc.', 'A Receber']],
-                body: summaryData,
-                headStyles: { fillColor: [50, 50, 50] },
-                columnStyles: {
-                    4: { textColor: [220, 38, 38] },
-                    5: { textColor: [22, 163, 74], fontStyle: 'bold' }
+            // Filtrar Liderados e Agrupar por Setor
+            state.sectors.sort((a,b) => a.name.localeCompare(b.name)).forEach(sector => {
+                const liderados = state.employees
+                    .filter(e => e.sectorId === sector.id && e.role === 'liderado')
+                    .sort((a,b) => a.name.localeCompare(b.name));
+
+                if (liderados.length > 0) {
+                    // Verificar se precisa de nova página
+                    if (finalY > 250) {
+                        doc.addPage();
+                        finalY = 20;
+                    }
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Setor: ${sector.name}`, 14, finalY + 5);
+                    doc.setFont(undefined, 'normal');
+
+                    const bodyData = liderados.map(getRow);
+
+                    doc.autoTable({
+                        startY: finalY + 7,
+                        head: [['Colaborador', 'Cargo', 'Valor Base', 'Total Desc.', 'A Receber']],
+                        body: bodyData,
+                        headStyles: { fillColor: [100, 100, 100] },
+                        columnStyles: {
+                            3: { textColor: [220, 38, 38] },
+                            4: { textColor: [22, 163, 74], fontStyle: 'bold' }
+                        },
+                        margin: { bottom: 10 }
+                    });
+                    
+                    finalY = doc.lastAutoTable.finalY + 5;
                 }
             });
 
-            doc.save(`relatorio_imac_${new Date().toISOString().slice(0,10)}.pdf`);
+            // Tabela de Líderes (Geral)
+            const lideres = state.employees
+                .filter(e => e.role === 'lider')
+                .sort((a,b) => a.name.localeCompare(b.name));
+
+            if (lideres.length > 0) {
+                if (finalY > 250) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+                
+                doc.setFontSize(12);
+                doc.text("3. Resumo de Líderes", 14, finalY + 10);
+
+                const lideresData = lideres.map(e => {
+                    const sectorName = state.sectors.find(s => s.id === e.sectorId)?.name || '-';
+                    const row = getRow(e);
+                    // Inserir nome do setor na segunda coluna para líderes
+                    return [row[0], sectorName, row[2], row[3], row[4]];
+                });
+
+                doc.autoTable({
+                    startY: finalY + 15,
+                    head: [['Líder', 'Setor', 'Valor Base', 'Total Desc.', 'A Receber']],
+                    body: lideresData,
+                    headStyles: { fillColor: [50, 50, 50] }, // Cor mais escura para destaque
+                    columnStyles: {
+                        3: { textColor: [220, 38, 38] },
+                        4: { textColor: [22, 163, 74], fontStyle: 'bold' }
+                    }
+                });
+            }
+
+            doc.save(`extrato_imac_${new Date().toISOString().slice(0,10)}.pdf`);
         }
 
         // --- Inicialização ---
         window.onload = () => {
+            ensureStructure(); // Garantir estrutura de dados nova
+            ensureDefaultCriteria();
             switchTab('dashboard');
             render();
             lucide.createIcons();
