@@ -47,21 +47,28 @@
         }
 
         .calendar-day.has-irr {
-            border: 2px solid #fee2e2;
-            color: #ef4444;
-            background-color: #fef2f2;
+            background-color: #FEFCE8; /* Amarelo bem claro */
+            border: 2px solid #FDE047; /* Borda amarela mais visível */
+        }
+        
+        .irr-dot {
+            height: 6px;
+            width: 6px;
+            border-radius: 50%;
+            background-color: #EF4444;
+            display: inline-block;
         }
 
         .btn-press:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
     <!-- Header Principal -->
-    <header id="main-header" class="bg-[#EAB308] pt-12 pb-8 px-6 rounded-b-[40px] shadow-lg relative overflow-hidden text-white">
+    <header id="main-header" class="bg-[#EAB308] pt-12 pb-8 px-6 rounded-b-[40px] shadow-lg relative overflow-hidden text-white transition-all duration-300">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
-                <div id="logo-container" class="w-12 h-12 bg-white rounded-xl flex items-center justify-center overflow-hidden p-1">
+                <div id="logo-container" class="w-12 h-12 bg-white rounded-xl flex items-center justify-center overflow-hidden p-1 shadow-md">
                     <span class="font-bold text-yellow-600 text-xs">IMAC</span>
                 </div>
                 <div>
@@ -69,14 +76,14 @@
                     <p class="text-yellow-100 text-[10px] opacity-80 uppercase tracking-widest mt-1">Gratificação Mensal</p>
                 </div>
             </div>
-            <button onclick="switchTab('settings')" class="bg-white/20 p-2 rounded-full backdrop-blur-md">
+            <button onclick="switchTab('settings')" class="bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition-colors">
                 <i data-lucide="settings" class="w-5 h-5"></i>
             </button>
         </div>
 
         <div class="bg-white/95 backdrop-blur-sm rounded-3xl p-5 shadow-sm text-gray-800">
             <div class="flex justify-between items-end mb-2">
-                <span class="text-gray-500 font-medium text-xs uppercase tracking-tighter">Status da Fábrica</span>
+                <span class="text-gray-500 font-medium text-xs uppercase tracking-tighter">Conformidade Global</span>
                 <span id="global-progress" class="text-[#EAB308] font-bold text-2xl">0%</span>
             </div>
             <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
@@ -89,9 +96,12 @@
     <!-- Conteúdo Principal -->
     <main id="app-content" class="mt-4 px-4">
         <!-- Dashboard View (Default) -->
-        <div id="view-dashboard" class="view hidden space-y-6">
+        <div id="view-dashboard" class="view hidden space-y-6 animate-in fade-in">
             <section>
-                <h2 class="text-gray-900 font-bold text-lg mb-4 ml-1">Setores</h2>
+                <div class="flex items-center justify-between mb-4 ml-1">
+                    <h2 class="text-gray-900 font-bold text-lg">Auditoria de Setores</h2>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase bg-white px-2 py-1 rounded-lg shadow-sm">Diário</span>
+                </div>
                 <div id="sectors-list" class="grid gap-4">
                     <!-- Gerado via JS -->
                 </div>
@@ -99,35 +109,50 @@
         </div>
 
         <!-- Equipe View -->
-        <div id="view-employees" class="view hidden space-y-6">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-gray-900">Colaboradores</h2>
-                <button onclick="openModal('employee-modal')" class="bg-[#EAB308] text-white p-2 rounded-xl shadow-md btn-press">
-                    <i data-lucide="user-plus" class="w-5 h-5"></i>
-                </button>
+        <div id="view-employees" class="view hidden space-y-4 animate-in fade-in">
+            <div class="sticky top-0 z-10 bg-[#F2F2F7] pb-2 pt-1 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">Colaboradores</h2>
+                    <button onclick="openModal('employee-modal')" class="bg-[#EAB308] text-white p-2 rounded-xl shadow-md btn-press flex items-center gap-2 pr-3">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        <span class="text-xs font-bold">Novo</span>
+                    </button>
+                </div>
+                <!-- Barra de Busca -->
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+                    <input 
+                        type="text" 
+                        id="search-input"
+                        oninput="handleSearch(this.value)"
+                        placeholder="Buscar por nome ou setor..." 
+                        class="w-full bg-white pl-10 pr-4 py-3 rounded-xl text-sm font-medium shadow-sm border-none outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                    >
+                </div>
             </div>
-            <div id="employees-list" class="space-y-4">
+            
+            <div id="employees-list" class="space-y-6 pb-4">
                 <!-- Gerado via JS -->
             </div>
         </div>
 
         <!-- Calendário View -->
-        <div id="view-history" class="view hidden space-y-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-900">Irregularidades</h2>
+        <div id="view-history" class="view hidden space-y-6 animate-in fade-in">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-xl font-bold text-gray-900">Calendário</h2>
                 <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm">
-                    <button onclick="changeMonth(-1)" class="text-gray-400"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                    <span id="current-month-display" class="text-xs font-bold uppercase w-24 text-center">Janeiro 2024</span>
-                    <button onclick="changeMonth(1)" class="text-gray-400"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                    <button onclick="changeMonth(-1)" class="text-gray-400 hover:text-yellow-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <span id="current-month-display" class="text-xs font-bold uppercase w-28 text-center">Janeiro 2024</span>
+                    <button onclick="changeMonth(1)" class="text-gray-400 hover:text-yellow-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                 </div>
             </div>
             
-            <div id="calendar-grid" class="grid grid-cols-7 gap-2 bg-white p-4 rounded-3xl shadow-sm">
+            <div id="calendar-grid" class="grid grid-cols-7 gap-2 bg-white p-4 rounded-3xl shadow-sm min-h-[300px]">
                 <!-- Gerado via JS -->
             </div>
 
             <div class="space-y-3">
-                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Registros no Mês</h3>
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Resumo do Mês</h3>
                 <div id="month-irregularities" class="space-y-3">
                     <!-- Gerado via JS -->
                 </div>
@@ -135,9 +160,9 @@
         </div>
 
         <!-- Configurações View -->
-        <div id="view-settings" class="view hidden space-y-8">
+        <div id="view-settings" class="view hidden space-y-8 animate-in fade-in">
             <section class="bg-white rounded-3xl p-6 shadow-sm space-y-6">
-                <h2 class="text-lg font-bold">Customização</h2>
+                <h2 class="text-lg font-bold">Relatórios & Config</h2>
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Logo da Empresa</label>
                     <div class="flex items-center gap-4">
@@ -145,26 +170,26 @@
                             <i data-lucide="image" class="text-gray-300"></i>
                         </div>
                         <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="handleLogo(event)">
-                        <label for="logo-input" class="bg-[#EAB308] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer btn-press">Upload Logo</label>
+                        <label for="logo-input" class="bg-[#EAB308] text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer btn-press hover:bg-yellow-600 transition-colors">Alterar Logo</label>
                     </div>
                 </div>
-                <button onclick="exportPDF()" class="w-full bg-black text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 btn-press">
-                    <i data-lucide="download" class="w-5 h-5"></i> Exportar PDF
+                <button onclick="exportPDF()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 btn-press shadow-xl shadow-gray-200">
+                    <i data-lucide="file-down" class="w-5 h-5"></i> Exportar Relatório Detalhado
                 </button>
             </section>
 
             <section class="space-y-4">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center px-1">
                     <h2 class="text-lg font-bold">Gestão de Setores</h2>
-                    <button onclick="addNewSector()" class="text-[#EAB308]"><i data-lucide="plus-circle"></i></button>
+                    <button onclick="addNewSector()" class="text-[#EAB308] hover:bg-yellow-50 p-1 rounded-full"><i data-lucide="plus-circle"></i></button>
                 </div>
                 <div id="settings-sectors-list" class="space-y-3"></div>
             </section>
 
             <section class="space-y-4 pb-12">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center px-1">
                     <h2 class="text-lg font-bold">Critérios de Desconto</h2>
-                    <button onclick="addNewCriterion()" class="text-[#EAB308]"><i data-lucide="plus-circle"></i></button>
+                    <button onclick="addNewCriterion()" class="text-[#EAB308] hover:bg-yellow-50 p-1 rounded-full"><i data-lucide="plus-circle"></i></button>
                 </div>
                 <div id="settings-criteria-list" class="space-y-3"></div>
             </section>
@@ -172,65 +197,147 @@
     </main>
 
     <!-- Barra de Navegação -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-white/80 backdrop-blur-xl border border-white/20 rounded-[30px] h-18 shadow-2xl z-40 flex items-center justify-around px-4 py-3">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/90 backdrop-blur-xl border border-white/40 rounded-[35px] h-20 shadow-2xl z-40 flex items-center justify-around px-2 py-2">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
             <i data-lucide="layout-grid" class="w-6 h-6"></i>
-            <span class="text-[9px] font-bold uppercase">Início</span>
+            <span class="text-[9px] font-bold uppercase tracking-tight">Setores</span>
         </button>
-        <button onclick="switchTab('employees')" id="nav-employees" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+        <button onclick="switchTab('employees')" id="nav-employees" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
             <i data-lucide="users" class="w-6 h-6"></i>
-            <span class="text-[9px] font-bold uppercase">Equipe</span>
+            <span class="text-[9px] font-bold uppercase tracking-tight">Equipe</span>
         </button>
-        <div class="relative -top-6">
-            <button onclick="openIrregularityModal()" class="bg-[#EAB308] text-white p-4 rounded-full shadow-lg btn-press border-4 border-[#F2F2F7]">
+        <div class="relative -top-8 group">
+            <button onclick="openIrregularityModal()" class="bg-[#EAB308] text-white p-5 rounded-full shadow-[0_10px_25px_-5px_rgba(234,179,8,0.5)] btn-press border-[6px] border-[#F2F2F7] group-hover:scale-105 transition-transform">
                 <i data-lucide="plus" class="w-8 h-8"></i>
             </button>
         </div>
-        <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+        <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
             <i data-lucide="calendar" class="w-6 h-6"></i>
-            <span class="text-[9px] font-bold uppercase">Histórico</span>
+            <span class="text-[9px] font-bold uppercase tracking-tight">Histórico</span>
         </button>
-        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-gray-400 p-2 rounded-2xl transition-all hover:bg-gray-50">
             <i data-lucide="file-text" class="w-6 h-6"></i>
-            <span class="text-[9px] font-bold uppercase">Config</span>
+            <span class="text-[9px] font-bold uppercase tracking-tight">Relat.</span>
         </button>
     </nav>
 
     <!-- Modais -->
-    <div id="employee-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-8 modal-enter">
-            <h2 class="text-2xl font-bold mb-6">Novo Colaborador</h2>
+    
+    <!-- Modal: Adicionar Colaborador -->
+    <div id="employee-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-8 modal-enter shadow-2xl">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Novo Colaborador</h2>
             <div class="space-y-4">
-                <input id="new-emp-name" placeholder="Nome completo" class="w-full bg-gray-50 border-none rounded-2xl p-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <select id="new-emp-sector" class="bg-gray-50 border-none rounded-2xl p-4 text-sm"></select>
-                    <select id="new-emp-role" class="bg-gray-50 border-none rounded-2xl p-4 text-sm">
-                        <option value="liderado">Liderado</option>
-                        <option value="lider">Líder</option>
-                    </select>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Nome</label>
+                    <input id="new-emp-name" placeholder="Nome completo" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 focus:ring-2 focus:ring-yellow-400 outline-none">
                 </div>
-                <input id="new-emp-date" type="date" class="w-full bg-gray-50 border-none rounded-2xl p-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Setor</label>
+                        <select id="new-emp-sector" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 text-sm outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Cargo</label>
+                        <select id="new-emp-role" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 text-sm outline-none">
+                            <option value="liderado">Liderado</option>
+                            <option value="lider">Líder</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Admissão</label>
+                    <input id="new-emp-date" type="date" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none">
+                </div>
                 <div class="flex gap-4 pt-4">
-                    <button onclick="closeModal('employee-modal')" class="flex-1 font-bold text-gray-400">Cancelar</button>
-                    <button onclick="saveEmployee()" class="flex-[2] bg-[#EAB308] text-white py-4 rounded-2xl font-bold btn-press">Salvar</button>
+                    <button onclick="closeModal('employee-modal')" class="flex-1 font-bold text-gray-400 py-4 hover:bg-gray-50 rounded-2xl transition-colors">Cancelar</button>
+                    <button onclick="saveEmployee()" class="flex-[2] bg-[#EAB308] text-white py-4 rounded-2xl font-bold btn-press shadow-lg shadow-yellow-100">Salvar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="irr-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] p-8 modal-enter">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Nova Ocorrência</h2>
-                <span id="irr-date-display" class="text-xs font-bold text-[#EAB308] bg-yellow-50 px-3 py-1 rounded-full">--/--/--</span>
+    <!-- Modal: Detalhes e Edição do Colaborador (NOVO) -->
+    <div id="employee-details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-0 modal-enter shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="bg-[#EAB308] p-6 pb-8 rounded-b-[32px] shadow-sm relative z-10 shrink-0">
+                 <div class="flex justify-between items-start mb-4">
+                     <button onclick="closeModal('employee-details-modal')" class="bg-white/20 p-2 rounded-full text-white backdrop-blur-md"><i data-lucide="x" class="w-5 h-5"></i></button>
+                     <div class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-md">
+                         <span id="detail-emp-score-display" class="font-black text-white text-lg">100%</span>
+                     </div>
+                 </div>
+                 <input id="detail-emp-name" class="bg-transparent text-white font-bold text-2xl w-full border-b border-white/30 focus:border-white outline-none placeholder-white/70" placeholder="Nome do Colaborador">
+                 <div class="flex gap-2 mt-2">
+                     <select id="detail-emp-sector" class="bg-white/20 text-white text-xs font-bold rounded-lg px-2 py-1 border-none outline-none backdrop-blur-md appearance-none"></select>
+                     <span class="text-white/60 text-xs flex items-center">•</span>
+                     <input id="detail-emp-date" type="date" class="bg-transparent text-white/80 text-xs font-bold border-none outline-none w-24">
+                 </div>
             </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 bg-white flex-1">
+                <!-- Seção de Ajuste Manual -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ajuste Manual</label>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="manual-score-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 checked:right-0 checked:border-[#EAB308] transition-all"/>
+                            <label for="manual-score-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer checked:bg-yellow-200"></label>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mb-3">Ative para ignorar o cálculo e definir a nota final.</p>
+                    <input id="manual-score-input" type="number" placeholder="0 - 100" class="w-full bg-white p-3 rounded-xl border-none outline-none font-bold text-gray-800 disabled:opacity-50" disabled>
+                </div>
+
+                <!-- Seção de Histórico de Descontos -->
+                <div>
+                    <h3 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-400"></i>
+                        Descontos do Mês
+                    </h3>
+                    <div id="detail-irr-list" class="space-y-2">
+                        <!-- Lista injetada via JS -->
+                    </div>
+                </div>
+
+                <button onclick="saveEmployeeDetails()" class="w-full bg-black text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ocorrências (Calendário) -->
+    <div id="irr-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-6 modal-enter shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 sticky top-0 bg-white z-10 py-2">
+                <h2 class="text-xl font-bold text-gray-800">Ocorrências</h2>
+                <span id="irr-date-display" class="text-xs font-bold text-[#EAB308] bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">--/--/--</span>
+            </div>
+
+            <div id="irr-existing-list" class="space-y-3 mb-6 hidden">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Registros do Dia</h3>
+                <div id="irr-list-content" class="space-y-2"></div>
+                <hr class="border-gray-100 my-2">
+            </div>
+
             <div class="space-y-4">
-                <select id="irr-emp" class="w-full bg-gray-50 border-none rounded-2xl p-4"></select>
-                <select id="irr-crit" class="w-full bg-gray-50 border-none rounded-2xl p-4"></select>
-                <textarea id="irr-desc" placeholder="Detalhes da irregularidade..." class="w-full bg-gray-50 border-none rounded-2xl p-4 h-24 resize-none"></textarea>
-                <div class="flex gap-4 pt-4">
-                    <button onclick="closeModal('irr-modal')" class="flex-1 font-bold text-gray-400">Voltar</button>
-                    <button onclick="saveIrregularity()" class="flex-[2] bg-red-500 text-white py-4 rounded-2xl font-bold btn-press">Registrar Desconto</button>
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Adicionar Nova</h3>
+                <div>
+                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Quem?</label>
+                    <select id="irr-emp" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none focus:ring-2 focus:ring-yellow-200"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Motivo</label>
+                    <select id="irr-crit" class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 outline-none focus:ring-2 focus:ring-yellow-200"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Detalhes</label>
+                    <textarea id="irr-desc" placeholder="Ex: Não preencheu a planilha..." class="w-full bg-gray-50 border-none rounded-2xl p-4 mt-1 h-20 resize-none outline-none focus:ring-2 focus:ring-yellow-200"></textarea>
+                </div>
+                <div class="flex gap-4 pt-2">
+                    <button onclick="closeModal('irr-modal')" class="flex-1 font-bold text-gray-400 py-4 hover:bg-gray-50 rounded-2xl">Fechar</button>
+                    <button onclick="saveIrregularity()" class="flex-[2] bg-red-500 text-white py-4 rounded-2xl font-bold btn-press shadow-lg shadow-red-100">Registrar</button>
                 </div>
             </div>
         </div>
@@ -242,16 +349,20 @@
             employees: JSON.parse(localStorage.getItem('imac_employees')) || [],
             sectors: JSON.parse(localStorage.getItem('imac_sectors')) || [
                 { id: '1', name: 'Banheiro Feminino', checklist: 100, spreadsheet: 'ok' },
-                { id: '2', name: 'Banheiro Masculino', checklist: 100, spreadsheet: 'ok' }
+                { id: '2', name: 'Banheiro Masculino', checklist: 100, spreadsheet: 'ok' },
+                { id: '3', name: 'Confeitaria', checklist: 100, spreadsheet: 'ok' }
             ],
             criteria: JSON.parse(localStorage.getItem('imac_criteria')) || [
                 { id: '1', name: 'Uso de EPI', percentage: 10 },
-                { id: '2', name: 'Limpeza de Bancada', percentage: 5 }
+                { id: '2', name: 'Limpeza de Bancada', percentage: 5 },
+                { id: '3', name: 'Atraso', percentage: 2 }
             ],
             irregularities: JSON.parse(localStorage.getItem('imac_irregularities')) || [],
             config: JSON.parse(localStorage.getItem('imac_config')) || { logo: '' },
             currentViewDate: new Date(),
-            activeTab: 'dashboard' // Definindo a aba ativa inicial
+            activeTab: 'dashboard',
+            searchTerm: '',
+            editingEmpId: null // Rastreia quem está sendo editado no modal
         };
 
         function saveState() {
@@ -265,15 +376,29 @@
 
         // --- Navegação ---
         function switchTab(tabId) {
-            state.activeTab = tabId; // Atualizando o estado da aba
+            state.activeTab = tabId;
             document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
             document.getElementById('view-' + tabId).classList.remove('hidden');
             
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active', 'text-[#EAB308]'));
-            document.getElementById('nav-' + tabId).classList.add('tab-active', 'text-[#EAB308]');
+            document.querySelectorAll('nav button').forEach(b => {
+                b.classList.remove('tab-active', 'text-[#EAB308]', 'bg-yellow-50');
+                b.classList.add('text-gray-400');
+            });
+            
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.add('tab-active', 'text-[#EAB308]');
+                activeBtn.classList.remove('text-gray-400');
+            }
             
             if (tabId === 'history') renderCalendar();
+            if (tabId === 'employees') renderEmployees();
             lucide.createIcons();
+        }
+
+        function handleSearch(val) {
+            state.searchTerm = val.toLowerCase();
+            renderEmployees();
         }
 
         // --- Modais ---
@@ -282,6 +407,11 @@
 
         // --- Lógica de Negócio ---
         function calculateGratification(emp) {
+            // Verifica se há ajuste manual
+            if (emp.manualScore !== undefined && emp.manualScore !== null && emp.manualScore !== '') {
+                return parseFloat(emp.manualScore).toFixed(1);
+            }
+
             if (emp.status === 'vacation' || emp.status === 'warning') return 0;
             
             let total = 100;
@@ -295,7 +425,8 @@
             }
 
             // Penalidades Individuais (Mês atual)
-            const monthStr = state.currentViewDate.toISOString().slice(0, 7);
+            const today = new Date(); 
+            const monthStr = today.toISOString().slice(0, 7);
             const irrs = state.irregularities.filter(i => i.empId === emp.id && i.date.startsWith(monthStr));
             irrs.forEach(irr => {
                 const crit = state.criteria.find(c => c.id === irr.critId);
@@ -304,10 +435,10 @@
 
             // Pro-rata
             const hireDate = new Date(emp.hireDate);
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
             if (hireDate > firstDay) {
-                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
                 const daysWorked = daysInMonth - hireDate.getDate() + 1;
                 total = (total * (daysWorked / daysInMonth));
             }
@@ -315,107 +446,238 @@
             return Math.max(0, total).toFixed(1);
         }
 
-        // --- Renderização ---
-        function render() {
-            // Dashboard
-            const sectorsList = document.getElementById('sectors-list');
-            sectorsList.innerHTML = state.sectors.map(s => `
-                <div class="ios-card p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-yellow-50 p-3 rounded-xl text-[#EAB308]"><i data-lucide="percent" class="w-5 h-5"></i></div>
-                        <div>
-                            <h3 class="font-bold text-xs uppercase tracking-wide">${s.name}</h3>
-                            <div class="flex gap-2 mt-1">
-                                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${s.checklist >= 85 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">Check: ${s.checklist}%</span>
-                                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${s.spreadsheet === 'ok' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">Planilha: ${s.spreadsheet.toUpperCase()}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="text-gray-300 w-5 h-5"></i>
-                </div>
-            `).join('');
+        // --- Gestão de Detalhes do Colaborador ---
+        function openEmployeeDetails(id) {
+            state.editingEmpId = id;
+            const emp = state.employees.find(e => e.id === id);
+            if (!emp) return;
 
-            // Equipe
-            const empList = document.getElementById('employees-list');
-            empList.innerHTML = state.employees.map(e => `
-                <div class="ios-card p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-yellow-50 text-[#EAB308] flex items-center justify-center font-bold text-lg">
-                                ${e.name.charAt(0)}
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-800">${e.name}</h3>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${state.sectors.find(s => s.id === e.sectorId)?.name || 'S/ SETOR'}</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <select onchange="updateEmpStatus('${e.id}', this.value)" class="text-[10px] font-bold uppercase bg-gray-50 border-none p-1 rounded-lg">
-                                <option value="active" ${e.status === 'active' ? 'selected' : ''}>Ativo</option>
-                                <option value="vacation" ${e.status === 'vacation' ? 'selected' : ''}>Férias</option>
-                                <option value="warning" ${e.status === 'warning' ? 'selected' : ''}>Advertência</option>
-                            </select>
-                            <button onclick="deleteEmployee('${e.id}')" class="text-gray-200 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                        <div class="bg-gray-50/50 p-3 rounded-2xl">
-                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Gratificação</p>
-                            <p class="text-xl font-black ${calculateGratification(e) > 0 ? 'text-green-600' : 'text-gray-400'}">${calculateGratification(e)}%</p>
-                        </div>
-                        <div class="bg-gray-50/50 p-3 rounded-2xl">
-                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Status Base</p>
-                            <span class="text-xs font-bold ${e.status === 'active' ? 'text-green-500' : 'text-red-400'}">${e.status === 'active' ? '● APTO' : '○ INAPTO'}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            // Preencher dados básicos
+            document.getElementById('detail-emp-name').value = emp.name;
+            document.getElementById('detail-emp-date').value = emp.hireDate;
+            
+            // Preencher Select de Setor
+            const sectorSelect = document.getElementById('detail-emp-sector');
+            sectorSelect.innerHTML = state.sectors.map(s => `<option value="${s.id}" ${s.id === emp.sectorId ? 'selected' : ''}>${s.name}</option>`).join('');
 
-            // Settings Lists
-            const setSectorsList = document.getElementById('settings-sectors-list');
-            setSectorsList.innerHTML = state.sectors.map(s => `
-                <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100">
-                    <span class="font-bold text-xs uppercase tracking-tighter">${s.name}</span>
-                    <div class="flex gap-2">
-                        <input type="number" value="${s.checklist}" onblur="updateSector('${s.id}', 'checklist', this.value)" class="w-12 bg-gray-50 text-xs p-1 text-center rounded-lg border-none">
-                        <select onchange="updateSector('${s.id}', 'spreadsheet', this.value)" class="bg-gray-50 text-[10px] font-bold p-1 rounded-lg border-none uppercase">
-                            <option value="ok" ${s.spreadsheet === 'ok' ? 'selected' : ''}>OK</option>
-                            <option value="pending" ${s.spreadsheet === 'pending' ? 'selected' : ''}>Pendente</option>
-                        </select>
-                        <button onclick="deleteSector('${s.id}')"><i data-lucide="trash" class="w-4 h-4 text-red-200"></i></button>
-                    </div>
-                </div>
-            `).join('');
-
-            const setCritList = document.getElementById('settings-criteria-list');
-            setCritList.innerHTML = state.criteria.map(c => `
-                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-gray-100">
-                    <span class="text-sm font-medium">${c.name}</span>
-                    <div class="flex items-center gap-4">
-                        <span class="text-red-500 font-bold text-sm">-${c.percentage}%</span>
-                        <button onclick="deleteCriterion('${c.id}')"><i data-lucide="trash" class="w-4 h-4 text-gray-200"></i></button>
-                    </div>
-                </div>
-            `).join('');
-
-            // Modais Selects
-            document.getElementById('new-emp-sector').innerHTML = state.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('irr-emp').innerHTML = `<option value="">Escolha o colaborador...</option>` + state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-            document.getElementById('irr-crit').innerHTML = `<option value="">Critério violado...</option>` + state.criteria.map(c => `<option value="${c.id}">${c.name} (-${c.percentage}%)</option>`).join('');
-
-            // Header Config
-            if (state.config.logo) {
-                document.getElementById('logo-container').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
-                document.getElementById('logo-preview').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+            // Preencher Score Manual
+            const manualToggle = document.getElementById('manual-score-toggle');
+            const manualInput = document.getElementById('manual-score-input');
+            
+            if (emp.manualScore !== undefined && emp.manualScore !== null && emp.manualScore !== '') {
+                manualToggle.checked = true;
+                manualInput.disabled = false;
+                manualInput.value = emp.manualScore;
+                manualInput.classList.remove('bg-gray-100');
+                manualInput.classList.add('bg-white');
+            } else {
+                manualToggle.checked = false;
+                manualInput.disabled = true;
+                manualInput.value = '';
+                manualInput.classList.add('bg-gray-100');
             }
 
-            // Global Metrics
-            const okSectors = state.sectors.filter(s => s.checklist >= 85 && s.spreadsheet === 'ok').length;
-            const perc = state.sectors.length ? (okSectors / state.sectors.length * 100).toFixed(0) : 0;
-            document.getElementById('global-progress').innerText = perc + '%';
-            document.getElementById('progress-bar').style.width = perc + '%';
-            document.getElementById('sector-count').innerText = `${okSectors}/${state.sectors.length} setores conformes`;
+            // Toggle Event
+            manualToggle.onclick = () => {
+                manualInput.disabled = !manualToggle.checked;
+                if (!manualToggle.checked) manualInput.value = '';
+                manualInput.focus();
+            };
 
+            // Exibir Score Atual
+            const currentScore = calculateGratification(emp);
+            document.getElementById('detail-emp-score-display').innerText = `${currentScore}%`;
+            
+            if (parseFloat(currentScore) < 70) {
+                 document.getElementById('detail-emp-score-display').parentElement.classList.add('bg-red-500');
+            } else {
+                 document.getElementById('detail-emp-score-display').parentElement.classList.remove('bg-red-500');
+            }
+
+
+            // Listar Descontos (Irregularidades) do Mês
+            const today = new Date();
+            const monthStr = today.toISOString().slice(0, 7);
+            const irrs = state.irregularities.filter(i => i.empId === emp.id && i.date.startsWith(monthStr));
+            
+            const listContainer = document.getElementById('detail-irr-list');
+            if (irrs.length === 0) {
+                listContainer.innerHTML = `<div class="text-center p-4 border border-dashed border-gray-200 rounded-xl text-xs text-gray-400">Nenhuma irregularidade neste mês.</div>`;
+            } else {
+                listContainer.innerHTML = irrs.map(irr => {
+                    const crit = state.criteria.find(c => c.id === irr.critId);
+                    return `
+                        <div class="bg-white p-3 rounded-xl border border-red-100 flex justify-between items-center shadow-sm">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] bg-red-50 text-red-500 font-bold px-2 py-0.5 rounded">${irr.date.split('-').reverse().join('/')}</span>
+                                    <span class="text-xs font-bold text-gray-800">${crit?.name}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-400 italic mt-1">${irr.desc}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-red-500">-${crit?.percentage}%</span>
+                                <button onclick="deleteIrregularityFromDetails('${irr.id}')" class="bg-gray-50 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            }
+
+            openModal('employee-details-modal');
+        }
+
+        function saveEmployeeDetails() {
+            if (!state.editingEmpId) return;
+            const emp = state.employees.find(e => e.id === state.editingEmpId);
+            if (!emp) return;
+
+            emp.name = document.getElementById('detail-emp-name').value;
+            emp.sectorId = document.getElementById('detail-emp-sector').value;
+            emp.hireDate = document.getElementById('detail-emp-date').value;
+            
+            const manualToggle = document.getElementById('manual-score-toggle');
+            const manualInput = document.getElementById('manual-score-input');
+
+            if (manualToggle.checked && manualInput.value !== '') {
+                emp.manualScore = parseFloat(manualInput.value);
+            } else {
+                delete emp.manualScore; // Remove a propriedade se desativado
+            }
+
+            saveState();
+            closeModal('employee-details-modal');
+            renderEmployees(); // Atualiza a lista principal
+        }
+
+        function deleteIrregularityFromDetails(irrId) {
+            if(confirm('Remover este desconto e recalcular a nota?')) {
+                state.irregularities = state.irregularities.filter(i => i.id !== irrId);
+                saveState();
+                // Reabrir o modal para atualizar a lista e a nota
+                openEmployeeDetails(state.editingEmpId);
+            }
+        }
+
+        // --- Renderização ---
+        function render() {
+            renderDashboard();
+            if(state.activeTab === 'employees') renderEmployees();
+            if(state.activeTab === 'history') renderCalendar();
+            renderSettings();
+            updateGlobalMetrics();
+            updateModalSelects();
+            lucide.createIcons();
+        }
+
+        function renderDashboard() {
+            const sectorsList = document.getElementById('sectors-list');
+            sectorsList.innerHTML = state.sectors.map(s => `
+                <div class="ios-card p-4 flex flex-col gap-3 border border-white/50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-yellow-100 p-2.5 rounded-xl text-yellow-700">
+                                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-sm uppercase tracking-wide text-gray-800">${s.name}</h3>
+                        </div>
+                        <div class="flex gap-2">
+                             <div class="flex flex-col items-end">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase">Checklist</span>
+                                <input type="number" value="${s.checklist}" onblur="updateSector('${s.id}', 'checklist', this.value)" class="w-12 bg-gray-50 text-xs font-bold p-1 text-center rounded-lg border-none focus:ring-2 focus:ring-yellow-400 outline-none">
+                             </div>
+                             <div class="flex flex-col items-end">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase">Planilha</span>
+                                <select onchange="updateSector('${s.id}', 'spreadsheet', this.value)" class="bg-gray-50 text-[10px] font-bold p-1.5 rounded-lg border-none uppercase outline-none ${s.spreadsheet === 'ok' ? 'text-green-600' : 'text-red-500'}">
+                                    <option value="ok" ${s.spreadsheet === 'ok' ? 'selected' : ''}>OK</option>
+                                    <option value="pending" ${s.spreadsheet === 'pending' ? 'selected' : ''}>Pendente</option>
+                                </select>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden mt-1">
+                        <div class="h-full rounded-full ${s.checklist >= 85 ? 'bg-green-500' : 'bg-red-500'}" style="width: ${Math.min(s.checklist, 100)}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderEmployees() {
+            const empList = document.getElementById('employees-list');
+            
+            // Agrupar por setor
+            const filteredEmps = state.employees.filter(e => {
+                const sectorName = state.sectors.find(s => s.id === e.sectorId)?.name.toLowerCase() || '';
+                return e.name.toLowerCase().includes(state.searchTerm) || sectorName.includes(state.searchTerm);
+            });
+
+            if (filteredEmps.length === 0) {
+                empList.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">Nenhum colaborador encontrado.</div>`;
+                return;
+            }
+
+            const grouped = filteredEmps.reduce((acc, emp) => {
+                const sectorName = state.sectors.find(s => s.id === emp.sectorId)?.name || 'Sem Setor';
+                if (!acc[sectorName]) acc[sectorName] = [];
+                acc[sectorName].push(emp);
+                return acc;
+            }, {});
+
+            let html = '';
+            for (const [sectorName, emps] of Object.entries(grouped)) {
+                html += `
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 pl-2">${sectorName}</h3>
+                        <div class="space-y-3">
+                `;
+                
+                html += emps.map(e => `
+                    <div class="ios-card p-4 hover:shadow-md transition-shadow cursor-pointer relative group" onclick="openEmployeeDetails('${e.id}')">
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-lucide="edit-2" class="w-4 h-4 text-gray-300"></i>
+                        </div>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-50 text-[#EAB308] flex items-center justify-center font-bold text-sm shadow-inner">
+                                    ${e.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-800 text-sm">${e.name}</h3>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">${e.role}</p>
+                                </div>
+                            </div>
+                             <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                <select onchange="updateEmpStatus('${e.id}', this.value)" class="text-[10px] font-bold uppercase bg-gray-50 border-none p-1 rounded-lg outline-none ${e.status === 'active' ? 'text-green-600' : 'text-red-500'}">
+                                    <option value="active" ${e.status === 'active' ? 'selected' : ''}>Ativo</option>
+                                    <option value="vacation" ${e.status === 'vacation' ? 'selected' : ''}>Férias</option>
+                                    <option value="warning" ${e.status === 'warning' ? 'selected' : ''}>Advertência</option>
+                                </select>
+                                <button onclick="deleteEmployee('${e.id}')" class="p-1 text-gray-300 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+                            <div>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">Gratificação</p>
+                                <div class="flex items-center gap-1">
+                                    <p class="text-lg font-black ${calculateGratification(e) > 0 ? 'text-green-600' : 'text-gray-300'}">${calculateGratification(e)}%</p>
+                                    ${e.manualScore ? '<i data-lucide="lock" class="w-3 h-3 text-gray-400" title="Ajuste Manual"></i>' : ''}
+                                </div>
+                            </div>
+                             <div class="text-right">
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">Admissão</p>
+                                <p class="text-xs font-medium text-gray-600">${new Date(e.hireDate).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                html += `</div></div>`;
+            }
+            
+            empList.innerHTML = html;
             lucide.createIcons();
         }
 
@@ -435,39 +697,98 @@
             
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const hasIrr = state.irregularities.some(i => i.date === dateStr);
+                // Filtra ocorrências do dia
+                const dayIrrs = state.irregularities.filter(i => i.date === dateStr);
+                const hasIrr = dayIrrs.length > 0;
+                
+                // Visualização de "Pílulas" ou Contadores dentro do dia
+                let indicatorsHtml = '';
+                if (hasIrr) {
+                    indicatorsHtml = `
+                        <div class="flex gap-1 mt-1 justify-center flex-wrap px-1">
+                           ${dayIrrs.slice(0, 3).map(() => `<span class="irr-dot"></span>`).join('')}
+                           ${dayIrrs.length > 3 ? `<span class="text-[8px] text-red-500 font-bold leading-none">+${dayIrrs.length - 3}</span>` : ''}
+                        </div>
+                        <div class="text-[8px] text-red-500 font-bold mt-0.5">${dayIrrs.length} erro(s)</div>
+                    `;
+                }
+
                 html += `
-                    <button onclick="openIrregularityModal('${dateStr}')" class="aspect-square flex items-center justify-center text-sm font-semibold rounded-xl transition-all ${hasIrr ? 'has-irr' : 'bg-gray-50 text-gray-700'}">
-                        ${day}
+                    <button onclick="openIrregularityModal('${dateStr}')" class="aspect-square flex flex-col items-center justify-start pt-2 rounded-2xl transition-all border border-transparent hover:border-yellow-200 relative overflow-hidden ${hasIrr ? 'has-irr' : 'bg-gray-50 text-gray-700'}">
+                        <span class="text-sm font-semibold z-10">${day}</span>
+                        ${indicatorsHtml}
                     </button>
                 `;
             }
             grid.innerHTML = html;
 
             const irrMonth = state.irregularities.filter(i => i.date.startsWith(date.toISOString().slice(0, 7)));
+            
             document.getElementById('month-irregularities').innerHTML = irrMonth.length ? irrMonth.map(irr => {
                 const emp = state.employees.find(e => e.id === irr.empId);
                 const crit = state.criteria.find(c => c.id === irr.critId);
                 return `
-                    <div class="ios-card p-4 border-l-4 border-red-400 flex justify-between items-center">
-                        <div>
-                            <p class="text-[9px] font-black text-gray-400 uppercase">${irr.date.split('-').reverse().join('/')} • ${crit?.name}</p>
-                            <p class="font-bold text-sm">${emp?.name}</p>
-                            <p class="text-xs text-gray-500 italic mt-1 leading-tight">"${irr.desc}"</p>
+                    <div class="bg-white p-3 rounded-xl border-l-4 border-red-400 flex justify-between items-center shadow-sm">
+                        <div class="overflow-hidden">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-black text-gray-400 uppercase bg-gray-100 px-1.5 py-0.5 rounded">${irr.date.split('-').reverse().join('/')}</span>
+                                <span class="text-[10px] font-bold text-red-500 uppercase truncate">${crit?.name} (-${crit?.percentage}%)</span>
+                            </div>
+                            <p class="font-bold text-sm text-gray-800 mt-1 truncate">${emp?.name}</p>
+                            <p class="text-xs text-gray-500 italic truncate">"${irr.desc}"</p>
                         </div>
-                        <button onclick="deleteIrregularity('${irr.id}')" class="text-gray-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteIrregularity('${irr.id}')" class="text-gray-300 hover:text-red-500 ml-2 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
-            }).join('') : '<p class="text-center text-xs text-gray-400 py-4">Sem ocorrências registradas.</p>';
+            }).join('') : '<div class="text-center p-6 bg-white rounded-2xl border border-dashed border-gray-200"><p class="text-xs text-gray-400">Nenhuma ocorrência registrada neste mês.</p></div>';
             
             lucide.createIcons();
+        }
+
+        function renderSettings() {
+             const setSectorsList = document.getElementById('settings-sectors-list');
+            setSectorsList.innerHTML = state.sectors.map(s => `
+                <div class="bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100 shadow-sm">
+                    <span class="font-bold text-xs uppercase tracking-tighter">${s.name}</span>
+                    <button onclick="deleteSector('${s.id}')" class="bg-red-50 p-2 rounded-lg text-red-400 hover:bg-red-100"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                </div>
+            `).join('');
+
+            const setCritList = document.getElementById('settings-criteria-list');
+            setCritList.innerHTML = state.criteria.map(c => `
+                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm">
+                    <span class="text-sm font-medium text-gray-700">${c.name}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="bg-red-50 text-red-500 px-2 py-1 rounded-lg font-bold text-xs">-${c.percentage}%</span>
+                        <button onclick="deleteCriterion('${c.id}')" class="text-gray-300 hover:text-red-400"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateGlobalMetrics() {
+            const okSectors = state.sectors.filter(s => s.checklist >= 85 && s.spreadsheet === 'ok').length;
+            const perc = state.sectors.length ? (okSectors / state.sectors.length * 100).toFixed(0) : 0;
+            document.getElementById('global-progress').innerText = perc + '%';
+            document.getElementById('progress-bar').style.width = perc + '%';
+            document.getElementById('sector-count').innerText = `${okSectors}/${state.sectors.length} setores conformes`;
+        }
+
+        function updateModalSelects() {
+            document.getElementById('new-emp-sector').innerHTML = state.sectors.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('irr-emp').innerHTML = `<option value="">Selecione...</option>` + state.employees.sort((a,b) => a.name.localeCompare(b.name)).map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            document.getElementById('irr-crit').innerHTML = `<option value="">Selecione...</option>` + state.criteria.map(c => `<option value="${c.id}">${c.name} (-${c.percentage}%)</option>`).join('');
+             // Header Logo
+            if (state.config.logo) {
+                document.getElementById('logo-container').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+                document.getElementById('logo-preview').innerHTML = `<img src="${state.config.logo}" class="w-full h-full object-contain">`;
+            }
         }
 
         // --- Ações ---
         function changeMonth(step) {
             state.currentViewDate.setMonth(state.currentViewDate.getMonth() + step);
             renderCalendar();
-            render();
         }
 
         function handleLogo(e) {
@@ -502,31 +823,82 @@
 
         function openIrregularityModal(date) {
             const d = date || new Date().toISOString().split('T')[0];
-            document.getElementById('irr-date-display').innerText = d.split('-').reverse().join('/');
+            const dateStr = d.split('-').reverse().join('/');
+            
+            // Atualizar UI
+            document.getElementById('irr-date-display').innerText = dateStr;
             document.getElementById('irr-date-display').dataset.date = d;
+            
+            // Buscar ocorrências existentes para esta data
+            const existingIrrs = state.irregularities.filter(i => i.date === d);
+            const listContainer = document.getElementById('irr-existing-list');
+            const listContent = document.getElementById('irr-list-content');
+            
+            // Limpar formulário
+            document.getElementById('irr-emp').value = '';
+            document.getElementById('irr-crit').value = '';
+            document.getElementById('irr-desc').value = '';
+
+            if (existingIrrs.length > 0) {
+                listContainer.classList.remove('hidden');
+                listContent.innerHTML = existingIrrs.map(irr => {
+                    const emp = state.employees.find(e => e.id === irr.empId);
+                    const crit = state.criteria.find(c => c.id === irr.critId);
+                    return `
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                            <div class="overflow-hidden">
+                                <p class="text-xs font-bold text-gray-800">${emp?.name || 'Desconhecido'}</p>
+                                <p class="text-[10px] text-red-500 font-bold uppercase">${crit?.name} (-${crit?.percentage}%)</p>
+                                <p class="text-[10px] text-gray-500 italic truncate">${irr.desc}</p>
+                            </div>
+                            <button onclick="deleteIrregularityFromModal('${irr.id}', '${d}')" class="text-gray-300 hover:text-red-500 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                }).join('');
+                lucide.createIcons(); // Recarregar ícones dentro do modal
+            } else {
+                listContainer.classList.add('hidden');
+            }
+
             openModal('irr-modal');
         }
 
         function saveIrregularity() {
             const empId = document.getElementById('irr-emp').value;
             const critId = document.getElementById('irr-crit').value;
+            const dateVal = document.getElementById('irr-date-display').dataset.date;
+            
             if (!empId || !critId) return;
             
             state.irregularities.push({
                 id: Date.now().toString(),
                 empId,
                 critId,
-                date: document.getElementById('irr-date-display').dataset.date,
+                date: dateVal,
                 desc: document.getElementById('irr-desc').value
             });
-            closeModal('irr-modal');
+            
             saveState();
             
-            // Correção do erro: Usando state.activeTab em vez de activeTab
+            // Reabrir modal para mostrar a nova lista atualizada
+            openIrregularityModal(dateVal);
+            
             if(state.activeTab === 'history') renderCalendar();
         }
 
-        function deleteIrregularity(id) { state.irregularities = state.irregularities.filter(i => i.id !== id); saveState(); renderCalendar(); }
+        function deleteIrregularity(id) { 
+            state.irregularities = state.irregularities.filter(i => i.id !== id); 
+            saveState(); 
+            renderCalendar(); 
+        }
+
+        // Função específica para deletar de dentro do modal e atualizar a lista sem fechar
+        function deleteIrregularityFromModal(id, date) {
+            state.irregularities = state.irregularities.filter(i => i.id !== id);
+            saveState();
+            openIrregularityModal(date); // Recarrega o modal
+            if(state.activeTab === 'history') renderCalendar();
+        }
 
         function addNewSector() {
             const name = prompt("Nome do Setor:");
@@ -552,27 +924,71 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            if(state.config.logo) doc.addImage(state.config.logo, 'PNG', 10, 10, 25, 25);
+            // Header
+            if(state.config.logo) doc.addImage(state.config.logo, 'PNG', 14, 10, 20, 20);
             doc.setFontSize(18);
-            doc.text("Relatório de Conformidades IMAC", 40, 20);
+            doc.text("Relatório de Controle de Qualidade", 40, 20);
             doc.setFontSize(10);
-            doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 40, 28);
+            doc.text(`Gerado em: ${new Date().toLocaleDateString()} | IMAC`, 40, 26);
 
-            const tableData = state.irregularities.map(irr => [
-                irr.date,
-                state.employees.find(e => e.id === irr.empId)?.name || 'N/A',
-                state.criteria.find(c => c.id === irr.critId)?.name || 'N/A',
-                irr.desc
-            ]);
-
-            doc.autoTable({
-                startY: 40,
-                head: [['Data', 'Colaborador', 'Critério', 'Descrição']],
-                body: tableData,
-                headStyles: { fillColor: [234, 179, 8] }
+            // Tabela 1: Detalhe das Irregularidades
+            doc.setFontSize(12);
+            doc.text("1. Detalhamento de Irregularidades", 14, 45);
+            
+            const tableData = state.irregularities.map(irr => {
+                const emp = state.employees.find(e => e.id === irr.empId);
+                const crit = state.criteria.find(c => c.id === irr.critId);
+                return [
+                    irr.date.split('-').reverse().join('/'),
+                    emp?.name || 'Excluído',
+                    state.sectors.find(s => s.id === emp?.sectorId)?.name || '-',
+                    crit?.name || '-',
+                    `-${crit?.percentage || 0}%`, // Nova coluna de valor descontado
+                    irr.desc
+                ];
             });
 
-            doc.save('relatorio-imac.pdf');
+            doc.autoTable({
+                startY: 50,
+                head: [['Data', 'Colaborador', 'Setor', 'Motivo', 'Desc.', 'Obs']],
+                body: tableData,
+                headStyles: { fillColor: [234, 179, 8], textColor: 255, fontStyle: 'bold' },
+                columnStyles: {
+                    4: { textColor: [220, 38, 38], fontStyle: 'bold' } // Coluna de desconto em vermelho
+                },
+                styles: { fontSize: 8 }
+            });
+
+            // Tabela 2: Resumo Financeiro (Notas Finais)
+            let finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(12);
+            doc.text("2. Resumo de Pagamento (Gratificação)", 14, finalY);
+
+            const summaryData = state.employees.sort((a,b) => a.name.localeCompare(b.name)).map(e => {
+                const finalScore = calculateGratification(e);
+                const discount = (100 - parseFloat(finalScore)).toFixed(1);
+                return [
+                    e.name,
+                    state.sectors.find(s => s.id === e.sectorId)?.name || '-',
+                    e.role.toUpperCase(),
+                    e.status === 'active' ? 'Ativo' : e.status.toUpperCase(),
+                    `${discount}%`,
+                    `${finalScore}%`
+                ];
+            });
+
+            doc.autoTable({
+                startY: finalY + 5,
+                head: [['Colaborador', 'Setor', 'Cargo', 'Status', 'Total Desc.', 'A Receber']],
+                body: summaryData,
+                headStyles: { fillColor: [50, 50, 50] },
+                columnStyles: {
+                    4: { textColor: [220, 38, 38] },
+                    5: { textColor: [22, 163, 74], fontStyle: 'bold' }
+                }
+            });
+
+            doc.save(`relatorio_imac_${new Date().toISOString().slice(0,10)}.pdf`);
         }
 
         // --- Inicialização ---
