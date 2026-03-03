@@ -251,6 +251,14 @@
             document.getElementById('main-app-container').style.display = 'none';
           }
         });
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            try {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } catch (tokenError) {
+                console.warn("Token de simulação ignorado devido ao uso de credenciais próprias.", tokenError);
+            }
+        }
       } catch (error) {
         console.error("Firebase init error:", error);
         window.showToast("Falha ao inicializar o banco de dados.");
