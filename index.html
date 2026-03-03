@@ -87,7 +87,8 @@
     .detalhe-label { color: var(--ios-text-secondary); font-size: 13px; font-weight: 500;}
     .detalhe-value { color: var(--ios-text); font-size: 14px; font-weight: 600; text-align: right;}
     
-    #view-login { background: linear-gradient(135deg, #121212 0%, #1E1E1E 100%); }
+    /* Login & Splash Screen Background */
+    .screen-bg { background: linear-gradient(135deg, #121212 0%, #1E1E1E 100%); }
     .pwa-install-banner { display: none; }
 
     /* Dark Mode Adjustments */
@@ -133,9 +134,7 @@
 
     /* Estilos Específicos para a Área Oculta do PDF (Forçar Modo Claro) */
     #pdf-container-hidden { display: none; }
-    .pdf-mode {
-        background-color: #FFFFFF !important; color: #000000 !important; padding: 40px !important; font-family: Arial, sans-serif !important;
-    }
+    .pdf-mode { background-color: #FFFFFF !important; color: #000000 !important; padding: 40px !important; font-family: Arial, sans-serif !important; }
     .pdf-mode table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; }
     .pdf-mode th, .pdf-mode td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
     .pdf-mode th { background-color: #f2f2f2 !important; color: #000 !important; font-weight: bold; }
@@ -190,14 +189,13 @@
       
       document.getElementById('header-title').innerText = title;
 
-      if(tabId === 'view-dashboard') renderDashboard();
+      if(tabId === 'view-dashboard') window.renderDashboard();
       if(tabId === 'view-teste') renderTestesPendentes();
       if(tabId === 'view-historico') renderHistorico();
       if(tabId === 'view-config') renderConfigForm();
-      if(tabId === 'view-start') document.getElementById('s_produto_search').value = ''; // Limpa busca ao voltar
+      if(tabId === 'view-start') document.getElementById('s_produto_search').value = ''; 
     };
 
-    // Variável para PWA
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault(); deferredPrompt = e;
@@ -236,6 +234,9 @@
         window.appState.db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
+          // Oculta a splash screen
+          document.getElementById('view-splash').style.display = 'none';
+          
           if (user) {
             window.appState.user = user;
             document.getElementById('view-login').style.display = 'none';
@@ -253,8 +254,8 @@
       } catch (error) {
         console.error("Firebase init error:", error);
         window.showToast("Falha ao inicializar o banco de dados.");
-        document.getElementById('auth-status').innerHTML = `<i data-lucide="wifi-off" class="text-red-500 w-5 h-5"></i>`;
-        lucide.createIcons();
+        document.getElementById('view-splash').style.display = 'none';
+        document.getElementById('view-login').style.display = 'flex';
       }
     }
 
@@ -283,22 +284,21 @@
       const startsCol = getCol('starts_producao');
       if(startsCol) onSnapshot(startsCol, (snapshot) => {
           window.appState.starts = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-          if(document.getElementById('view-dashboard').classList.contains('active')) renderDashboard();
+          if(document.getElementById('view-dashboard').classList.contains('active')) window.renderDashboard();
           if(document.getElementById('view-historico').classList.contains('active')) window.renderHistorico();
           if(document.getElementById('view-teste').classList.contains('active')) renderTestesPendentes(); 
-      });
+      }, (error) => { console.error("Listener Starts Erro:", error); });
 
       const testesCol = getCol('testes_farinha');
       if(testesCol) onSnapshot(testesCol, (snapshot) => {
           window.appState.testes = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-          if(document.getElementById('view-dashboard').classList.contains('active')) renderDashboard();
+          if(document.getElementById('view-dashboard').classList.contains('active')) window.renderDashboard();
           if(document.getElementById('view-teste').classList.contains('active')) renderTestesPendentes();
-      });
+      }, (error) => { console.error("Listener Testes Erro:", error); });
 
       const prodCol = getCol('produtos_cadastro');
       if(prodCol) onSnapshot(prodCol, (snapshot) => {
           window.appState.produtos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-          atualizarSelectProdutos();
           renderListaProdutos();
       });
 
@@ -312,6 +312,7 @@
         const cfg = window.appState.config;
         if(cfg.logoBase64) {
             document.getElementById('header-logo').src = cfg.logoBase64;
+            document.getElementById('splash-logo').src = cfg.logoBase64;
             document.getElementById('login-logo').src = cfg.logoBase64;
         }
         window.checkLimits(); 
@@ -379,13 +380,12 @@
 
     window.selecionarProduto = (nome) => {
         document.getElementById('s_produto_search').value = nome;
-        document.getElementById('s_produto_hidden').value = nome; // Usado no submit
+        document.getElementById('s_produto_hidden').value = nome; 
         document.getElementById('dropdown_produtos').classList.add('hidden');
         window.onProdutoChange(nome);
         window.salvarRascunhoStart();
     };
 
-    // Esconder dropdown ao clicar fora
     document.addEventListener('click', (e) => {
         if(!e.target.closest('#container_busca_produto')) {
             const dropdown = document.getElementById('dropdown_produtos');
@@ -454,7 +454,10 @@
                        else el.value = data[key];
                    }
                });
-               if(data['s_produto_hidden']) window.onProdutoChange(data['s_produto_hidden']);
+               if(data['s_produto_hidden']) {
+                   document.getElementById('s_produto_search').value = data['s_produto_hidden'];
+                   window.onProdutoChange(data['s_produto_hidden']);
+               }
            } catch(e) {}
        }
     }
@@ -475,8 +478,8 @@
       const btn = document.getElementById('btn-submit-start');
       btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Iniciando...'; btn.disabled = true; lucide.createIcons();
 
-      const lenta = parseInt(document.getElementById('s_batida_lenta').value || 0);
-      const rapida = parseInt(document.getElementById('s_batida_rapida').value || 0);
+      const lenta = parseInt(document.getElementById('s_batida_lenta').value) || 0;
+      const rapida = parseInt(document.getElementById('s_batida_rapida').value) || 0;
       const batidaFim = Date.now() + ((lenta + rapida) * 60 * 1000);
       const isTeste = document.getElementById('s_is_teste').checked;
       const loteFar = document.getElementById('s_lote_farinha').value;
@@ -503,18 +506,22 @@
 
         document.getElementById('form-start').reset();
         document.getElementById('s_data_fab').value = new Date().toISOString().split('T')[0];
+        document.getElementById('s_produto_search').value = '';
+        document.getElementById('s_produto_hidden').value = '';
         ['s_insumos_ok', 's_peso_insumos_ok', 's_is_teste'].forEach(id => document.getElementById(id).checked = false);
         document.querySelectorAll('.error-border').forEach(el => el.classList.remove('error-border'));
         document.querySelectorAll('[id^="warn_"]').forEach(el => el.classList.add('hidden'));
         document.getElementById('lbl_peso_padrao').innerText = '';
-        limparRascunhoStart(); window.switchTab('view-dashboard');
+        
+        limparRascunhoStart(); 
+        window.switchTab('view-dashboard');
       } catch (error) { window.showToast("Erro ao salvar start."); }
       finally { btn.innerHTML = '<i data-lucide="play"></i> Iniciar Produção'; btn.disabled = false; lucide.createIcons(); }
     };
 
     window.excluirStart = async (id) => {
        if(!confirm("Tem certeza que deseja APAGAR definitivamente esta produção?")) return;
-       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id)); window.showToast("Registro excluído."); } catch(e) { window.showToast("Erro ao excluir."); }
+       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id)); window.showToast("Registro excluído."); window.renderDashboard(); window.renderHistorico(); } catch(e) { window.showToast("Erro ao excluir."); }
     };
 
     window.iniciarTunel = async (id) => {
@@ -529,7 +536,6 @@
 
     function calcularStatusTunel() {
        const now = Date.now();
-       // Prevenção de bug no sort: garantindo fallback numérico caso a data seja nula na criação
        const startsComTunel = window.appState.starts.filter(s => s.tunelFimMs).sort((a,b) => b.tunelFimMs - a.tunelFimMs);
        if(startsComTunel.length === 0) return { status: 'Livre', obj: null };
        const last = startsComTunel[0]; const effectiveFimTunel = last.tunelSaidaMs || last.tunelFimMs;
@@ -563,11 +569,95 @@
       } catch (error) { window.showToast("Erro ao finalizar/editar."); }
     };
 
+    // Botão de Refresh do Dashboard
+    window.refreshPainel = () => {
+       window.showToast("Atualizando dados da produção...");
+       window.renderDashboard();
+    };
+
+    window.renderDashboard = () => {
+      try {
+        const { starts } = window.appState;
+        const listStarts = document.getElementById('list-starts');
+
+        const tunelStatus = calcularStatusTunel();
+        const banner = document.getElementById('banner-tunel');
+        if(tunelStatus.status === 'Livre') {
+            banner.className = "mb-4 p-3 rounded-lg border bg-green-50 border-green-200 flex justify-between items-center";
+            banner.innerHTML = `<div class="flex items-center gap-2 text-green-800 font-bold"><i data-lucide="check-circle-2"></i> Túnel Livre</div> <span class="text-xs text-green-600 uppercase">Pronto para uso</span>`;
+        } else if (tunelStatus.status === 'Ocupado') {
+            banner.className = "mb-4 p-3 rounded-lg border bg-red-50 border-red-200 flex justify-between items-center";
+            banner.innerHTML = `<div class="flex items-center gap-2 text-red-800 font-bold"><i data-lucide="snowflake"></i> Túnel Ocupado: ${tunelStatus.obj.produto}</div> <div class="timer font-mono text-lg text-red-600 font-bold" data-type="tunel_global" data-id="${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
+        } else {
+            banner.className = "mb-4 p-3 rounded-lg border bg-orange-50 border-orange-200 flex justify-between items-center";
+            banner.innerHTML = `<div class="flex items-center gap-2 text-orange-800 font-bold"><i data-lucide="timer"></i> Túnel em Setup (Aguarde)</div> <div class="timer font-mono text-lg text-orange-600 font-bold" data-type="tunel_setup" data-id="setup_${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
+        }
+
+        const emAndamento = starts.filter(s => s.status === 'Em Andamento').sort((a,b) => {
+           const tA = a.timestamp?.seconds || 0; const tB = b.timestamp?.seconds || 0; return tB - tA;
+        });
+        
+        if (emAndamento.length === 0) {
+          listStarts.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm bg-white rounded-xl shadow-sm border border-gray-100">Nenhuma produção em andamento.</div>`;
+        } else {
+          listStarts.innerHTML = `<div class="tablet-grid">` + emAndamento.map(s => {
+            return `
+            <div class="ios-card border-l-4 ${s.isTeste ? 'border-orange-500' : 'border-red-600'} relative mb-4">
+              <div class="p-4">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="font-bold text-gray-800 text-lg flex items-center gap-1">
+                     ${s.isTeste ? '<i data-lucide="flask-conical" class="w-4 h-4 text-orange-500"></i>' : ''} ${s.produto}
+                  </h3>
+                  <button onclick="window.excluirStart('${s.id}')" class="text-red-400 hover:text-red-700" title="Apagar Registro"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                </div>
+                
+                <div class="text-xs text-gray-600 mb-3 grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded border border-gray-100">
+                   <div>Massa: <b>${s.tempMassa || '--'}°C</b></div>
+                   <div>Água: <b>${s.tempAgua || '--'}°C</b></div>
+                   <div class="col-span-2 text-red-700">Modelo: <b>${s.modeladora || '--'}</b> | Peso: <b>${s.pesoProduto || '--'}g</b></div>
+                </div>
+
+                <!-- Cronômetro Batida -->
+                <div class="mb-3">
+                   <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Batida (${s.batidaStr} min)</div>
+                   <div class="timer text-lg font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-red-600'}" 
+                        data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">Calculando...</div>
+                </div>
+
+                <!-- Túnel Congelamento Individual Controls -->
+                <div class="mb-4">
+                   <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide flex justify-between items-center mb-1">
+                      <span>Túnel (35 min)</span>
+                      ${s.tunelFimMs && !s.tunelSaidaMs ? `<span class="text-red-600 cursor-pointer underline font-bold" onclick="window.finalizarTunelManual('${s.id}')">Final de entrada no túnel</span>` : ''}
+                   </div>
+                   ${!s.tunelFimMs ? 
+                     `<button onclick="window.iniciarTunel('${s.id}')" class="w-full py-1.5 text-xs bg-red-50 text-red-700 font-semibold rounded border border-red-200 transition active:bg-red-100"><i data-lucide="snowflake" class="w-3 h-3 inline"></i> Dar Entrada no Túnel</button>` 
+                     : s.tunelSaidaMs ? 
+                     `<div class="text-sm font-bold text-gray-500"><i data-lucide="check-circle" class="w-4 h-4 inline"></i> Terminou entrada no Túnel</div>`
+                     : 
+                     `<div class="timer text-lg font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-cyan-600'}" 
+                           data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">Calculando...</div>`
+                   }
+                </div>
+
+                <button onclick="window.abrirModalFinalizacao('${s.id}')" class="w-full py-2.5 text-sm rounded-lg flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
+                  <i data-lucide="package-check" class="w-4 h-4"></i> Finalizar Linha (Embalagem)
+                </button>
+              </div>
+            </div>
+          `}).join('') + `</div>`;
+        }
+        setTimeout(() => lucide.createIcons(), 0);
+      } catch (err) {
+         console.error("Erro render dashboard", err);
+      }
+    }
+
+    // -- HISTÓRICO DE PRODUÇÃO COM BUSCA --
     window.renderHistorico = () => {
        const container = document.getElementById('lista-historico-producao');
        const search = document.getElementById('hist_search')?.value.toLowerCase() || '';
        const dateFilter = document.getElementById('hist_date')?.value || '';
-       // Fix bug de ordenacao usando seconds formatado com fallback
        const concluidas = window.appState.starts.filter(s => {
            if(s.status !== 'Concluída') return false;
            if(search && !s.produto.toLowerCase().includes(search) && !(s.loteFinal || '').toLowerCase().includes(search)) return false;
@@ -608,10 +698,9 @@
        lucide.createIcons();
     }
 
-    // Modal de Detalhes abre o Html de antes
+    // Modal de Detalhes
     window.abrirDetalhesStart = (id) => {
-        // [Função mantida intacta...]
-        const start = window.appState.starts.find(s => s.id === id);
+       const start = window.appState.starts.find(s => s.id === id);
        if(!start) return;
 
        const content = document.getElementById('conteudo-detalhes-start');
@@ -662,7 +751,6 @@
        document.getElementById('modal-detalhes').classList.add('active');
     }
     window.fecharModalDetalhes = () => { document.getElementById('modal-detalhes').classList.remove('active'); };
-
 
     // -- FLUXO DE TESTE DE QUALIDADE --
     window.processarFotoTeste = (event, num) => {
@@ -817,164 +905,6 @@
         finally { element.style.display = 'none'; }
     }
 
-    function renderTestesPendentes() {
-       const listaOperador = document.getElementById('lista-testes-pendentes');
-       const listaSupervisor = document.getElementById('lista-testes-supervisor');
-       const historico = document.getElementById('list-testes-historico');
-       
-       const pendentes = window.appState.testes.filter(t => t.status === 'Pendente Operador');
-       const supervisao = window.appState.testes.filter(t => t.status === 'Aguardando Supervisor');
-       const concluidos = window.appState.testes.filter(t => t.status === 'Concluído').sort((a,b) => {
-           const tA = a.dataLiberacao?.seconds || 0; const tB = b.dataLiberacao?.seconds || 0; return tB - tA;
-       });
-
-       // 1. Operador preenche
-       if(pendentes.length === 0) { listaOperador.innerHTML = `<div class="p-4 text-center text-sm text-gray-500">Nenhum teste p/ avaliar.</div>`;
-       } else {
-           listaOperador.innerHTML = pendentes.map(t => {
-               const start = window.appState.starts.find(s => s.id === t.startId);
-               const loteFinal = start?.loteFinal || '<span class="text-gray-400 italic">Aguardando fim da linha</span>';
-               return `
-               <div class="border border-orange-200 bg-orange-50 p-3 rounded-lg mb-3">
-                 <div class="flex justify-between items-start mb-2">
-                    <div>
-                       <span class="text-xs font-bold text-orange-600 uppercase tracking-wide">Avaliação Operacional</span>
-                       <div class="font-bold text-gray-800 text-sm mt-1">${t.produtoNome}</div>
-                    </div>
-                    <button onclick="window.abrirModalTeste('${t.id}', '${t.produtoNome}', '${t.startId}')" class="bg-orange-500 text-white px-3 py-1.5 rounded text-sm font-semibold shadow-sm">Avaliar Produto</button>
-                 </div>
-                 <div class="bg-white bg-opacity-60 p-2 rounded text-xs text-gray-700 grid grid-cols-2 gap-2 border border-orange-100">
-                    <div>Lote do Produto:<br><b>${loteFinal}</b></div><div>Farinha Usada:<br><b>${t.loteFarinhaStart || '--'}</b></div>
-                 </div>
-               </div>`
-           }).join('');
-       }
-
-       // 2. Supervisor Libera
-       if(supervisao.length === 0) { listaSupervisor.innerHTML = `<div class="p-4 text-center text-sm text-gray-500">Nenhum lote aguardando liberação.</div>`;
-       } else {
-           listaSupervisor.innerHTML = supervisao.map(t => {
-               return `
-               <div class="border border-blue-200 bg-blue-50 p-3 rounded-lg mb-3">
-                 <div class="flex justify-between items-start mb-2">
-                    <div>
-                       <span class="text-xs font-bold text-blue-800 uppercase tracking-wide">Análise do Supervisor</span>
-                       <div class="font-bold text-gray-800 text-sm mt-1">${t.produtoNome} (Lote: ${t.loteProduto})</div>
-                    </div>
-                    <button onclick="window.abrirModalSupervisor('${t.id}')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-semibold shadow-sm">Liberar & Gerar PDF</button>
-                 </div>
-               </div>`
-           }).join('');
-       }
-
-       // 3. Histórico Concluído
-       if(concluidos.length === 0) { historico.innerHTML = `<div class="p-4 text-center text-sm text-gray-500">Nenhum histórico.</div>`;
-       } else {
-           historico.innerHTML = concluidos.map(t => `
-             <div class="border-b border-gray-200 p-3 last:border-0 flex justify-between items-center">
-               <div class="flex gap-3 items-center">
-                  ${t.fotoBase64_1 ? `<img src="${t.fotoBase64_1}" class="w-10 h-10 object-cover rounded shadow-sm border border-gray-200">` : `<div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center"><i data-lucide="image-off" class="w-4 h-4 text-gray-400"></i></div>`}
-                  <div>
-                     <div class="font-semibold text-sm">${t.produtoNome} <span class="text-xs text-gray-400">(${t.loteProduto || ''})</span></div>
-                     <div class="text-xs text-gray-500">Nota: ${t.notaFinal || '--'} | Farinha: ${t.loteFarinhaUsada}</div>
-                  </div>
-               </div>
-               <span class="text-xs px-2 py-1 rounded-full ${t.liberado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.liberado ? 'Liberado' : 'Retido'}</span>
-             </div>`).join('');
-       }
-       lucide.createIcons();
-    }
-
-    function formatTimeLeft(endTime) {
-       if(!endTime) return null;
-       const diff = endTime - Date.now();
-       if(diff <= 0) return { expired: true, text: "00:00" };
-       const m = Math.floor(diff / 60000); const s = Math.floor((diff % 60000) / 1000);
-       return { expired: false, text: `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` };
-    }
-
-    function emitirNotificacao(id, titulo, corpo) {
-       if(window.appState.notifiedTimers.has(id)) return;
-       window.appState.notifiedTimers.add(id);
-       window.showToast(titulo);
-       if ("Notification" in window && Notification.permission === "granted") new Notification(titulo, { body: corpo });
-    }
-
-    function renderDashboard() {
-      const { starts } = window.appState;
-      const listStarts = document.getElementById('list-starts');
-
-      const tunelStatus = calcularStatusTunel();
-      const banner = document.getElementById('banner-tunel');
-      if(tunelStatus.status === 'Livre') {
-          banner.className = "mb-4 p-3 rounded-lg border bg-green-50 border-green-200 flex justify-between items-center";
-          banner.innerHTML = `<div class="flex items-center gap-2 text-green-800 font-bold"><i data-lucide="check-circle-2"></i> Túnel Livre</div> <span class="text-xs text-green-600 uppercase">Pronto para uso</span>`;
-      } else if (tunelStatus.status === 'Ocupado') {
-          banner.className = "mb-4 p-3 rounded-lg border bg-red-50 border-red-200 flex justify-between items-center";
-          banner.innerHTML = `<div class="flex items-center gap-2 text-red-800 font-bold"><i data-lucide="snowflake"></i> Túnel Ocupado: ${tunelStatus.obj.produto}</div> <div class="timer font-mono text-lg text-red-600 font-bold" data-type="tunel_global" data-id="${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
-      } else {
-          banner.className = "mb-4 p-3 rounded-lg border bg-orange-50 border-orange-200 flex justify-between items-center";
-          banner.innerHTML = `<div class="flex items-center gap-2 text-orange-800 font-bold"><i data-lucide="timer"></i> Túnel em Setup (Aguarde)</div> <div class="timer font-mono text-lg text-orange-600 font-bold" data-type="tunel_setup" data-id="setup_${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
-      }
-
-      // Safe sorting para Dashboard (evita null timestamp ao criar doc online)
-      const emAndamento = starts.filter(s => s.status === 'Em Andamento').sort((a,b) => {
-         const tA = a.timestamp?.seconds || 0; const tB = b.timestamp?.seconds || 0; return tB - tA;
-      });
-      
-      if (emAndamento.length === 0) {
-        listStarts.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm bg-white rounded-xl shadow-sm border border-gray-100">Nenhuma produção em andamento.</div>`;
-      } else {
-        listStarts.innerHTML = `<div class="tablet-grid">` + emAndamento.map(s => {
-          return `
-          <div class="ios-card border-l-4 ${s.isTeste ? 'border-orange-500' : 'border-red-600'} relative mb-4">
-            <div class="p-4">
-              <div class="flex justify-between items-start mb-2">
-                <h3 class="font-bold text-gray-800 text-lg flex items-center gap-1">
-                   ${s.isTeste ? '<i data-lucide="flask-conical" class="w-4 h-4 text-orange-500"></i>' : ''} ${s.produto}
-                </h3>
-                <button onclick="window.excluirStart('${s.id}')" class="text-red-400 hover:text-red-700" title="Apagar Registro"><i data-lucide="trash" class="w-4 h-4"></i></button>
-              </div>
-              
-              <div class="text-xs text-gray-600 mb-3 grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded border border-gray-100">
-                 <div>Massa: <b>${s.tempMassa}°C</b></div>
-                 <div>Água: <b>${s.tempAgua}°C</b></div>
-                 <div class="col-span-2 text-red-700">Modelo: <b>${s.modeladora}</b> | Peso: <b>${s.pesoProduto}g</b></div>
-              </div>
-
-              <!-- Cronômetro Batida -->
-              <div class="mb-3">
-                 <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Batida (${s.batidaStr} min)</div>
-                 <div class="timer text-lg font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-red-600'}" 
-                      data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">Calculando...</div>
-              </div>
-
-              <!-- Túnel Congelamento Individual Controls -->
-              <div class="mb-4">
-                 <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide flex justify-between items-center mb-1">
-                    <span>Túnel (35 min)</span>
-                    ${s.tunelFimMs && !s.tunelSaidaMs ? `<span class="text-red-600 cursor-pointer underline font-bold" onclick="window.finalizarTunelManual('${s.id}')">Final de entrada no túnel</span>` : ''}
-                 </div>
-                 ${!s.tunelFimMs ? 
-                   `<button onclick="window.iniciarTunel('${s.id}')" class="w-full py-1.5 text-xs bg-red-50 text-red-700 font-semibold rounded border border-red-200 transition active:bg-red-100"><i data-lucide="snowflake" class="w-3 h-3 inline"></i> Dar Entrada no Túnel</button>` 
-                   : s.tunelSaidaMs ? 
-                   `<div class="text-sm font-bold text-gray-500"><i data-lucide="check-circle" class="w-4 h-4 inline"></i> Terminou entrada no Túnel</div>`
-                   : 
-                   `<div class="timer text-lg font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-cyan-600'}" 
-                         data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">Calculando...</div>`
-                 }
-              </div>
-
-              <button onclick="window.abrirModalFinalizacao('${s.id}')" class="w-full py-2.5 text-sm rounded-lg flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold">
-                <i data-lucide="package-check" class="w-4 h-4"></i> Finalizar Linha (Embalagem)
-              </button>
-            </div>
-          </div>
-        `}).join('') + `</div>`;
-      }
-      setTimeout(() => lucide.createIcons(), 0);
-    }
-
     setInterval(() => {
        document.querySelectorAll('.timer').forEach(el => {
           const endTime = parseInt(el.dataset.endtime);
@@ -983,7 +913,7 @@
           const status = formatTimeLeft(endTime);
           
           if(status.expired) {
-             if(type === 'tunel_setup') { el.innerText = "LIVRE"; renderDashboard(); return; } 
+             if(type === 'tunel_setup') { el.innerText = "LIVRE"; window.renderDashboard(); return; } 
              if(type === 'tunel_global') { el.innerText = "CONCLUÍDO"; el.classList.replace('text-red-600', 'text-red-500'); }
              
              el.innerText = status.text;
@@ -994,66 +924,6 @@
           } else { el.innerText = status.text; }
        });
     }, 1000);
-
-    // -- CADASTRO DE PRODUTOS --
-    window.addIngredienteTemp = () => {
-       const nome = document.getElementById('c_ingrediente').value; const peso = document.getElementById('c_peso').value; const unid = document.getElementById('c_unid').value;
-       if(!nome || !peso) { window.showToast("Preencha nome e peso"); return; }
-       window.tempIngredients.push({ nome, peso, unid });
-       document.getElementById('c_ingrediente').value = ''; document.getElementById('c_peso').value = '';
-       renderIngredientesTemp();
-    };
-    function renderIngredientesTemp() {
-       document.getElementById('lista-ingredientes-temp').innerHTML = window.tempIngredients.map((ing, idx) => `
-         <div class="flex justify-between items-center text-sm p-2 border-b border-gray-100"><span>${ing.nome}</span><span class="text-gray-500">${ing.peso} ${ing.unid} <i data-lucide="trash-2" class="w-4 h-4 inline ml-2 text-red-500 cursor-pointer" onclick="window.tempIngredients.splice(${idx}, 1); renderIngredientesTemp();"></i></span></div>`).join('');
-       lucide.createIcons();
-    }
-    window.salvarProduto = async (e) => {
-       e.preventDefault();
-       const nome = document.getElementById('c_nome_produto').value; const pesoPadrao = parseFloat(document.getElementById('c_peso_padrao').value);
-       if(!nome) return;
-       try {
-         if (window.editingProdutoId) {
-            await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', window.editingProdutoId), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null });
-         } else {
-            await addDoc(getCol('produtos_cadastro'), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null, timestamp: serverTimestamp() });
-         }
-         window.showToast("Salvo com sucesso!"); window.cancelarEdicaoReceita();
-       } catch (error) { window.showToast("Erro ao salvar."); }
-    };
-    window.cancelarEdicaoReceita = () => {
-       document.getElementById('form-cadastro').reset(); window.tempIngredients = []; window.editingProdutoId = null;
-       document.getElementById('titulo-form-receita').innerText = "Nova Receita"; document.getElementById('btn-cancelar-edicao').classList.add('hidden');
-       document.getElementById('btn-salvar-produto').classList.replace('w-2/3', 'w-full'); document.getElementById('btn-salvar-produto').innerHTML = '<i data-lucide="save"></i> Salvar Nova Receita';
-       renderIngredientesTemp(); lucide.createIcons();
-    };
-    window.editProduto = (id) => {
-       const p = window.appState.produtos.find(x => x.id === id); if(!p) return;
-       window.editingProdutoId = id; document.getElementById('c_nome_produto').value = p.nome; document.getElementById('c_peso_padrao').value = p.pesoPadrao || '';
-       window.tempIngredients = p.ingredientes ? [...p.ingredientes] : []; renderIngredientesTemp();
-       document.getElementById('titulo-form-receita').innerText = "Editar Receita"; document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
-       document.getElementById('btn-salvar-produto').classList.replace('w-full', 'w-2/3'); document.getElementById('btn-salvar-produto').innerHTML = '<i data-lucide="refresh-cw"></i> Atualizar Receita';
-       lucide.createIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    window.deleteProduto = async (id) => {
-       if(!confirm("Excluir esta receita?")) return;
-       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', id)); window.showToast("Receita excluída."); } catch (e) {}
-    };
-    function renderListaProdutos() {
-       const lista = document.getElementById('lista-produtos-salvos');
-       if(window.appState.produtos.length === 0) { lista.innerHTML = "<p class='text-sm text-gray-400'>Nenhum produto cadastrado.</p>"; return; }
-       lista.innerHTML = window.appState.produtos.map(p => `
-          <div class="p-4 border-b border-gray-200">
-             <div class="flex justify-between items-start mb-2"><div><div class="font-bold text-sm text-gray-800">${p.nome}</div>${p.pesoPadrao ? `<div class="text-xs text-blue-600 font-bold">Padrão: ${p.pesoPadrao}g</div>` : ''}</div>
-                <div class="flex gap-3"><button onclick="window.editProduto('${p.id}')" class="text-red-600"><i data-lucide="edit" class="w-4 h-4"></i></button><button onclick="window.deleteProduto('${p.id}')" class="text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
-             </div>
-             <div class="text-xs text-gray-500">${p.ingredientes && p.ingredientes.length > 0 ? p.ingredientes.map(i => `${i.nome}: ${i.peso}${i.unid}`).join(' • ') : 'Sem ingredientes'}</div>
-          </div>`).join('');
-       lucide.createIcons();
-    }
-    function atualizarSelectProdutos() {
-       // Atualiza cache de array (Não usa mais select dropdown padrão, usa o Datalist customizado)
-    }
 
     document.addEventListener('DOMContentLoaded', () => {
       if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
@@ -1066,8 +936,17 @@
 </head>
 <body>
 
+  <!-- TELA DE SPLASH (EVITA O PISCAR DO LOGIN) -->
+  <div id="view-splash" class="flex flex-col items-center justify-center min-h-screen absolute inset-0 z-[10000] screen-bg">
+     <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="splash-logo" alt="Logo da Empresa" class="mb-6 rounded shadow-sm max-h-24 object-contain">
+     <div class="flex flex-col items-center gap-2">
+        <i data-lucide="loader-2" class="animate-spin w-10 h-10 text-red-600"></i>
+        <span class="text-sm font-semibold text-gray-500 mt-2">Carregando sistema...</span>
+     </div>
+  </div>
+
   <!-- Tela de Login -->
-  <section id="view-login" class="flex flex-col items-center justify-center min-h-screen p-6 w-full z-[9999] absolute inset-0">
+  <section id="view-login" style="display: none;" class="flex flex-col items-center justify-center min-h-screen p-6 w-full z-[9999] absolute inset-0 screen-bg">
     <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="login-logo" alt="Logo da Empresa" class="mb-10 rounded shadow-sm max-h-24 object-contain">
     
     <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center border border-gray-100">
@@ -1285,6 +1164,9 @@
         <div class="mb-6">
            <div class="flex justify-between items-center mb-3 px-1">
              <h2 class="font-bold text-gray-800 flex items-center gap-2 text-lg"><i data-lucide="activity" class="w-5 h-5 text-red-600"></i> Linha de Produção</h2>
+             <button type="button" onclick="window.refreshPainel()" class="flex items-center gap-1 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition shadow-sm font-semibold">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar
+             </button>
            </div>
            <div id="list-starts"><div class="p-4 text-center text-gray-500 text-sm">Carregando...</div></div>
         </div>
