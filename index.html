@@ -988,7 +988,7 @@
 
     window.renderListaProdutos = () => {
        const lista = document.getElementById('lista-produtos-salvos');
-       if(window.appState.produtos.length === 0) { lista.innerHTML = "<div class='p-6 text-center text-gray-500 text-sm bg-gray-50 rounded-xl border border-gray-200'>Base de dados vazia.</div>"; return; }
+       if(window.appState.produtos.length === 0) { lista.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm bg-gray-50 rounded-xl border border-gray-200">Base de dados vazia.</div>`; return; }
        lista.innerHTML = window.appState.produtos.map(p => `
           <div class="ios-card p-4 border border-gray-800 mb-3 bg-[#18181b] hover:bg-[#27272a] transition-colors">
              <div class="flex justify-between items-start mb-3">
@@ -1049,7 +1049,7 @@
 
   <!-- Tela de Login -->
   <section id="view-login" style="display: none;" class="flex flex-col items-center justify-center min-h-screen p-6 w-full z-[9999] absolute inset-0 screen-bg">
-    <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="login-logo" alt="Logo" class="mb-12 rounded shadow-2xl max-h-24 object-contain">
+    <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="login-logo" alt="Logo da Empresa" class="mb-12 rounded shadow-2xl max-h-24 object-contain">
     
     <div class="ios-card w-full max-w-sm text-center p-8 border border-[#27272a]">
        <h2 class="text-2xl font-bold text-gray-100 mb-2 tracking-tight">Portal Operacional</h2>
