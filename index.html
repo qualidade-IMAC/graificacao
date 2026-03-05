@@ -19,6 +19,7 @@
       --ios-primary: #dc2626; /* Vermelho/Bordô premium (Tailwind Red 600) */
       --ios-success: #16a34a; /* Verde sucesso refinado */
       --ios-danger: #ef4444; 
+      --ios-warning: #f97316; /* Laranja para o toggle de teste */
       --ios-border: #27272a; /* Limites subtis */
       --ios-border-radius: 16px; /* Cantos mais arredondados, visual moderno */
       --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -155,6 +156,9 @@
     .ios-slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: #FFFFFF; transition: .3s ease; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     input:checked + .ios-slider { background-color: var(--ios-success); }
     input:checked + .ios-slider:before { transform: translateX(22px); }
+    
+    /* Varied Toggle Colors */
+    input.test-toggle:checked + .ios-slider { background-color: var(--ios-warning); }
 
     /* Toast & Modals Refined */
     #toast { 
@@ -448,7 +452,6 @@
         if (filtrados.length === 0) {
             dropdown.innerHTML = '<div class="p-4 text-sm text-gray-400 text-center">Nenhum registo encontrado.</div>';
         } else {
-            // AQUI É FEITA A QUEBRA DE LINHA PARA NOMES GRANDES: "break-words whitespace-normal leading-snug"
             dropdown.innerHTML = filtrados.map(p => `
                 <div class="p-4 border-b border-gray-700 hover:bg-[#27272a] cursor-pointer text-sm font-semibold flex flex-col transition-colors" onclick="window.selecionarProduto('${p.nome}')">
                     <span class="text-gray-100 break-words whitespace-normal leading-snug">${p.nome}</span>
@@ -567,25 +570,52 @@
       const isTeste = document.getElementById('s_is_teste').checked;
       const loteFar = document.getElementById('s_lote_farinha').value;
 
+      // Cálculo e formatação do tempo de túnel
+      const tunelInput = document.getElementById('s_tempo_tunel');
+      let tunelMs = 0;
+      if(tunelInput && tunelInput.value) {
+         tunelMs = parseInt(tunelInput.value) * 60 * 1000;
+      }
+
       const data = {
         produto: nomeProduto,
         dataFabricacao: document.getElementById('s_data_fab').value,
-        tempAmbiente: document.getElementById('s_temp_ambiente').value, tempFarinha: document.getElementById('s_temp_farinha').value,
-        tempAgua: document.getElementById('s_temp_agua').value, tempFermento: document.getElementById('s_temp_fermento').value, tempMassa: document.getElementById('s_temp_massa').value,
-        insumosOk: document.getElementById('s_insumos_ok').checked, pesoInsumosOk: document.getElementById('s_peso_insumos_ok').checked,
-        loteFarinha: loteFar, qtdAgua: document.getElementById('s_qtd_agua').value, qtdGelo: document.getElementById('s_qtd_gelo').value,
-        batidaStr: `${lenta}+${rapida}`, batidaFimMs: batidaFim,
-        tempoCilindro: document.getElementById('s_tempo_cilindro').value, modeladora: document.getElementById('s_modeladora').value,
-        configModeladora: document.getElementById('s_config_modeladora').value, pesoProduto: document.getElementById('s_peso_produto').value,
-        isTeste: isTeste, timestamp: serverTimestamp(), status: 'Em Andamento'
+        tempAmbiente: document.getElementById('s_temp_ambiente').value, 
+        tempFarinha: document.getElementById('s_temp_farinha').value,
+        tempAgua: document.getElementById('s_temp_agua').value, 
+        tempFermento: document.getElementById('s_temp_fermento').value, 
+        tempMassa: document.getElementById('s_temp_massa').value,
+        insumosOk: document.getElementById('s_insumos_ok').checked, 
+        pesoInsumosOk: document.getElementById('s_peso_insumos_ok').checked,
+        loteFarinha: loteFar, 
+        qtdAgua: document.getElementById('s_qtd_agua').value, 
+        qtdGelo: document.getElementById('s_qtd_gelo').value,
+        batidaStr: `${lenta}+${rapida}`, 
+        batidaFimMs: batidaFim,
+        tempoCilindro: document.getElementById('s_tempo_cilindro').value, 
+        grupoAutomatico: document.getElementById('s_grupo_automatico').value,
+        pesoProduto: document.getElementById('s_peso_produto').value,
+        tempoTunelConfigurado: document.getElementById('s_tempo_tunel').value,
+        tempTunel: document.getElementById('s_temp_tunel').value,
+        isTeste: isTeste, 
+        timestamp: serverTimestamp(), 
+        status: 'Em Andamento'
       };
 
       try {
         const docRef = await addDoc(col, data);
         if(isTeste) {
-            await addDoc(getCol('testes_farinha'), { startId: docRef.id, produtoNome: nomeProduto, loteFarinhaStart: loteFar, status: 'Pendente Operador', dataCriacao: serverTimestamp() });
+            await addDoc(getCol('testes_farinha'), { 
+                startId: docRef.id, 
+                produtoNome: nomeProduto, 
+                loteFarinhaStart: loteFar, 
+                status: 'Pendente Operador', 
+                dataCriacao: serverTimestamp() 
+            });
             window.showToast("Start Ativo! Rotina de Teste programada.");
-        } else { window.showToast("Linha de Produção Ativada!"); }
+        } else { 
+            window.showToast("Linha de Produção Ativada!"); 
+        }
 
         document.getElementById('form-start').reset();
         document.getElementById('s_data_fab').value = new Date().toISOString().split('T')[0];
@@ -607,8 +637,9 @@
        try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id)); window.showToast("Registo eliminado."); window.renderDashboard(); window.renderHistorico(); } catch(e) { window.showToast("Erro ao eliminar."); }
     };
 
-    window.iniciarTunel = async (id) => {
-      await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { tunelFimMs: Date.now() + (35 * 60 * 1000), tunelSaidaMs: null });
+    window.iniciarTunel = async (id, minutosConfigurados) => {
+      const ms = parseInt(minutosConfigurados) * 60 * 1000 || (35 * 60 * 1000); // Fallback para 35min se não houver config
+      await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { tunelFimMs: Date.now() + ms, tunelSaidaMs: null });
       window.showToast("Processo de túnel iniciado.");
     };
 
@@ -632,18 +663,18 @@
     window.abrirEdicaoHistorico = (id) => {
        const start = window.appState.starts.find(s => s.id === id); if(!start) return;
        document.getElementById('modal-finalizar').classList.add('active'); document.getElementById('f_id_producao').value = id;
-       document.getElementById('f_lote').value = start.loteFinal || ''; document.getElementById('f_qtd').value = start.qtdProduzida || ''; document.getElementById('f_peso_pacote').value = start.pesoPacoteFinal || '';
+       document.getElementById('f_lote').value = start.loteFinal || ''; document.getElementById('f_qtd').value = start.qtdProduzida || '';
        document.getElementById('f_balanca_calibrada').checked = start.balancaCalibrada || false; document.getElementById('f_emb_secundaria').checked = start.embSecundariaLigada || false; document.getElementById('f_emb_correta').checked = start.embalagemCorreta || false; document.getElementById('f_detector_ligada').checked = start.detectorLigada || false; document.getElementById('f_detector_calibrada').checked = start.detectorCalibrada || false;
     };
-    window.fecharModal = () => { document.getElementById('modal-finalizar').classList.remove('active'); document.getElementById('f_lote').value = ''; document.getElementById('f_qtd').value = ''; document.getElementById('f_peso_pacote').value = ''; ['f_balanca_calibrada', 'f_emb_secundaria', 'f_emb_correta', 'f_detector_ligada', 'f_detector_calibrada'].forEach(id => document.getElementById(id).checked = false); };
+    window.fecharModal = () => { document.getElementById('modal-finalizar').classList.remove('active'); document.getElementById('f_lote').value = ''; document.getElementById('f_qtd').value = ''; ['f_balanca_calibrada', 'f_emb_secundaria', 'f_emb_correta', 'f_detector_ligada', 'f_detector_calibrada'].forEach(id => document.getElementById(id).checked = false); };
 
     window.confirmarFinalizacao = async () => {
       const id = document.getElementById('f_id_producao').value;
-      const lote = document.getElementById('f_lote').value; const qtd = document.getElementById('f_qtd').value; const pesoPacote = document.getElementById('f_peso_pacote').value;
-      if(!lote || !qtd || !pesoPacote) { window.showToast("Campos obrigatórios em falta!"); return; }
+      const lote = document.getElementById('f_lote').value; const qtd = document.getElementById('f_qtd').value;
+      if(!lote || !qtd) { window.showToast("Campos obrigatórios em falta!"); return; }
       try {
         await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { 
-          status: 'Concluída', loteFinal: lote, qtdProduzida: qtd, pesoPacoteFinal: pesoPacote,
+          status: 'Concluída', loteFinal: lote, qtdProduzida: qtd,
           balancaCalibrada: document.getElementById('f_balanca_calibrada').checked, embSecundariaLigada: document.getElementById('f_emb_secundaria').checked,
           embalagemCorreta: document.getElementById('f_emb_correta').checked, detectorLigada: document.getElementById('f_detector_ligada').checked, detectorCalibrada: document.getElementById('f_detector_calibrada').checked,
           dataFinalizacao: serverTimestamp() 
@@ -683,11 +714,11 @@
           listStarts.innerHTML = `<div class="tablet-grid gap-6 p-0">` + emAndamento.map(s => {
             return `
             <div class="ios-card relative mb-0 hover:border-gray-600 transition-colors">
-              <div class="h-2 w-full ${s.isTeste ? 'bg-orange-500' : 'bg-blue-600'}"></div>
+              <div class="h-2 w-full ${s.isTeste ? 'bg-[var(--ios-warning)]' : 'bg-blue-600'}"></div>
               <div class="p-5">
                 <div class="flex justify-between items-start mb-4">
                   <h3 class="font-bold text-white text-lg flex items-center gap-2">
-                     ${s.isTeste ? '<i data-lucide="flask-conical" class="w-5 h-5 text-orange-500"></i>' : ''} ${s.produto}
+                     ${s.isTeste ? '<i data-lucide="flask-conical" class="w-5 h-5 text-[var(--ios-warning)]"></i>' : ''} ${s.produto}
                   </h3>
                   <button onclick="window.excluirStart('${s.id}')" class="text-gray-500 hover:text-red-500 transition-colors p-1" title="Eliminar"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
@@ -697,7 +728,7 @@
                    <div class="flex flex-col"><span class="text-gray-500 mb-1">Água</span><b class="text-sm text-gray-200">${s.tempAgua || '--'}°C</b></div>
                    <div class="col-span-2 border-t border-gray-800 pt-2 flex justify-between">
                      <span class="text-gray-500">Padrão: <b class="text-blue-400">${s.pesoProduto || '--'}g</b></span>
-                     <span class="text-gray-500 text-right w-1/2 truncate" title="${s.modeladora}">Mod: ${s.modeladora || '--'}</span>
+                     <span class="text-gray-500 text-right w-1/2 truncate" title="${s.grupoAutomatico}">Grp: ${s.grupoAutomatico || '--'}</span>
                    </div>
                 </div>
 
@@ -707,9 +738,9 @@
                      <div class="timer text-xl font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-blue-400'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
                   </div>
                   <div class="flex-1 bg-[#18181b] p-3 rounded-xl border border-gray-800 text-center">
-                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Túnel</div>
+                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Túnel (${s.tempoTunelConfigurado || '--'}m)</div>
                      ${!s.tunelFimMs ? 
-                       `<button onclick="window.iniciarTunel('${s.id}')" class="mt-1 w-full py-1.5 text-xs bg-blue-600/10 text-blue-400 font-bold rounded-lg border border-blue-500/20 shadow-sm hover:bg-blue-600/20 transition">Iniciar</button>` 
+                       `<button onclick="window.iniciarTunel('${s.id}', '${s.tempoTunelConfigurado}')" class="mt-1 w-full py-1.5 text-xs bg-blue-600/10 text-blue-400 font-bold rounded-lg border border-blue-500/20 shadow-sm hover:bg-blue-600/20 transition">Iniciar</button>` 
                        : s.tunelSaidaMs ? 
                        `<div class="text-sm font-bold text-green-400 mt-1"><i data-lucide="check" class="w-4 h-4 inline"></i> Ok</div>`
                        : 
@@ -811,18 +842,16 @@
           <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
              <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Engenharia de Processo</div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Masseira</span><span class="detalhe-value">${start.batidaStr} min</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Cilindro</span><span class="detalhe-value">${start.tempoCilindro || '--'} min</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Equipamento</span><span class="detalhe-value">${start.modeladora || '--'}</span></div>
-             <div class="detalhe-row py-1.5 border-0 flex-col items-start gap-1"><span class="detalhe-label">Parâmetros Máquina</span><span class="detalhe-value text-xs text-left text-gray-300 bg-[#09090b] w-full p-2 rounded border border-gray-700">${start.configModeladora || 'Não informado'}</span></div>
+             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Tempo Cilindro</span><span class="detalhe-value">${start.tempoCilindro || '--'} min</span></div>
+             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Grupo Automático</span><span class="detalhe-value">${start.grupoAutomatico || '--'}</span></div>
              <div class="detalhe-row py-1.5 border-0 mt-2"><span class="detalhe-label">Peso Alvo</span><span class="detalhe-value text-blue-400 font-bold">${start.pesoProduto || '--'} g</span></div>
           </div>
 
           <div class="bg-[#18181b] rounded-xl p-4 border border-gray-800">
              <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Embalagem & Controlo</div>
-             <div class="grid grid-cols-3 gap-2 mb-4">
+             <div class="grid grid-cols-2 gap-2 mb-4">
                 <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Lote</span><span class="font-bold text-sm text-gray-200">${start.loteFinal}</span></div>
                 <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Caixas</span><span class="font-bold text-sm text-gray-200">${start.qtdProduzida}</span></div>
-                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">P. Final</span><span class="font-bold text-sm text-gray-200">${start.pesoPacoteFinal} Kg</span></div>
              </div>
              <div class="space-y-1.5 mt-2">
                 <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Balança Calibrada</span><span class="detalhe-value">${simNao(start.balancaCalibrada)}</span></div>
@@ -962,8 +991,9 @@
              el.innerText = status.text;
              el.classList.remove('text-red-600', 'text-cyan-600', 'text-blue-600'); el.classList.add('text-red-500');
              
-             if(type === 'batida') emitirNotificacao(`b_${id}`, "Masseira Concluída!", "Fim do tempo de batida.");
-             if(type === 'tunel_indiv') emitirNotificacao(`t_${id}`, "Atenção: Queda na Embaladora!", "Pão do túnel começou a cair.");
+             // Emite notificação apenas se já não tiver emitido para esse evento
+             if(type === 'batida') emitirNotificacao(`b_${id}_${endTime}`, "Masseira Concluída!", "Fim do tempo de batida.");
+             if(type === 'tunel_indiv') emitirNotificacao(`t_${id}_${endTime}`, "Atenção: Queda na Embaladora!", "Pão do túnel começou a cair.");
           } else { el.innerText = status.text; }
        });
     }, 1000);
@@ -1084,10 +1114,9 @@
           <div class="ios-card mb-5 border-l-4 border-orange-500 bg-orange-500/10">
              <div class="p-5 flex justify-between items-center">
                 <div>
-                   <span class="font-bold text-orange-400 text-sm block mb-0.5">Diagnóstico QA Ativo?</span>
-                   <span class="text-xs text-gray-400">Exige protocolo de validação laboratorial no final.</span>
+                   <span class="font-bold text-orange-400 text-sm block mb-0.5">Este é um teste?</span>
                 </div>
-                <label class="ios-switch">
+                <label class="ios-switch test-toggle">
                   <input type="checkbox" id="s_is_teste">
                   <span class="ios-slider" style="background-color: #27272a;"></span>
                 </label>
@@ -1117,19 +1146,19 @@
                <i data-lucide="scale" class="w-4 h-4 text-green-500"></i> Balanceamento & Matéria Prima
             </div>
             <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-5 flex-row justify-between items-center border-0">
-                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Triagem de Integridade?</label><span class="text-[10px] text-gray-400 block mt-1">Avaliação visual e conformidade de fornecedor.</span></div>
+              <div class="form-row p-0 mb-5 flex-row justify-between items-center border-0 col-span-full">
+                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Conferência de Insumos</label></div>
                 <label class="ios-switch"><input type="checkbox" id="s_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
               </div>
               
-              <div class="form-row p-0 mb-5 border-0"><label class="form-label text-gray-300 text-white">Lote Farinha Principal</label><input type="text" id="s_lote_farinha" class="ios-input mt-1 bg-[#09090b]" placeholder="Ex: L-4819" required></div>
+              <div class="form-row p-0 mb-5 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Lote da Farinha (Uso)</label><input type="text" id="s_lote_farinha" class="ios-input mt-1 bg-[#09090b]" placeholder="Ex: Lote 1, Lote 2..." required></div>
               
-              <div class="form-row p-0 mb-5 border-t border-gray-800 pt-5 flex-row justify-between items-center border-0">
+              <div class="form-row p-0 mb-5 border-t border-gray-800 pt-5 flex-row justify-between items-center border-0 col-span-full">
                 <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Aferição de Pesos Executada?</label><span class="text-[10px] text-blue-400 block mt-1">Inclui confirmação de gelo/água.</span></div>
                 <label class="ios-switch"><input type="checkbox" id="s_peso_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
               </div>
               
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-2 gap-4 col-span-full">
                 <div class="form-row p-0 border-0"><label class="form-label text-blue-400">Água (L)</label><input type="number" id="s_qtd_agua" class="ios-input mt-1 bg-[#09090b] border-blue-900/30 focus:border-blue-500" step="0.1" required placeholder="0.0"></div>
                 <div class="form-row p-0 border-0"><label class="form-label text-cyan-400">Gelo (Kg)</label><input type="number" id="s_qtd_gelo" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="0.0"></div>
               </div>
@@ -1150,18 +1179,24 @@
             <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
                <i data-lucide="thermometer" class="w-4 h-4 text-red-500"></i> Monitorização Térmica
             </div>
-            <div class="grid grid-cols-2 gap-4 p-4">
-              <div class="form-row p-0 border-0"><label class="form-label text-gray-400">Ambiente</label><input type="number" id="s_temp_ambiente" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°"></div>
+            <div class="tablet-grid p-4">
               <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Farinha</label><input type="number" id="s_temp_farinha" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
+                 <label class="form-label text-gray-400">Ambiente</label>
+                 <input type="number" id="s_temp_ambiente" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
+              </div>
+              <div class="form-row p-0 border-0">
+                 <label class="form-label text-gray-400">Farinha</label>
+                 <input type="number" id="s_temp_farinha" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_farinha" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
               <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Água</label><input type="number" id="s_temp_agua" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
+                 <label class="form-label text-gray-400">Água</label>
+                 <input type="number" id="s_temp_agua" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_agua" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
               <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Fermento</label><input type="number" id="s_temp_fermento" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
+                 <label class="form-label text-gray-400">Fermento</label>
+                 <input type="number" id="s_temp_fermento" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_fermento" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
               
@@ -1176,14 +1211,13 @@
             </div>
           </div>
 
-          <div class="ios-card mb-8">
+          <div class="ios-card mb-5">
             <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
-               <i data-lucide="cogs" class="w-4 h-4 text-indigo-500"></i> Conformação
+               <i data-lucide="cogs" class="w-4 h-4 text-indigo-500"></i> Conformação e Congelamento
             </div>
             <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Residência Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: 5"></div>
-              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Linha / Equipamento</label><input type="text" id="s_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: L1"></div>
-              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Set-up Técnico</label><input type="text" id="s_config_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Pressão, Rolo..."></div>
+              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Tempo Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: 5"></div>
+              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Grupo Automático</label><input type="text" id="s_grupo_automatico" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: G1"></div>
               
               <div class="form-row p-0 border-0 col-span-full bg-indigo-500/10 rounded-xl border border-indigo-500/20 p-4 mt-2">
                  <div class="flex justify-between items-end mb-2">
@@ -1193,6 +1227,10 @@
                  <input type="number" id="s_peso_produto" class="ios-input bg-[#09090b] border-indigo-500/30 text-lg font-bold" step="0.1" required placeholder="0.0">
                  <span id="warn_peso_produto" class="text-xs text-white bg-indigo-600 px-3 py-1.5 rounded-lg font-bold hidden mt-3 text-center shadow-sm w-full block"></span>
               </div>
+
+              <div class="form-row p-0 mt-4 border-0 col-span-full border-t border-gray-800 pt-4"><label class="form-label text-cyan-400 font-bold">Tempo de Túnel Configurado (min)</label><input type="number" id="s_tempo_tunel" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" required placeholder="Ex: 35"></div>
+              <div class="form-row p-0 border-0 col-span-full"><label class="form-label text-cyan-400 font-bold">Temperatura do Túnel (°C)</label><input type="number" id="s_temp_tunel" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="Ex: -35.0"></div>
+
             </div>
           </div>
 
@@ -1407,9 +1445,8 @@
           <input type="hidden" id="f_id_producao">
           
           <div class="grid grid-cols-2 gap-4 mb-6">
-             <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">ID Rastreio</label><input type="text" id="f_lote" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-red-500 font-mono placeholder-gray-700" placeholder="L-001" required></div>
+             <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Lote</label><input type="text" id="f_lote" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-red-500 font-mono placeholder-gray-700" placeholder="L-001" required></div>
              <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Volume Real</label><input type="text" id="f_qtd" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-red-500 placeholder-gray-700" placeholder="Ex: 50 cx" required></div>
-             <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20 col-span-full"><label class="text-[10px] text-red-400 uppercase tracking-widest font-bold block mb-1">Aferição Final (Kg)</label><input type="number" id="f_peso_pacote" step="0.01" class="bg-transparent border-b border-red-500/30 w-full text-white text-lg font-bold pb-1 focus:outline-none focus:border-red-500 placeholder-red-900/50" placeholder="0.0" required></div>
           </div>
           
           <h4 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Protocolo de Máquina</h4>
