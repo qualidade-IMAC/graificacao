@@ -14,15 +14,12 @@
     :root {
       --ios-bg: #09090b; /* Quase preto profundo */
       --ios-surface: #18181b; /* Fundo dos cartões ligeiramente mais claro */
-      --ios-surface-hover: #27272a;
       --ios-text: #f4f4f5; /* Texto principal brilhante */
       --ios-text-secondary: #a1a1aa; /* Texto de apoio suave */
       --ios-primary: #dc2626; /* Vermelho/Bordô premium (Tailwind Red 600) */
-      --ios-primary-hover: #b91c1c;
       --ios-success: #16a34a; /* Verde sucesso refinado */
       --ios-danger: #ef4444; 
       --ios-border: #27272a; /* Limites subtis */
-      --ios-border-focus: #52525b;
       --ios-border-radius: 16px; /* Cantos mais arredondados, visual moderno */
       --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
@@ -55,7 +52,7 @@
     /* Modern Form Inputs */
     .ios-input { 
       appearance: none; 
-      background-color: #09090b; /* Fundo mais escuro para input dar profundidade */
+      background-color: #09090b; 
       border: 1px solid var(--ios-border); 
       border-radius: 10px; 
       padding: 14px 16px; 
@@ -114,13 +111,13 @@
     .tab-bar { 
       position: fixed; 
       bottom: 0; left: 0; right: 0; 
-      background: rgba(24, 24, 27, 0.85); /* Zinc 900 translúcido */
+      background: rgba(24, 24, 27, 0.85);
       backdrop-filter: blur(12px); 
       -webkit-backdrop-filter: blur(12px); 
       border-top: 1px solid var(--ios-border); 
       display: flex; 
       justify-content: space-around; 
-      padding: 12px 0 24px 0; /* Espaço inferior para home indicator iOS */
+      padding: 12px 0 24px 0; 
       z-index: 50; 
     }
     .tab-item { 
@@ -162,11 +159,11 @@
     /* Toast & Modals Refined */
     #toast { 
       visibility: hidden; min-width: 280px; margin-left: -140px; 
-      background-color: var(--ios-surface); color: var(--ios-text); 
+      background-color: #27272a; color: #ffffff; 
       text-align: center; border-radius: 12px; padding: 16px 20px; 
       position: fixed; z-index: 100; left: 50%; top: 40px; 
       font-size: 14px; font-weight: 500; 
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border: 1px solid var(--ios-border);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border: 1px solid #3f3f46;
     }
     #toast.show { visibility: visible; animation: fadein 0.4s cubic-bezier(0.16, 1, 0.3, 1), fadeout 0.4s 3s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes fadein { from {top: 0; opacity: 0; transform: scale(0.95);} to {top: 40px; opacity: 1; transform: scale(1);} }
@@ -197,43 +194,13 @@
     .screen-bg { background: radial-gradient(circle at center, #1f1f23 0%, #09090b 100%); }
     .pwa-install-banner { display: none; }
 
-    /* Custom Utility Classes Overrides for Modern Look */
-    .bg-white { background-color: var(--ios-surface) !important; }
-    .bg-gray-50 { background-color: #18181b !important; } /* Zinc 900 */
-    .bg-gray-100 { background-color: #27272a !important; } /* Zinc 800 */
-    .bg-gray-200 { background-color: #3f3f46 !important; } /* Zinc 700 */
-    .text-gray-800 { color: #f4f4f5 !important; } /* Zinc 100 */
-    .text-gray-700 { color: #e4e4e7 !important; } /* Zinc 200 */
-    .text-gray-600 { color: #a1a1aa !important; } /* Zinc 400 */
-    .text-gray-500 { color: #71717a !important; } /* Zinc 500 */
-    .border-gray-200, .border-gray-100, .border-gray-300 { border-color: var(--ios-border) !important; }
-    
-    /* Elegant Color Tints for Dark Mode */
-    .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; border: 1px solid rgba(59, 130, 246, 0.2) !important;}
-    .text-blue-800, .text-blue-900 { color: #93c5fd !important; }
-    .text-blue-700 { color: #60a5fa !important; }
-    .text-blue-600 { color: #3b82f6 !important; }
+    /* Custom Scrollbar for Dropdowns */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--ios-surface); border-radius: 8px;}
+    ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #71717a; }
 
-    .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; border: 1px solid rgba(239, 68, 68, 0.2) !important;}
-    .text-red-800, .text-red-900 { color: #fca5a5 !important; }
-    .text-red-700 { color: #f87171 !important; }
-    .text-red-600 { color: #ef4444 !important; }
-
-    .bg-orange-50 { background-color: rgba(249, 115, 22, 0.1) !important; border: 1px solid rgba(249, 115, 22, 0.2) !important;}
-    .text-orange-800 { color: #fdba74 !important; }
-    .text-orange-700 { color: #fb923c !important; }
-    .text-orange-600 { color: #f97316 !important; }
-    
-    .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) !important; border: 1px solid rgba(34, 197, 94, 0.2) !important;}
-    .text-green-800 { color: #86efac !important; }
-    .text-green-700 { color: #4ade80 !important; }
-    .text-green-600 { color: #22c55e !important; }
-    
-    .text-cyan-700 { color: #22d3ee !important; }
-    .border-cyan-200 { border-color: rgba(6, 182, 212, 0.3) !important; }
-    .text-indigo-700 { color: #818cf8 !important; }
-    .border-indigo-300 { border-color: rgba(99, 102, 241, 0.3) !important; }
-    .text-black { color: #ffffff !important; }
+    #dropdown_produtos { max-height: 40vh; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border-radius: 12px; overflow: hidden; margin-top: 8px;}
 
     /* Estilos Específicos para a Área Oculta do PDF (Forçar Modo Claro) */
     #pdf-container-hidden { display: none; }
@@ -246,13 +213,6 @@
     .pdf-mode .nota-box { font-size: 24px; font-weight: bold; text-align: center; border: 2px solid #000; padding: 10px; width: 100px; margin: 20px auto; }
     .pdf-mode .text-block { font-size: 11px; text-align: justify; margin-top: 15px; }
 
-    /* Custom Scrollbar for Dropdowns */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--ios-surface); border-radius: 8px;}
-    ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 8px; }
-    ::-webkit-scrollbar-thumb:hover { background: #71717a; }
-
-    #dropdown_produtos { max-height: 40vh; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border-radius: 12px; overflow: hidden; margin-top: 8px;}
   </style>
 
   <!-- Firebase App -->
@@ -292,7 +252,7 @@
       if(tabBtn) tabBtn.classList.add('active');
       
       let title = "Start da Produção";
-      if(tabId === 'view-teste') title = "Controlo de Qualidade";
+      if(tabId === 'view-teste') title = "Controle de Qualidade";
       if(tabId === 'view-dashboard') title = "Painel de Linha";
       if(tabId === 'view-cadastro') title = "Receituário Base";
       if(tabId === 'view-historico') title = "Histórico de Produção";
@@ -485,10 +445,10 @@
         }
 
         if (filtrados.length === 0) {
-            dropdown.innerHTML = '<div class="p-4 text-sm text-gray-500 text-center">Nenhum registo encontrado.</div>';
+            dropdown.innerHTML = '<div class="p-4 text-sm text-gray-400 text-center">Nenhum registo encontrado.</div>';
         } else {
             dropdown.innerHTML = filtrados.map(p => `
-                <div class="p-4 border-b border-gray-700 hover:bg-[#3f3f46] cursor-pointer text-sm font-semibold flex flex-col transition-colors" onclick="window.selecionarProduto('${p.nome}')">
+                <div class="p-4 border-b border-gray-700 hover:bg-[#27272a] cursor-pointer text-sm font-semibold flex flex-col transition-colors" onclick="window.selecionarProduto('${p.nome}')">
                     <span class="text-gray-100">${p.nome}</span>
                     ${p.pesoPadrao ? `<span class="text-xs text-blue-400 font-normal mt-1 flex items-center gap-1"><i data-lucide="scale" class="w-3 h-3"></i> Peso Padrão: ${p.pesoPadrao}g</span>` : ''}
                 </div>
@@ -701,14 +661,14 @@
         const tunelStatus = calcularStatusTunel();
         const banner = document.getElementById('banner-tunel');
         if(tunelStatus.status === 'Livre') {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-green-50 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-green-800 font-bold text-lg"><div class="bg-green-100 p-2 rounded-full"><i data-lucide="check-circle-2"></i></div> Túnel Livre</div> <span class="text-xs font-bold bg-green-200 text-green-800 px-3 py-1.5 rounded-full uppercase tracking-wider">Apto</span>`;
+            banner.className = "mb-6 p-4 rounded-2xl border bg-green-500/10 border-green-500/20 flex justify-between items-center shadow-sm";
+            banner.innerHTML = `<div class="flex items-center gap-3 text-green-400 font-bold text-lg"><div class="bg-green-500/20 p-2 rounded-full"><i data-lucide="check-circle-2"></i></div> Túnel Livre</div> <span class="text-xs font-bold bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full uppercase tracking-wider">Apto</span>`;
         } else if (tunelStatus.status === 'Ocupado') {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-blue-50 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-blue-800 font-bold text-lg"><div class="bg-blue-100 p-2 rounded-full"><i data-lucide="snowflake"></i></div> Em Processo: <span class="font-normal ml-1">${tunelStatus.obj.produto}</span></div> <div class="bg-white px-3 py-1.5 rounded-lg border border-blue-200 timer font-mono text-lg text-blue-600 font-bold shadow-sm" data-type="tunel_global" data-id="${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
+            banner.className = "mb-6 p-4 rounded-2xl border bg-blue-500/10 border-blue-500/20 flex justify-between items-center shadow-sm";
+            banner.innerHTML = `<div class="flex items-center gap-3 text-blue-400 font-bold text-lg"><div class="bg-blue-500/20 p-2 rounded-full"><i data-lucide="snowflake"></i></div> Em Processo: <span class="font-normal ml-1 text-gray-200">${tunelStatus.obj.produto}</span></div> <div class="bg-[#09090b] px-3 py-1.5 rounded-lg border border-blue-500/30 timer font-mono text-lg text-blue-400 font-bold shadow-sm" data-type="tunel_global" data-id="${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
         } else {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-orange-50 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-orange-800 font-bold text-lg"><div class="bg-orange-100 p-2 rounded-full"><i data-lucide="timer"></i></div> Em Setup</div> <div class="bg-white px-3 py-1.5 rounded-lg border border-orange-200 timer font-mono text-lg text-orange-600 font-bold shadow-sm" data-type="tunel_setup" data-id="setup_${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
+            banner.className = "mb-6 p-4 rounded-2xl border bg-orange-500/10 border-orange-500/20 flex justify-between items-center shadow-sm";
+            banner.innerHTML = `<div class="flex items-center gap-3 text-orange-400 font-bold text-lg"><div class="bg-orange-500/20 p-2 rounded-full"><i data-lucide="timer"></i></div> Em Setup</div> <div class="bg-[#09090b] px-3 py-1.5 rounded-lg border border-orange-500/30 timer font-mono text-lg text-orange-400 font-bold shadow-sm" data-type="tunel_setup" data-id="setup_${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
         }
 
         const emAndamento = starts.filter(s => s.status === 'Em Andamento').sort((a,b) => {
@@ -716,43 +676,43 @@
         });
         
         if (emAndamento.length === 0) {
-          listStarts.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm bg-gray-50 rounded-2xl border border-gray-200 flex flex-col items-center gap-3"><i data-lucide="coffee" class="w-8 h-8 text-gray-400"></i> Nenhuma linha ativa no momento.</div>`;
+          listStarts.innerHTML = `<div class="p-10 text-center text-gray-400 text-sm bg-[#18181b] rounded-2xl border border-gray-800 flex flex-col items-center gap-3"><i data-lucide="coffee" class="w-8 h-8 text-gray-600"></i> Nenhuma linha ativa no momento.</div>`;
         } else {
           listStarts.innerHTML = `<div class="tablet-grid gap-6 p-0">` + emAndamento.map(s => {
             return `
-            <div class="ios-card relative mb-0 hover:border-gray-400 transition-colors">
+            <div class="ios-card relative mb-0 hover:border-gray-600 transition-colors">
               <div class="h-2 w-full ${s.isTeste ? 'bg-orange-500' : 'bg-blue-600'}"></div>
               <div class="p-5">
                 <div class="flex justify-between items-start mb-4">
-                  <h3 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                  <h3 class="font-bold text-white text-lg flex items-center gap-2">
                      ${s.isTeste ? '<i data-lucide="flask-conical" class="w-5 h-5 text-orange-500"></i>' : ''} ${s.produto}
                   </h3>
-                  <button onclick="window.excluirStart('${s.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Eliminar"><i data-lucide="x" class="w-5 h-5"></i></button>
+                  <button onclick="window.excluirStart('${s.id}')" class="text-gray-500 hover:text-red-500 transition-colors p-1" title="Eliminar"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 
-                <div class="text-xs text-gray-600 mb-5 grid grid-cols-2 gap-3 bg-[#09090b] p-3 rounded-xl border border-gray-700">
+                <div class="text-xs text-gray-400 mb-5 grid grid-cols-2 gap-3 bg-[#09090b] p-3 rounded-xl border border-gray-800">
                    <div class="flex flex-col"><span class="text-gray-500 mb-1">Massa</span><b class="text-sm text-gray-200">${s.tempMassa || '--'}°C</b></div>
                    <div class="flex flex-col"><span class="text-gray-500 mb-1">Água</span><b class="text-sm text-gray-200">${s.tempAgua || '--'}°C</b></div>
-                   <div class="col-span-2 border-t border-gray-700 pt-2 flex justify-between">
-                     <span class="text-gray-400">Padrão: <b class="text-blue-400">${s.pesoProduto || '--'}g</b></span>
-                     <span class="text-gray-400 text-right w-1/2 truncate" title="${s.modeladora}">Mod: ${s.modeladora || '--'}</span>
+                   <div class="col-span-2 border-t border-gray-800 pt-2 flex justify-between">
+                     <span class="text-gray-500">Padrão: <b class="text-blue-400">${s.pesoProduto || '--'}g</b></span>
+                     <span class="text-gray-500 text-right w-1/2 truncate" title="${s.modeladora}">Mod: ${s.modeladora || '--'}</span>
                    </div>
                 </div>
 
                 <div class="flex gap-4 mb-5">
-                  <div class="flex-1 bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
-                     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Batida (${s.batidaStr}m)</div>
-                     <div class="timer text-xl font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-blue-600'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
+                  <div class="flex-1 bg-[#18181b] p-3 rounded-xl border border-gray-800 text-center">
+                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Batida (${s.batidaStr}m)</div>
+                     <div class="timer text-xl font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-blue-400'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
                   </div>
-                  <div class="flex-1 bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
-                     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Túnel</div>
+                  <div class="flex-1 bg-[#18181b] p-3 rounded-xl border border-gray-800 text-center">
+                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Túnel</div>
                      ${!s.tunelFimMs ? 
-                       `<button onclick="window.iniciarTunel('${s.id}')" class="mt-1 w-full py-1 text-xs bg-white text-blue-600 font-bold rounded-lg border border-blue-200 shadow-sm hover:bg-blue-50 transition">Iniciar</button>` 
+                       `<button onclick="window.iniciarTunel('${s.id}')" class="mt-1 w-full py-1.5 text-xs bg-blue-600/10 text-blue-400 font-bold rounded-lg border border-blue-500/20 shadow-sm hover:bg-blue-600/20 transition">Iniciar</button>` 
                        : s.tunelSaidaMs ? 
-                       `<div class="text-sm font-bold text-green-600 mt-1"><i data-lucide="check" class="w-4 h-4 inline"></i> Ok</div>`
+                       `<div class="text-sm font-bold text-green-400 mt-1"><i data-lucide="check" class="w-4 h-4 inline"></i> Ok</div>`
                        : 
-                       `<div class="timer text-xl font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-cyan-600'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
-                        <div class="mt-1 text-[9px] text-blue-500 underline cursor-pointer" onclick="window.finalizarTunelManual('${s.id}')">Saída Antecipada</div>`
+                       `<div class="timer text-xl font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-cyan-400'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
+                        <div class="mt-1 text-[9px] text-blue-400 underline cursor-pointer" onclick="window.finalizarTunelManual('${s.id}')">Saída Antecipada</div>`
                      }
                   </div>
                 </div>
@@ -783,30 +743,30 @@
            return tB - tA;
        });
 
-       if(concluidas.length === 0) { container.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm bg-gray-50 rounded-2xl border border-gray-200">Nenhum registo compatível.</div>`; return; }
+       if(concluidas.length === 0) { container.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm bg-[#18181b] rounded-2xl border border-gray-800">Nenhum registo compatível.</div>`; return; }
 
        container.innerHTML = concluidas.map(s => {
           const dateStr = s.dataFabricacao ? s.dataFabricacao.split('-').reverse().join('/') : '--';
           return `
-          <div class="ios-card p-5 border-l-4 border-green-500 mb-4 hover:bg-gray-100 transition-colors">
+          <div class="ios-card p-5 border-l-4 border-green-500 mb-4 hover:bg-[#27272a] transition-colors">
              <div class="flex justify-between items-start mb-4">
                 <div>
-                   <h3 class="font-bold text-gray-800 text-lg">${s.produto}</h3>
-                   <div class="text-xs text-gray-500 flex gap-2 mt-1"><i data-lucide="calendar" class="w-3 h-3"></i> Ref: ${dateStr}</div>
+                   <h3 class="font-bold text-white text-lg">${s.produto}</h3>
+                   <div class="text-xs text-gray-400 flex gap-2 mt-1"><i data-lucide="calendar" class="w-3 h-3"></i> Ref: ${dateStr}</div>
                 </div>
                 <div class="flex flex-col items-end gap-3">
-                   <span class="bg-green-100 text-green-700 text-[10px] uppercase px-2.5 py-1 rounded-full font-bold tracking-wider">Finalizado</span>
+                   <span class="bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] uppercase px-2.5 py-1 rounded-full font-bold tracking-wider">Finalizado</span>
                    <div class="flex gap-3">
-                      <button onclick="window.abrirEdicaoHistorico('${s.id}')" class="text-gray-400 hover:text-blue-500 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                      <button onclick="window.excluirStart('${s.id}')" class="text-gray-400 hover:text-red-500 transition" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                      <button onclick="window.abrirEdicaoHistorico('${s.id}')" class="text-gray-500 hover:text-blue-400 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                      <button onclick="window.excluirStart('${s.id}')" class="text-gray-500 hover:text-red-400 transition" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                    </div>
                 </div>
              </div>
-             <div class="bg-[#09090b] p-3 rounded-xl flex gap-6 text-sm mb-4 border border-gray-700">
+             <div class="bg-[#09090b] p-3 rounded-xl flex gap-6 text-sm mb-4 border border-gray-800">
                 <div><span class="text-gray-500 text-[10px] uppercase tracking-wider block mb-0.5">Lote</span><span class="font-bold text-gray-200">${s.loteFinal || '--'}</span></div>
                 <div><span class="text-gray-500 text-[10px] uppercase tracking-wider block mb-0.5">Qtd</span><span class="font-bold text-gray-200">${s.qtdProduzida || '--'}</span></div>
              </div>
-             <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-blue-500 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition py-3 rounded-xl text-sm font-semibold flex justify-center items-center gap-2">
+             <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-blue-400 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition py-3 rounded-xl text-sm font-semibold flex justify-center items-center gap-2">
                 <i data-lucide="file-search" class="w-4 h-4"></i> Analisar Relatório
              </button>
           </div>`;
@@ -822,23 +782,23 @@
        
        content.innerHTML = `
           <div class="mb-6 text-center">
-             <h4 class="font-bold text-xl text-gray-800">${start.produto}</h4>
-             <span class="text-gray-500 text-sm mt-1 block">Referência: ${start.dataFabricacao.split('-').reverse().join('/')}</span>
+             <h4 class="font-bold text-xl text-white">${start.produto}</h4>
+             <span class="text-gray-400 text-sm mt-1 block">Referência: ${start.dataFabricacao.split('-').reverse().join('/')}</span>
           </div>
 
-          <div class="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
-             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-200">Ambiente & Formulação</div>
+          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
+             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Ambiente & Formulação</div>
              <div class="grid grid-cols-2 gap-y-3 gap-x-4">
                <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Ambiente</span><span class="detalhe-value">${start.tempAmbiente}°C</span></div>
                <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Farinha</span><span class="detalhe-value">${start.tempFarinha}°C</span></div>
                <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Água</span><span class="detalhe-value">${start.tempAgua}°C</span></div>
                <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Fermento</span><span class="detalhe-value">${start.tempFermento}°C</span></div>
-               <div class="detalhe-row p-0 border-0 flex-col items-start col-span-2 bg-blue-50 p-2 rounded-lg mt-1 border border-blue-100"><span class="detalhe-label text-blue-700">T° FINAL DA MASSA</span><span class="detalhe-value text-blue-700 text-lg">${start.tempMassa}°C</span></div>
+               <div class="detalhe-row p-0 border-0 flex-col items-start col-span-2 bg-blue-500/10 p-2 rounded-lg mt-1 border border-blue-500/20"><span class="detalhe-label text-blue-400">T° FINAL DA MASSA</span><span class="detalhe-value text-blue-400 text-lg">${start.tempMassa}°C</span></div>
              </div>
           </div>
 
-          <div class="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
-             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-200">Rastreabilidade & Pesos</div>
+          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
+             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Rastreabilidade & Pesos</div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Farinha (Uso)</span><span class="detalhe-value">${start.loteFarinha || '--'}</span></div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Dosagem Água</span><span class="detalhe-value">${start.qtdAgua || '--'} L</span></div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Dosagem Gelo</span><span class="detalhe-value">${start.qtdGelo || '--'} Kg</span></div>
@@ -846,21 +806,21 @@
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Aferição de Balança</span><span class="detalhe-value">${simNao(start.pesoInsumosOk)}</span></div>
           </div>
 
-          <div class="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
-             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-200">Engenharia de Processo</div>
+          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
+             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Engenharia de Processo</div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Masseira</span><span class="detalhe-value">${start.batidaStr} min</span></div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Cilindro</span><span class="detalhe-value">${start.tempoCilindro || '--'} min</span></div>
              <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Equipamento</span><span class="detalhe-value">${start.modeladora || '--'}</span></div>
-             <div class="detalhe-row py-1.5 border-0 flex-col items-start gap-1"><span class="detalhe-label">Parâmetros Máquina</span><span class="detalhe-value text-xs text-left text-gray-600 bg-white w-full p-2 rounded border border-gray-200">${start.configModeladora || 'Não informado'}</span></div>
-             <div class="detalhe-row py-1.5 border-0 mt-2"><span class="detalhe-label">Peso Alvo</span><span class="detalhe-value text-blue-600 font-bold">${start.pesoProduto || '--'} g</span></div>
+             <div class="detalhe-row py-1.5 border-0 flex-col items-start gap-1"><span class="detalhe-label">Parâmetros Máquina</span><span class="detalhe-value text-xs text-left text-gray-300 bg-[#09090b] w-full p-2 rounded border border-gray-700">${start.configModeladora || 'Não informado'}</span></div>
+             <div class="detalhe-row py-1.5 border-0 mt-2"><span class="detalhe-label">Peso Alvo</span><span class="detalhe-value text-blue-400 font-bold">${start.pesoProduto || '--'} g</span></div>
           </div>
 
-          <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-200">Embalagem & Controlo</div>
+          <div class="bg-[#18181b] rounded-xl p-4 border border-gray-800">
+             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Embalagem & Controlo</div>
              <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="bg-white p-2 rounded border border-gray-200 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Lote</span><span class="font-bold text-sm">${start.loteFinal}</span></div>
-                <div class="bg-white p-2 rounded border border-gray-200 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Caixas</span><span class="font-bold text-sm">${start.qtdProduzida}</span></div>
-                <div class="bg-white p-2 rounded border border-gray-200 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">P. Final</span><span class="font-bold text-sm">${start.pesoPacoteFinal} Kg</span></div>
+                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Lote</span><span class="font-bold text-sm text-gray-200">${start.loteFinal}</span></div>
+                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Caixas</span><span class="font-bold text-sm text-gray-200">${start.qtdProduzida}</span></div>
+                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">P. Final</span><span class="font-bold text-sm text-gray-200">${start.pesoPacoteFinal} Kg</span></div>
              </div>
              <div class="space-y-1.5 mt-2">
                 <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Balança Calibrada</span><span class="detalhe-value">${simNao(start.balancaCalibrada)}</span></div>
@@ -988,7 +948,7 @@
 
     window.renderListaProdutos = () => {
        const lista = document.getElementById('lista-produtos-salvos');
-       if(window.appState.produtos.length === 0) { lista.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm bg-gray-50 rounded-xl border border-gray-200">Base de dados vazia.</div>`; return; }
+       if(window.appState.produtos.length === 0) { lista.innerHTML = `<div class="p-6 text-center text-gray-500 text-sm bg-[#18181b] rounded-xl border border-gray-800">Base de dados vazia.</div>`; return; }
        lista.innerHTML = window.appState.produtos.map(p => `
           <div class="ios-card p-4 border border-gray-800 mb-3 bg-[#18181b] hover:bg-[#27272a] transition-colors">
              <div class="flex justify-between items-start mb-3">
@@ -1055,7 +1015,7 @@
        <h2 class="text-2xl font-bold text-gray-100 mb-2 tracking-tight">Portal Operacional</h2>
        <p class="text-gray-500 mb-8 text-sm">Valide a sua credencial para aceder à planta fabril digital.</p>
        
-       <button onclick="window.loginComGoogle()" class="ios-button flex items-center justify-center gap-3 w-full bg-white border border-gray-200 hover:bg-gray-100 shadow-sm mb-5" style="color: #18181b;">
+       <button onclick="window.loginComGoogle()" class="ios-button flex items-center justify-center gap-3 w-full bg-[#27272a] border border-gray-700 text-white hover:bg-[#3f3f46] shadow-sm mb-5">
          <svg class="w-5 h-5" viewBox="0 0 48 48">
            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -1074,7 +1034,7 @@
       <div class="flex items-center gap-4">
          <img src="https://via.placeholder.com/120x35.png?text=LOGO" alt="Logo" id="header-logo" style="height: 28px; max-width: 140px; object-fit: contain;">
          <div class="h-5 w-px bg-gray-700"></div>
-         <h1 id="header-title" class="ios-title text-sm tracking-wide">Start Produção</h1>
+         <h1 id="header-title" class="ios-title text-sm tracking-wide text-white">Start Produção</h1>
       </div>
       <div class="flex items-center gap-3">
          <div id="auth-status"></div>
@@ -1094,7 +1054,7 @@
          <div class="ios-card mb-6 p-6">
             <h2 class="font-bold text-xl text-gray-100 flex items-center gap-2 mb-6"><i data-lucide="sliders" class="text-blue-500"></i> Painel de Controlo</h2>
             
-            <div id="pwa-install-container" class="pwa-install-banner mb-6 bg-gradient-to-br from-blue-900/40 to-indigo-900/40 border border-blue-500/30 rounded-2xl p-5">
+            <div id="pwa-install-container" class="pwa-install-banner mb-6 bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5">
                <div class="flex items-start gap-4 mb-4">
                   <div class="bg-blue-500/20 p-2.5 rounded-xl text-blue-400"><i data-lucide="smartphone"></i></div>
                   <div>
@@ -1109,7 +1069,7 @@
 
             <form onsubmit="window.salvarConfiguracoes(event)">
                <div class="mb-8 bg-[#09090b] p-5 rounded-2xl border border-gray-800">
-                  <label class="form-label block mb-3 text-gray-300">Logótipo Corporativo</label>
+                  <label class="form-label block mb-3 text-gray-300 text-white">Logótipo Corporativo</label>
                   <input type="file" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 file:font-semibold file:cursor-pointer file:transition-colors" onchange="window.processarNovaLogo(event)">
                   <img id="preview_cfg_logo" class="image-preview mt-4" src="" alt="Logo">
                </div>
@@ -1140,11 +1100,11 @@
       <section id="view-start" class="view-section active">
         <form id="form-start" onsubmit="window.submitStartForm(event)">
           
-          <div class="ios-card mb-5 border-l-4 border-orange-500 bg-gradient-to-r from-orange-500/10 to-transparent">
+          <div class="ios-card mb-5 border-l-4 border-orange-500 bg-orange-500/10">
              <div class="p-5 flex justify-between items-center">
                 <div>
                    <span class="font-bold text-orange-400 text-sm block mb-0.5">Diagnóstico QA Ativo?</span>
-                   <span class="text-xs text-gray-500">Exige protocolo de validação laboratorial no final.</span>
+                   <span class="text-xs text-gray-400">Exige protocolo de validação laboratorial no final.</span>
                 </div>
                 <label class="ios-switch">
                   <input type="checkbox" id="s_is_teste">
@@ -1158,8 +1118,8 @@
               <i data-lucide="tag" class="w-4 h-4 text-blue-500"></i> Identificação
             </div>
             <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-4" id="container_busca_produto">
-                 <label class="form-label text-gray-300">Produto Alvo</label>
+              <div class="form-row p-0 mb-4 border-0" id="container_busca_produto">
+                 <label class="form-label text-gray-300 text-white">Produto Alvo</label>
                  <div class="relative mt-1">
                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="search" class="text-gray-500 w-4 h-4"></i></div>
                    <input type="text" id="s_produto_search" class="ios-input pl-10 bg-[#09090b]" placeholder="Pesquisar portefólio..." oninput="window.filtrarProdutos()" onfocus="window.filtrarProdutos()" autocomplete="off">
@@ -1167,7 +1127,7 @@
                    <div id="dropdown_produtos" class="absolute z-50 w-full bg-[#18181b] border border-gray-700 hidden"></div>
                  </div>
               </div>
-              <div class="form-row p-0"><label class="form-label text-gray-300">Data Sistema</label><input type="date" id="s_data_fab" class="ios-input mt-1 bg-[#09090b]" required></div>
+              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">Data Sistema</label><input type="date" id="s_data_fab" class="ios-input mt-1 bg-[#09090b]" required></div>
             </div>
           </div>
 
@@ -1176,21 +1136,21 @@
                <i data-lucide="scale" class="w-4 h-4 text-green-500"></i> Balanceamento & Matéria Prima
             </div>
             <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-5 flex-row justify-between items-center">
-                <div class="pr-2"><label class="form-label text-gray-300 m-0">Triagem de Integridade?</label><span class="text-[10px] text-gray-500 block mt-1">Avaliação visual e conformidade de fornecedor.</span></div>
-                <label class="ios-switch"><input type="checkbox" id="s_insumos_ok"><span class="ios-slider"></span></label>
+              <div class="form-row p-0 mb-5 flex-row justify-between items-center border-0">
+                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Triagem de Integridade?</label><span class="text-[10px] text-gray-400 block mt-1">Avaliação visual e conformidade de fornecedor.</span></div>
+                <label class="ios-switch"><input type="checkbox" id="s_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
               </div>
               
-              <div class="form-row p-0 mb-5"><label class="form-label text-gray-300">Lote Farinha Principal</label><input type="text" id="s_lote_farinha" class="ios-input mt-1 bg-[#09090b]" placeholder="Ex: L-4819" required></div>
+              <div class="form-row p-0 mb-5 border-0"><label class="form-label text-gray-300 text-white">Lote Farinha Principal</label><input type="text" id="s_lote_farinha" class="ios-input mt-1 bg-[#09090b]" placeholder="Ex: L-4819" required></div>
               
-              <div class="form-row p-0 mb-5 border-t border-gray-800 pt-5 flex-row justify-between items-center">
-                <div class="pr-2"><label class="form-label text-gray-300 m-0">Aferição de Pesos Executada?</label><span class="text-[10px] text-blue-400 block mt-1">Inclui confirmação de gelo/água.</span></div>
-                <label class="ios-switch"><input type="checkbox" id="s_peso_insumos_ok"><span class="ios-slider"></span></label>
+              <div class="form-row p-0 mb-5 border-t border-gray-800 pt-5 flex-row justify-between items-center border-0">
+                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Aferição de Pesos Executada?</label><span class="text-[10px] text-blue-400 block mt-1">Inclui confirmação de gelo/água.</span></div>
+                <label class="ios-switch"><input type="checkbox" id="s_peso_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
               </div>
               
               <div class="grid grid-cols-2 gap-4">
-                <div class="form-row p-0"><label class="form-label text-blue-400">Água (L)</label><input type="number" id="s_qtd_agua" class="ios-input mt-1 bg-[#09090b] border-blue-900/30 focus:border-blue-500" step="0.1" required placeholder="0.0"></div>
-                <div class="form-row p-0"><label class="form-label text-cyan-400">Gelo (Kg)</label><input type="number" id="s_qtd_gelo" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="0.0"></div>
+                <div class="form-row p-0 border-0"><label class="form-label text-blue-400">Água (L)</label><input type="number" id="s_qtd_agua" class="ios-input mt-1 bg-[#09090b] border-blue-900/30 focus:border-blue-500" step="0.1" required placeholder="0.0"></div>
+                <div class="form-row p-0 border-0"><label class="form-label text-cyan-400">Gelo (Kg)</label><input type="number" id="s_qtd_gelo" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="0.0"></div>
               </div>
             </div>
           </div>
@@ -1200,8 +1160,8 @@
                <i data-lucide="timer" class="w-4 h-4 text-purple-500"></i> Amassadeira
             </div>
             <div class="grid grid-cols-2 gap-4 p-4">
-              <div class="form-row p-0"><label class="form-label text-gray-300">V1. Lenta (min)</label><input type="number" id="s_batida_lenta" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
-              <div class="form-row p-0"><label class="form-label text-gray-300">V2. Rápida (min)</label><input type="number" id="s_batida_rapida" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
+              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">V1. Lenta (min)</label><input type="number" id="s_batida_lenta" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
+              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">V2. Rápida (min)</label><input type="number" id="s_batida_rapida" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
             </div>
           </div>
 
@@ -1210,16 +1170,16 @@
                <i data-lucide="thermometer" class="w-4 h-4 text-red-500"></i> Monitorização Térmica
             </div>
             <div class="grid grid-cols-2 gap-4 p-4">
-              <div class="form-row p-0"><label class="form-label text-gray-400">Ambiente</label><input type="number" id="s_temp_ambiente" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°"></div>
-              <div class="form-row p-0">
+              <div class="form-row p-0 border-0"><label class="form-label text-gray-400">Ambiente</label><input type="number" id="s_temp_ambiente" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°"></div>
+              <div class="form-row p-0 border-0">
                  <label class="form-label text-gray-400">Farinha</label><input type="number" id="s_temp_farinha" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_farinha" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
-              <div class="form-row p-0">
+              <div class="form-row p-0 border-0">
                  <label class="form-label text-gray-400">Água</label><input type="number" id="s_temp_agua" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_agua" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
-              <div class="form-row p-0">
+              <div class="form-row p-0 border-0">
                  <label class="form-label text-gray-400">Fermento</label><input type="number" id="s_temp_fermento" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
                  <span id="warn_temp_fermento" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
               </div>
@@ -1240,11 +1200,11 @@
                <i data-lucide="cogs" class="w-4 h-4 text-indigo-500"></i> Conformação
             </div>
             <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-4"><label class="form-label text-gray-300">Residência Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: 5"></div>
-              <div class="form-row p-0 mb-4"><label class="form-label text-gray-300">Linha / Equipamento</label><input type="text" id="s_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: L1"></div>
-              <div class="form-row p-0 mb-4 col-span-full"><label class="form-label text-gray-300">Set-up Técnico</label><input type="text" id="s_config_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Pressão, Rolo..."></div>
+              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Residência Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: 5"></div>
+              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Linha / Equipamento</label><input type="text" id="s_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: L1"></div>
+              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Set-up Técnico</label><input type="text" id="s_config_modeladora" class="ios-input mt-1 bg-[#09090b]" required placeholder="Pressão, Rolo..."></div>
               
-              <div class="form-row col-span-full bg-indigo-500/10 rounded-xl border border-indigo-500/20 p-4 mt-2">
+              <div class="form-row p-0 border-0 col-span-full bg-indigo-500/10 rounded-xl border border-indigo-500/20 p-4 mt-2">
                  <div class="flex justify-between items-end mb-2">
                     <label class="form-label text-indigo-400 font-bold m-0 text-xs">Massa Porcionada (g)</label>
                     <span id="lbl_peso_padrao" class="text-[10px] text-indigo-300 font-medium bg-indigo-900/40 px-2 py-0.5 rounded"></span>
@@ -1268,7 +1228,7 @@
            <div class="flex justify-between items-center mb-5">
              <h2 class="font-bold text-gray-100 text-xl tracking-tight">Status em Tempo Real</h2>
              <button type="button" onclick="window.refreshPainel()" class="flex items-center gap-1.5 text-xs text-gray-300 bg-[#27272a] hover:bg-[#3f3f46] border border-gray-700 px-3 py-2 rounded-lg transition shadow-sm font-semibold">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Reload
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
              </button>
            </div>
            <div id="list-starts"><div class="p-10 text-center text-gray-500 text-sm bg-[#18181b] rounded-2xl border border-gray-800 flex flex-col items-center gap-3"><i data-lucide="loader" class="w-8 h-8 text-gray-600 animate-spin"></i> A obter stream...</div></div>
@@ -1298,8 +1258,8 @@
 
       <!-- View: Cadastro de Receitas -->
       <section id="view-cadastro" class="view-section">
-        <div class="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-4 rounded-xl mb-6 text-sm leading-relaxed">
-           <i data-lucide="info" class="w-4 h-4 inline mr-1 mb-0.5"></i> Engine de portefólio. Defina a Master Data para cruzamento de QA na linha.
+        <div class="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-4 rounded-xl mb-6 text-sm leading-relaxed flex items-center gap-2">
+           <i data-lucide="info" class="w-4 h-4"></i> Cadastre os produtos e o Peso Padrão.
         </div>
         
         <div class="ios-card mb-8">
@@ -1307,7 +1267,7 @@
              <div id="titulo-form-receita" class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400">Inserção de Artigo</div>
              <div class="p-5">
                 <div class="mb-4">
-                   <label class="form-label text-gray-300">Designação Comercial</label>
+                   <label class="form-label text-gray-300 text-white">Designação Comercial</label>
                    <input type="text" id="c_nome_produto" class="ios-input bg-[#09090b]" placeholder="Nomenclatura oficial..." required>
                 </div>
                 <div class="mb-6">
@@ -1316,7 +1276,7 @@
                 </div>
                 
                 <div class="border border-gray-800 rounded-xl p-4 bg-[#18181b] mb-6">
-                  <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-3">Construtor de Fórmula</label>
+                  <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-3 text-white">Construtor de Fórmula</label>
                   <div class="flex gap-2 mb-3">
                      <input type="text" id="c_ingrediente" class="ios-input bg-[#09090b] w-1/2 text-sm" placeholder="Matéria...">
                      <input type="number" id="c_peso" class="ios-input bg-[#09090b] w-1/4 text-sm" placeholder="0.0" step="0.01">
@@ -1338,7 +1298,7 @@
            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex justify-between items-center">
              <span>Base de Conhecimento</span>
              <button type="button" onclick="window.renderListaProdutos()" class="text-gray-400 hover:text-white text-xs flex items-center gap-1 transition-colors">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
              </button>
            </div>
            <div id="lista-produtos-salvos" class="max-h-96 overflow-y-auto p-0 bg-[#09090b]"><div class="p-8 text-center text-gray-600 text-sm"><i data-lucide="database" class="w-6 h-6 mx-auto mb-2 opacity-50"></i> A aguardar sincronização...</div></div>
@@ -1435,7 +1395,7 @@
              
              <div class="mb-8 relative flex justify-center">
                 <div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-gray-800"></div></div>
-                <div class="relative bg-var(--ios-surface) px-4">
+                <div class="relative bg-[var(--ios-surface)] px-4">
                   <div class="bg-[#09090b] rounded-2xl border-2 border-blue-500/30 p-4 text-center shadow-lg relative overflow-hidden">
                      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
                      <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold block mb-2">Score de Avaliação (0-100)</label>
@@ -1474,15 +1434,15 @@
           <h4 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Protocolo de Máquina</h4>
              
           <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800 mb-8 space-y-1">
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] rounded-t-lg transition-colors"><span class="text-xs text-gray-300 font-medium">Balança (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_balanca_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium">Equip. Secundário Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_secundaria"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium">Bobina / Filme Correto</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_correta"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium">Detetor Metais Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_ligada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 hover:bg-[#18181b] rounded-b-lg transition-colors"><span class="text-xs text-gray-300 font-medium">Detetor (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] rounded-t-lg transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Balança (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_balanca_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Equip. Secundário Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_secundaria"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Bobina / Filme Correto</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_correta"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Detetor Metais Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_ligada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+             <div class="flex justify-between items-center py-2 px-3 hover:bg-[#18181b] rounded-b-lg transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Detetor (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
           </div>
           
           <div class="flex gap-3">
-             <button onclick="window.fecharModal()" class="w-1/3 py-3.5 rounded-xl bg-[#27272a] text-gray-300 font-semibold text-sm hover:bg-[#3f3f46] transition-colors">Abortar</button>
+             <button onclick="window.fecharModal()" class="w-1/3 py-3.5 rounded-xl bg-[#27272a] text-gray-300 font-semibold text-sm hover:bg-[#3f3f46] transition-colors text-white">Abortar</button>
              <button onclick="window.confirmarFinalizacao()" class="w-2/3 py-3.5 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-500 shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all">Consolidar Info</button>
           </div>
        </div>
@@ -1562,22 +1522,22 @@
        </div>
     </div>
 
-    <!-- Menus Tabs Inferior -->
+    <!-- Menus Tabs Inferior (Traduzido para PT-BR) -->
     <nav class="tab-bar">
       <a href="javascript:void(0)" class="tab-item active" onclick="switchTab('view-start')">
-        <i data-lucide="play-circle" class="tab-icon w-5 h-5"></i><span>Action</span>
+        <i data-lucide="play-circle" class="tab-icon w-5 h-5"></i><span>Start</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-dashboard')">
-        <i data-lucide="activity" class="tab-icon w-5 h-5"></i><span>Live</span>
+        <i data-lucide="activity" class="tab-icon w-5 h-5"></i><span>Painel</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-historico')">
-        <i data-lucide="archive" class="tab-icon w-5 h-5"></i><span>Vault</span>
+        <i data-lucide="archive" class="tab-icon w-5 h-5"></i><span>Histórico</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-cadastro')">
-        <i data-lucide="book-open" class="tab-icon w-5 h-5"></i><span>Engine</span>
+        <i data-lucide="book-open" class="tab-icon w-5 h-5"></i><span>Receitas</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-teste')">
-        <i data-lucide="microscope" class="tab-icon w-5 h-5"></i><span>Lab</span>
+        <i data-lucide="flask-conical" class="tab-icon w-5 h-5"></i><span>Testes</span>
       </a>
     </nav>
   </div>
