@@ -213,7 +213,7 @@
       if(tabBtn) tabBtn.classList.add('active');
       
       let title = "Start da Produção";
-      if(tabId === 'view-teste') title = "Avaliação e Testes";
+      if(tabId === 'view-teste') title = "Testes e Laudos";
       if(tabId === 'view-dashboard') title = "Painel da Linha";
       if(tabId === 'view-cadastro') title = "Receitas e Padrões";
       if(tabId === 'view-historico') title = "Histórico Concluído";
@@ -769,7 +769,7 @@
                     <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">Revisão</span>
                  </div>
                  <div class="text-sm text-stone-600 mb-4"><b>Lote:</b> ${t.loteProduto} | <b>Far:</b> ${t.loteFarinhaUsada}</div>
-                 <button onclick="window.abrirModalSupervisor('${t.id}')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition">Liberar e Gerar PDF</button>
+                 <button onclick="window.abrirModalSupervisor('${t.id}')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition">Analisar e Liberar PDF</button>
                </div>`
            }).join('');
        }
@@ -848,6 +848,10 @@
                loteProduto: document.getElementById('t_lote_produto').value || '', 
                loteFarinhaUsada: document.getElementById('t_lote_farinha').value || '',
                dataRealizacaoTeste: document.getElementById('t_data_teste').value || '',
+               fatorPL: document.getElementById('t_pl').value || '',
+               fatorW: document.getElementById('t_w').value || '',
+               dataRecebimentoFar: document.getElementById('t_data_rec_far').value || '',
+               validadeProduto: document.getElementById('t_validade_prod').value || '',
                craquelamento: document.getElementById('t_craquelamento').value || '', 
                crocancia: document.getElementById('t_crocancia').value || '',
                pestana: document.getElementById('t_pestana').value || '', 
@@ -869,7 +873,35 @@
        }
     };
 
-    window.abrirModalSupervisor = (id) => { document.getElementById('modal-supervisor-liberar').classList.add('active'); document.getElementById('sup_id_teste').value = id; }
+    window.abrirModalSupervisor = (id) => { 
+        document.getElementById('modal-supervisor-liberar').classList.add('active'); 
+        document.getElementById('sup_id_teste').value = id; 
+        
+        const testeData = window.appState.testes.find(t => t.id === id);
+        if(!testeData) return;
+
+        // Visualização do Teste do Operador
+        document.getElementById('sup_dados_view').innerHTML = `
+            <div class="font-bold text-stone-800 mb-2 border-b border-stone-200 pb-1">Resumo do Teste:</div>
+            <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+                <div><b>P/L:</b> ${testeData.fatorPL || '--'}</div>
+                <div><b>W:</b> ${testeData.fatorW || '--'}</div>
+                <div><b>Craquelamento:</b> <span class="uppercase">${testeData.craquelamento || '--'}</span></div>
+                <div><b>Crocância:</b> <span class="uppercase">${testeData.crocancia || '--'}</span></div>
+                <div><b>Pestana:</b> <span class="uppercase">${testeData.pestana || '--'}</span></div>
+                <div><b>Volume:</b> <span class="uppercase">${testeData.volume || '--'}</span></div>
+                <div><b>Cor Capa:</b> <span class="uppercase">${testeData.cor || '--'}</span></div>
+                <div><b>Alvéolos:</b> <span class="uppercase">${testeData.estruturaAlveolar || '--'}</span></div>
+                <div><b>Cor Miolo:</b> <span class="uppercase">${testeData.corMiolo || '--'}</span></div>
+                <div><b>Conf. Visual:</b> <span class="uppercase">${testeData.conformidadeVisual || '--'}</span></div>
+            </div>
+            <div class="flex gap-2">
+                ${testeData.fotoBase64_1 ? `<img src="${testeData.fotoBase64_1}" class="h-20 w-20 object-cover rounded border border-stone-300">` : ''}
+                ${testeData.fotoBase64_2 ? `<img src="${testeData.fotoBase64_2}" class="h-20 w-20 object-cover rounded border border-stone-300">` : ''}
+            </div>
+        `;
+    }
+
     window.fecharModalSupervisor = () => { document.getElementById('modal-supervisor-liberar').classList.remove('active'); document.getElementById('form-supervisor').reset(); };
 
     window.submitLiberacaoSupervisor = async (e) => {
@@ -878,12 +910,14 @@
         const testeData = window.appState.testes.find(t => t.id === id);
         const nota = document.getElementById('sup_nota').value;
         const aprovado = document.getElementById('sup_aprovar').checked;
+        const assinatura = document.getElementById('sup_assinatura').value;
         
         const atualizacao = {
-            status: 'Concluído', liberado: aprovado,
-            fatorPL: document.getElementById('sup_pl').value, fatorW: document.getElementById('sup_w').value,
-            dataRecebimentoFar: document.getElementById('sup_data_rec_far').value, validadeProduto: document.getElementById('sup_validade_prod').value,
-            notaFinal: nota, dataLiberacao: serverTimestamp()
+            status: 'Concluído', 
+            liberado: aprovado,
+            notaFinal: nota, 
+            assinaturaSupervisor: assinatura,
+            dataLiberacao: serverTimestamp()
         };
 
         try {
@@ -917,6 +951,8 @@
         document.getElementById('pdf-volume').innerText = verificaStatus(dados.volume); document.getElementById('pdf-cor').innerText = verificaStatus(dados.cor);
         document.getElementById('pdf-alveolar').innerText = verificaStatus(dados.estruturaAlveolar); document.getElementById('pdf-cormiolo').innerText = verificaStatus(dados.corMiolo); document.getElementById('pdf-visual').innerText = verificaStatus(dados.conformidadeVisual);
         document.getElementById('pdf-nota').innerText = dados.notaFinal || '--';
+
+        document.getElementById('pdf-assinatura-nome').innerText = dados.assinaturaSupervisor || '_______________________';
         
         if(dados.fotoBase64_1) { document.getElementById('pdf-foto-1').src = dados.fotoBase64_1; document.getElementById('pdf-foto-1').style.display='inline-block'; } else { document.getElementById('pdf-foto-1').style.display='none'; }
         if(dados.fotoBase64_2) { document.getElementById('pdf-foto-2').src = dados.fotoBase64_2; document.getElementById('pdf-foto-2').style.display='inline-block'; } else { document.getElementById('pdf-foto-2').style.display='none'; }
@@ -1320,7 +1356,15 @@
                <div><label class="app-label">Lote Farinha</label><input type="text" id="t_lote_farinha" class="app-input" required></div>
              </div>
              
-             <!-- Campo de Data do Teste -->
+             <!-- Novos Campos Solicitados: P/L, W, Datas -->
+             <h4 class="font-bold text-sm text-stone-800 mb-3 border-b border-stone-100 pb-1">Dados da Farinha e Validade</h4>
+             <div class="grid-2 mb-6">
+                 <div><label class="app-label">P/L (Farinha)</label><input type="number" step="0.01" id="t_pl" class="app-input" required placeholder="Ex: 1.82"></div>
+                 <div><label class="app-label">W (Farinha)</label><input type="number" id="t_w" class="app-input" required placeholder="Ex: 261"></div>
+                 <div><label class="app-label">Rec. Farinha</label><input type="date" id="t_data_rec_far" class="app-input bg-white" required></div>
+                 <div><label class="app-label">Validade Pão</label><input type="date" id="t_validade_prod" class="app-input bg-white" required></div>
+             </div>
+             
              <div class="mb-4 bg-stone-50 p-3 rounded-xl border border-stone-200">
                <label class="app-label">Data da Avaliação</label>
                <input type="date" id="t_data_teste" class="app-input bg-white" required>
@@ -1330,13 +1374,11 @@
                 <label class="app-label text-stone-800 mb-3"><i data-lucide="camera" class="w-4 h-4 inline mb-0.5"></i> Fotos (Obrigatório Foto 1)</label>
                 <div class="mb-3 p-3 border border-stone-200 rounded-xl bg-white">
                    <span class="text-xs font-bold text-stone-500 block mb-2">Foto Externa</span>
-                   <!-- Removido 'capture="environment"' para permitir escolha da galeria -->
                    <input type="file" accept="image/*" id="t_foto_1" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-50 file:text-yellow-700 file:font-bold w-full" onchange="window.processarFotoTeste(event, 1)" required>
                    <img id="preview_foto_teste_1" class="image-preview" src="">
                 </div>
                 <div class="p-3 border border-stone-200 rounded-xl bg-white">
                    <span class="text-xs font-bold text-stone-500 block mb-2">Foto do Miolo (Opcional)</span>
-                   <!-- Removido 'capture="environment"' para permitir escolha da galeria -->
                    <input type="file" accept="image/*" id="t_foto_2" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-600 file:font-bold w-full" onchange="window.processarFotoTeste(event, 2)">
                    <img id="preview_foto_teste_2" class="image-preview" src="">
                 </div>
@@ -1363,21 +1405,25 @@
     <div id="modal-supervisor-liberar" class="modal-overlay">
        <div class="modal-content">
           <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-3">
-             <h3 class="font-black text-xl text-blue-600">Emitir Laudo (Supervisor)</h3>
+             <h3 class="font-black text-xl text-blue-600">Emitir Laudo</h3>
              <button onclick="window.fecharModalSupervisor()" class="text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-6 h-6"></i></button>
           </div>
           <form id="form-supervisor" onsubmit="window.submitLiberacaoSupervisor(event)">
              <input type="hidden" id="sup_id_teste">
-             <div class="grid-2 mb-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-               <div><label class="app-label text-blue-800">P/L (Farinha)</label><input type="number" step="0.01" id="sup_pl" class="app-input bg-white" required></div>
-               <div><label class="app-label text-blue-800">W (Farinha)</label><input type="number" id="sup_w" class="app-input bg-white" required></div>
-               <div><label class="app-label text-blue-800">Recebimento Farinha</label><input type="date" id="sup_data_rec_far" class="app-input bg-white" required></div>
-               <div><label class="app-label text-blue-800">Validade do Pão</label><input type="date" id="sup_validade_prod" class="app-input bg-white" required></div>
+             
+             <!-- Visualização do Teste para o Supervisor -->
+             <div id="sup_dados_view" class="bg-stone-50 p-4 rounded-xl mb-4 text-sm text-stone-700 border border-stone-200">
+               <!-- Injetado via JS -->
              </div>
              
-             <div class="mb-6 flex flex-col items-center">
-                <label class="font-black text-stone-800 text-sm uppercase mb-2">Nota Final (0 a 100)</label>
-                <input type="number" id="sup_nota" class="app-input text-center text-4xl font-black w-32 h-20" required max="100" min="0">
+             <div class="mb-4">
+                <label class="app-label text-stone-800 text-center mb-2">Nota Final (0 a 100)</label>
+                <input type="number" id="sup_nota" class="app-input text-center text-4xl font-black w-full" required max="100" min="0" placeholder="00">
+             </div>
+
+             <div class="mb-6">
+                <label class="app-label text-stone-800">Assinatura (Seu Nome)</label>
+                <input type="text" id="sup_assinatura" class="app-input" required placeholder="Digite seu nome para assinar...">
              </div>
              
              <div class="flex justify-between items-center mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
@@ -1464,6 +1510,13 @@
           </div>
           <div class="text-block" style="margin-top: 30px;"><strong>DESCRIÇÃO DO ENSAIO</strong><br>Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.</div>
           <div class="text-block"><strong>LEGISLAÇÃO E REFERÊNCIAS</strong><br>- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. NBR 16170: Panificação - Pão francês - Diretrizes para avaliação da qualidade.<br>- BRASIL, ANVISA. IN n. 161, RDC n. 711, RDC n. 727 de 1º de julho de 2022.</div>
+          
+          <div style="margin-top: 60px; text-align: center;">
+             <div style="border-top: 1px solid #000; width: 60%; margin: 0 auto; padding-top: 10px; font-weight: bold;" id="pdf-assinatura-nome">
+                 Nome do Supervisor
+             </div>
+             <div style="font-size: 12px; margin-top: 5px;">Assinatura do Responsável (Aprovado Digitalmente)</div>
+          </div>
        </div>
     </div>
 
