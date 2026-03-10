@@ -835,31 +835,38 @@
 
     window.submitAvaliacaoTeste = async (e) => {
        e.preventDefault();
-       const id = document.getElementById('t_id_teste').value;
-       const foto1 = window.appState.currentTestImageBase64_1;
-       if(!foto1) { window.showToast("A Foto 1 é obrigatória."); return; }
-
-       const docRef = doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id);
        try {
+           const id = document.getElementById('t_id_teste').value;
+           const foto1 = window.appState.currentTestImageBase64_1;
+           
+           if(!foto1) { window.showToast("A Foto 1 é obrigatória."); return; }
+
+           const docRef = doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id);
+           
            await updateDoc(docRef, {
                status: 'Aguardando Supervisor', 
-               loteProduto: document.getElementById('t_lote_produto').value, 
-               loteFarinhaUsada: document.getElementById('t_lote_farinha').value,
-               dataRealizacaoTeste: document.getElementById('t_data_teste').value, // Guarda data escolhida
-               craquelamento: document.getElementById('t_craquelamento').value, 
-               crocancia: document.getElementById('t_crocancia').value,
-               pestana: document.getElementById('t_pestana').value, 
-               volume: document.getElementById('t_volume').value,
-               cor: document.getElementById('t_cor').value, 
-               estruturaAlveolar: document.getElementById('t_estrutura').value,
-               corMiolo: document.getElementById('t_cor_miolo').value, 
-               conformidadeVisual: document.getElementById('t_conformidade_visual').value,
+               loteProduto: document.getElementById('t_lote_produto').value || '', 
+               loteFarinhaUsada: document.getElementById('t_lote_farinha').value || '',
+               dataRealizacaoTeste: document.getElementById('t_data_teste').value || '',
+               craquelamento: document.getElementById('t_craquelamento').value || '', 
+               crocancia: document.getElementById('t_crocancia').value || '',
+               pestana: document.getElementById('t_pestana').value || '', 
+               volume: document.getElementById('t_volume').value || '',
+               cor: document.getElementById('t_cor').value || '', 
+               estruturaAlveolar: document.getElementById('t_estrutura').value || '',
+               corMiolo: document.getElementById('t_cor_miolo').value || '', 
+               conformidadeVisual: document.getElementById('t_conformidade_visual').value || '',
                fotoBase64_1: foto1, 
                fotoBase64_2: window.appState.currentTestImageBase64_2 || null,
                dataPreenchimento: serverTimestamp()
            });
-           window.showToast("Avaliação enviada com sucesso!"); window.fecharModalTeste();
-       } catch (error) { window.showToast("Erro ao enviar avaliação."); }
+           
+           window.showToast("Avaliação enviada com sucesso!"); 
+           window.fecharModalTeste();
+       } catch (error) { 
+           console.error(error);
+           window.showToast("Erro ao enviar avaliação. Verifique a conexão."); 
+       }
     };
 
     window.abrirModalSupervisor = (id) => { document.getElementById('modal-supervisor-liberar').classList.add('active'); document.getElementById('sup_id_teste').value = id; }
@@ -892,13 +899,19 @@
         const dataProducao = start ? start.dataFabricacao.split('-').reverse().join('/') : '--';
         const dataRecebimento = dados.dataRecebimentoFar ? dados.dataRecebimentoFar.split('-').reverse().join('/') : '--';
         const dataValidade = dados.validadeProduto ? dados.validadeProduto.split('-').reverse().join('/') : '--';
-        const dataTeste = new Date().toLocaleDateString('pt-BR');
+        
+        // Se já tiver sido gerado uma vez usa a data gravada, senao usa de hoje
+        let dataTesteStr = new Date().toLocaleDateString('pt-BR');
+        if(dados.dataRealizacaoTeste) {
+            dataTesteStr = dados.dataRealizacaoTeste.split('-').reverse().join('/');
+        }
+
         const verificaStatus = (val) => val !== 'ruim' ? 'CONFORME' : 'NÃO CONFORME';
 
         document.getElementById('pdf-produto').innerText = dados.produtoNome || '--'; document.getElementById('pdf-lote').innerText = dados.loteProduto || '--';
         document.getElementById('pdf-producao').innerText = dataProducao; document.getElementById('pdf-validade').innerText = dataValidade;
         document.getElementById('pdf-rec-farinha').innerText = dataRecebimento; document.getElementById('pdf-lote-farinha').innerText = dados.loteFarinhaUsada || '--';
-        document.getElementById('pdf-data-teste').innerText = dataTeste; document.getElementById('pdf-pl').innerText = dados.fatorPL || '--'; document.getElementById('pdf-w').innerText = dados.fatorW || '--';
+        document.getElementById('pdf-data-teste').innerText = dataTesteStr; document.getElementById('pdf-pl').innerText = dados.fatorPL || '--'; document.getElementById('pdf-w').innerText = dados.fatorW || '--';
         
         document.getElementById('pdf-craquelamento').innerText = verificaStatus(dados.craquelamento); document.getElementById('pdf-pestana').innerText = verificaStatus(dados.pestana);
         document.getElementById('pdf-volume').innerText = verificaStatus(dados.volume); document.getElementById('pdf-cor').innerText = verificaStatus(dados.cor);
@@ -1307,16 +1320,24 @@
                <div><label class="app-label">Lote Farinha</label><input type="text" id="t_lote_farinha" class="app-input" required></div>
              </div>
              
+             <!-- Campo de Data do Teste -->
+             <div class="mb-4 bg-stone-50 p-3 rounded-xl border border-stone-200">
+               <label class="app-label">Data da Avaliação</label>
+               <input type="date" id="t_data_teste" class="app-input bg-white" required>
+             </div>
+             
              <div class="mb-6">
                 <label class="app-label text-stone-800 mb-3"><i data-lucide="camera" class="w-4 h-4 inline mb-0.5"></i> Fotos (Obrigatório Foto 1)</label>
                 <div class="mb-3 p-3 border border-stone-200 rounded-xl bg-white">
                    <span class="text-xs font-bold text-stone-500 block mb-2">Foto Externa</span>
-                   <input type="file" accept="image/*" capture="environment" id="t_foto_1" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-50 file:text-yellow-700 file:font-bold" onchange="window.processarFotoTeste(event, 1)" required>
+                   <!-- Removido 'capture="environment"' para permitir escolha da galeria -->
+                   <input type="file" accept="image/*" id="t_foto_1" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-50 file:text-yellow-700 file:font-bold w-full" onchange="window.processarFotoTeste(event, 1)" required>
                    <img id="preview_foto_teste_1" class="image-preview" src="">
                 </div>
                 <div class="p-3 border border-stone-200 rounded-xl bg-white">
                    <span class="text-xs font-bold text-stone-500 block mb-2">Foto do Miolo (Opcional)</span>
-                   <input type="file" accept="image/*" capture="environment" id="t_foto_2" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-600 file:font-bold" onchange="window.processarFotoTeste(event, 2)">
+                   <!-- Removido 'capture="environment"' para permitir escolha da galeria -->
+                   <input type="file" accept="image/*" id="t_foto_2" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-600 file:font-bold w-full" onchange="window.processarFotoTeste(event, 2)">
                    <img id="preview_foto_teste_2" class="image-preview" src="">
                 </div>
              </div>
