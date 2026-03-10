@@ -822,6 +822,9 @@
        else { inLoteProduto.value = ''; }
 
        document.getElementById('t_lote_farinha').value = (startRelacionado && startRelacionado.loteFarinha) ? startRelacionado.loteFarinha : '';
+       
+       // Preenche data atual no teste
+       document.getElementById('t_data_teste').value = new Date().toISOString().split('T')[0];
 
        window.appState.currentTestImageBase64_1 = null; window.appState.currentTestImageBase64_2 = null;
        document.getElementById('preview_foto_teste_1').style.display = 'none'; document.getElementById('preview_foto_teste_2').style.display = 'none';
@@ -842,6 +845,7 @@
                status: 'Aguardando Supervisor', 
                loteProduto: document.getElementById('t_lote_produto').value, 
                loteFarinhaUsada: document.getElementById('t_lote_farinha').value,
+               dataRealizacaoTeste: document.getElementById('t_data_teste').value, // Guarda data escolhida
                craquelamento: document.getElementById('t_craquelamento').value, 
                crocancia: document.getElementById('t_crocancia').value,
                pestana: document.getElementById('t_pestana').value, 
