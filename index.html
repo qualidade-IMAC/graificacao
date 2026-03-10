@@ -1,232 +1,187 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Start da Produção</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Biblioteca para gerar PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>IMAC - Start da Produção</title>
   
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Ícones -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Biblioteca para PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
-    /* Premium Industrial Dark Theme */
-    :root {
-      --ios-bg: #09090b; /* Quase preto profundo */
-      --ios-surface: #18181b; /* Fundo dos cartões ligeiramente mais claro */
-      --ios-text: #f4f4f5; /* Texto principal brilhante */
-      --ios-text-secondary: #a1a1aa; /* Texto de apoio suave */
-      --ios-primary: #dc2626; /* Vermelho/Bordô premium (Tailwind Red 600) */
-      --ios-success: #16a34a; /* Verde sucesso refinado */
-      --ios-danger: #ef4444; 
-      --ios-warning: #f97316; /* Laranja para o toggle de teste */
-      --ios-border: #27272a; /* Limites subtis */
-      --ios-border-radius: 16px; /* Cantos mais arredondados, visual moderno */
-      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Tema Claro - Baseado na identidade (Stone + Yellow) */
+    body { 
+      background-color: #f5f5f4; /* stone-100 */
+      color: #1c1917; /* stone-900 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0; padding: 0; overflow-x: hidden;
     }
 
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    body {
-      background-color: var(--ios-bg);
-      color: var(--ios-text);
-      font-family: var(--font-family);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      margin: 0; padding: 0; overflow-x: hidden; touch-action: manipulation;
+    /* Cartões e Containers */
+    .app-card {
+      background-color: #ffffff;
+      border: 1px solid #e7e5e4; /* stone-200 */
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* Typography Polish */
-    h1, h2, h3, h4 { letter-spacing: -0.025em; }
+    /* Inputs e Selects */
+    .app-input {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: #fafaf9; /* stone-50 */
+      border: 1px solid #d6d3d1; /* stone-300 */
+      border-radius: 12px;
+      font-size: 16px; /* Evita zoom no iOS */
+      color: #292524; /* stone-800 */
+      transition: all 0.2s;
+      outline: none;
+    }
+    .app-input:focus {
+      border-color: #eab308; /* yellow-500 */
+      box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+      background-color: #ffffff;
+    }
+    .app-input.error {
+      border-color: #ef4444; /* red-500 */
+      background-color: #fef2f2;
+    }
 
-    /* Modern Card Component */
-    .ios-card { 
-      background: var(--ios-surface); 
-      border-radius: var(--ios-border-radius); 
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4); 
-      margin-bottom: 24px; 
-      overflow: hidden; 
-      border: 1px solid var(--ios-border); 
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    .app-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2378716c%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
     }
-    
-    /* Modern Form Inputs */
-    .ios-input { 
-      appearance: none; 
-      background-color: #09090b; 
-      border: 1px solid var(--ios-border); 
-      border-radius: 10px; 
-      padding: 14px 16px; 
-      font-size: 16px; 
-      width: 100%; 
-      color: var(--ios-text); 
-      transition: all 0.2s ease; 
-      font-weight: 500;
-    }
-    .ios-input::placeholder { color: #52525b; font-weight: 400; }
-    .ios-input:focus { outline: none; border-color: var(--ios-primary); box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2); background-color: var(--ios-surface); }
-    .ios-input.error-border { border-color: var(--ios-danger); background-color: rgba(239, 68, 68, 0.05); }
-    
-    /* Select styling */
-    .ios-select { 
-      appearance: none; 
-      background-color: #09090b; 
-      border: 1px solid var(--ios-border); 
-      border-radius: 10px; 
-      padding: 14px 16px; 
-      font-size: 16px; 
-      width: 100%; 
-      color: var(--ios-text); 
-      font-weight: 500;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E"); 
-      background-repeat: no-repeat; 
-      background-position: right 12px center; 
-      background-size: 16px auto; 
-      transition: all 0.2s ease;
-    }
-    .ios-select:focus { outline: none; border-color: var(--ios-primary); box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2); }
-    
-    /* Premium Button */
-    .ios-button { 
-      background: linear-gradient(135deg, var(--ios-primary) 0%, #991b1b 100%);
-      color: white; 
-      border: none; 
-      border-radius: 12px; 
-      padding: 16px 24px; 
-      font-size: 16px; 
-      font-weight: 600; 
-      letter-spacing: 0.025em;
-      width: 100%; 
-      cursor: pointer; 
-      text-align: center; 
-      display: inline-flex; 
-      align-items: center; 
-      justify-content: center; 
-      gap: 10px; 
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
-    }
-    .ios-button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(220, 38, 38, 0.3); }
 
-    /* Modern Tab Bar */
-    .tab-bar { 
-      position: fixed; 
-      bottom: 0; left: 0; right: 0; 
-      background: rgba(24, 24, 27, 0.85);
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px); 
-      border-top: 1px solid var(--ios-border); 
-      display: flex; 
-      justify-content: space-around; 
-      padding: 12px 0 24px 0; 
-      z-index: 50; 
+    /* Labels */
+    .app-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #57534e; /* stone-600 */
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    .tab-item { 
-      display: flex; flex-direction: column; align-items: center; 
-      color: var(--ios-text-secondary); font-size: 11px; font-weight: 500; 
-      text-decoration: none; width: 20%; 
-      transition: color 0.2s ease;
-    }
-    .tab-item.active { color: var(--ios-primary); }
-    .tab-icon { margin-bottom: 6px; transition: transform 0.2s ease; }
-    .tab-item.active .tab-icon { transform: scale(1.1); }
 
-    /* Elegant Header */
-    .ios-header { 
-      background: rgba(9, 9, 11, 0.85); 
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px); 
-      border-bottom: 1px solid var(--ios-border); 
-      position: sticky; top: 0; z-index: 40; 
-      padding: 16px 20px; 
-      display: flex; justify-content: space-between; align-items: center; 
-    }
-    .ios-title { font-size: 18px; font-weight: 700; margin: 0; color: var(--ios-text); letter-spacing: -0.01em;}
-    
-    .content-area { padding: 20px; padding-bottom: 110px; max-width: 900px; margin: 0 auto; }
+    /* Toggle Switch (Interruptor) */
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d6d3d1; transition: .3s; border-radius: 34px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    input:checked + .toggle-slider { background-color: #eab308; /* yellow-500 */ }
+    input:checked + .toggle-slider:before { transform: translateX(22px); }
 
-    /* Form Layouts & Switches refined */
-    .form-row { display: flex; flex-direction: column; padding: 16px 20px; border-bottom: 1px solid var(--ios-border); }
-    .form-row:last-child { border-bottom: none; }
-    .form-label { font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;}
-    
-    .ios-switch { position: relative; display: inline-block; width: 50px; height: 28px; flex-shrink: 0; }
-    .ios-switch input { opacity: 0; width: 0; height: 0; }
-    .ios-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3f3f46; transition: .3s ease; border-radius: 34px; }
-    .ios-slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: #FFFFFF; transition: .3s ease; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    input:checked + .ios-slider { background-color: var(--ios-success); }
-    input:checked + .ios-slider:before { transform: translateX(22px); }
-    
-    /* Varied Toggle Colors */
-    input.test-toggle:checked + .ios-slider { background-color: var(--ios-warning); }
-
-    /* Toast & Modals Refined */
-    #toast { 
-      visibility: hidden; min-width: 280px; margin-left: -140px; 
-      background-color: #27272a; color: #ffffff; 
-      text-align: center; border-radius: 12px; padding: 16px 20px; 
-      position: fixed; z-index: 100; left: 50%; top: 40px; 
-      font-size: 14px; font-weight: 500; 
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border: 1px solid #3f3f46;
+    /* Botão Principal */
+    .btn-primary {
+      width: 100%;
+      background-color: #eab308; /* yellow-500 */
+      color: white;
+      font-weight: 700;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+      transition: background-color 0.2s;
     }
-    #toast.show { visibility: visible; animation: fadein 0.4s cubic-bezier(0.16, 1, 0.3, 1), fadeout 0.4s 3s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadein { from {top: 0; opacity: 0; transform: scale(0.95);} to {top: 40px; opacity: 1; transform: scale(1);} }
-    @keyframes fadeout { from {top: 40px; opacity: 1; transform: scale(1);} to {top: 0; opacity: 0; transform: scale(0.95);} }
+    .btn-primary:active { background-color: #ca8a04; /* yellow-600 */ }
+    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* Header e Tabs */
+    .app-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #e7e5e4;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.active { display: flex; }
-    .modal-content { background: var(--ios-surface); border-radius: 20px; width: 100%; max-width: 550px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; border: 1px solid var(--ios-border);}
-    
-    .view-section { display: none; animation: fadeInView 0.3s ease; }
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background-color: #ffffff;
+      border-top: 1px solid #e7e5e4;
+      display: flex; justify-content: space-around;
+      padding: 12px 0 24px 0;
+      z-index: 50;
+    }
+    .tab-item {
+      display: flex; flex-direction: column; align-items: center;
+      color: #a8a29e; /* stone-400 */
+      font-size: 11px; font-weight: 600;
+      text-decoration: none; width: 20%;
+    }
+    .tab-item.active { color: #eab308; /* yellow-500 */ }
+    .tab-item i { margin-bottom: 4px; }
+
+    /* Utilitários */
+    .content-area { padding: 20px; padding-bottom: 100px; max-width: 800px; margin: 0 auto; }
+    .view-section { display: none; animation: fadeIn 0.2s ease; }
     .view-section.active { display: block; }
-    @keyframes fadeInView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Modais e Toasts */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: #ffffff; border-radius: 20px; width: 100%; max-width: 500px; padding: 24px; max-height: 90vh; overflow-y: auto; }
     
-    @media (min-width: 768px) {
-      .tablet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
-      .form-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 0; border: none;}
-      .form-label { margin-bottom: 0; width: 40%; font-size: 13px;}
-      .ios-input, .ios-select { width: 55%; }
+    #toast {
+      visibility: hidden; min-width: 250px; margin-left: -125px;
+      background-color: #292524; color: white; text-align: center;
+      border-radius: 12px; padding: 16px; position: fixed; z-index: 9999;
+      left: 50%; top: 30px; font-size: 14px; font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    
-    .image-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; display: none; margin-top: 12px; border: 1px solid var(--ios-border); }
-    .detalhe-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--ios-border); align-items: center;}
-    .detalhe-row:last-child { border-bottom: none; }
-    .detalhe-label { color: var(--ios-text-secondary); font-size: 13px; font-weight: 500;}
-    .detalhe-value { color: var(--ios-text); font-size: 14px; font-weight: 600; text-align: right;}
-    
-    /* Login & Splash Screen Background */
-    .screen-bg { background: radial-gradient(circle at center, #1f1f23 0%, #09090b 100%); }
-    .pwa-install-banner { display: none; }
+    #toast.show { visibility: visible; animation: slideDown 0.3s, fadeOut 0.3s 3s forwards; }
+    @keyframes slideDown { from {top: 0; opacity: 0;} to {top: 30px; opacity: 1;} }
+    @keyframes fadeOut { to {top: 0; opacity: 0;} }
 
-    /* Custom Scrollbar for Dropdowns */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--ios-surface); border-radius: 8px;}
-    ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 8px; }
-    ::-webkit-scrollbar-thumb:hover { background: #71717a; }
+    /* Busca Inteligente */
+    #dropdown_produtos {
+      max-height: 300px; overflow-y: auto; border: 1px solid #e7e5e4;
+      border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+    .busca-item { padding: 12px 16px; border-bottom: 1px solid #f5f5f4; cursor: pointer; transition: background 0.2s; }
+    .busca-item:hover { background-color: #fefce8; /* yellow-50 */ }
+    .busca-item:last-child { border-bottom: none; }
 
-    /* Fix para o dropdown com rolagem vertical */
-    #dropdown_produtos { max-height: 40vh; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8); border-radius: 12px; overflow-y: auto; overflow-x: hidden; margin-top: 8px;}
+    /* Layout Responsivo */
+    @media (min-width: 768px) {
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
 
-    /* Estilos Específicos para a Área Oculta do PDF (Forçar Modo Claro) */
+    /* PDF Oculto */
     #pdf-container-hidden { display: none; }
-    .pdf-mode { background-color: #FFFFFF !important; color: #000000 !important; padding: 40px !important; font-family: Arial, sans-serif !important; }
-    .pdf-mode table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; }
+    .pdf-mode { background: #fff; color: #000; padding: 40px; font-family: Arial, sans-serif; }
+    .pdf-mode table { width: 100%; border-collapse: collapse; margin: 15px 0; }
     .pdf-mode th, .pdf-mode td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
-    .pdf-mode th { background-color: #f2f2f2 !important; color: #000 !important; font-weight: bold; }
-    .pdf-mode h1 { font-size: 18px; text-align: center; margin-bottom: 20px; color: #000 !important; text-transform: uppercase; }
-    .pdf-mode .info-row { font-size: 12px; margin-bottom: 5px; }
-    .pdf-mode .nota-box { font-size: 24px; font-weight: bold; text-align: center; border: 2px solid #000; padding: 10px; width: 100px; margin: 20px auto; }
-    .pdf-mode .text-block { font-size: 11px; text-align: justify; margin-top: 15px; }
-
+    .pdf-mode th { background-color: #f5f5f4; font-weight: bold; }
+    .pdf-mode h1 { font-size: 18px; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
   </style>
 
-  <!-- Firebase App -->
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
+    // Variáveis Globais
     window.appState = {
       user: null, auth: null, db: null,
       appId: typeof __app_id !== 'undefined' ? __app_id : 'default-start-app',
@@ -241,11 +196,12 @@
     window.tempIngredients = []; 
     window.editingProdutoId = null; 
 
+    // Funções de UI Auxiliares
     window.showToast = (message) => {
       const toast = document.getElementById("toast");
       toast.textContent = message;
       toast.className = "show";
-      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3500);
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3300);
     };
 
     window.switchTab = (tabId) => {
@@ -257,45 +213,22 @@
       if(tabBtn) tabBtn.classList.add('active');
       
       let title = "Start da Produção";
-      if(tabId === 'view-teste') title = "Controle de Qualidade";
-      if(tabId === 'view-dashboard') title = "Painel de Linha";
-      if(tabId === 'view-cadastro') title = "Receituário Base";
-      if(tabId === 'view-historico') title = "Histórico de Produção";
-      if(tabId === 'view-config') title = "Configurações do Sistema";
-      
+      if(tabId === 'view-teste') title = "Avaliação e Testes";
+      if(tabId === 'view-dashboard') title = "Painel da Linha";
+      if(tabId === 'view-cadastro') title = "Receitas e Padrões";
+      if(tabId === 'view-historico') title = "Histórico Concluído";
+      if(tabId === 'view-config') title = "Configurações";
       document.getElementById('header-title').innerText = title;
 
       if(tabId === 'view-dashboard') window.renderDashboard();
-      if(tabId === 'view-teste') renderTestesPendentes();
-      if(tabId === 'view-historico') renderHistorico();
-      if(tabId === 'view-config') renderConfigForm();
-      if(tabId === 'view-start') {
-          if(!document.getElementById('s_produto_hidden').value) {
-              document.getElementById('s_produto_search').value = ''; 
-          }
-      }
+      if(tabId === 'view-teste') window.renderTestesPendentes();
+      if(tabId === 'view-historico') window.renderHistorico();
+      if(tabId === 'view-config') window.renderConfigForm();
+      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault(); deferredPrompt = e;
-      const installBanner = document.getElementById('pwa-install-container');
-      if (installBanner) installBanner.style.display = 'block';
-    });
-    window.instalarPWA = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') document.getElementById('pwa-install-container').style.display = 'none';
-        deferredPrompt = null;
-      }
-    };
-    window.addEventListener('appinstalled', () => {
-      const installBanner = document.getElementById('pwa-install-container');
-      if (installBanner) installBanner.style.display = 'none';
-    });
-
+    // Firebase Inicialização
     async function initFirebase() {
       try {
         const firebaseConfig = {
@@ -304,11 +237,9 @@
           projectId: "startproducao-8adf2",
           storageBucket: "startproducao-8adf2.firebasestorage.app",
           messagingSenderId: "157683350361",
-          appId: "1:157683350361:web:c4e591c68486addde8ea48",
-          measurementId: "G-FPQHGDBNRJ"
+          appId: "1:157683350361:web:c4e591c68486addde8ea48"
         };
         const app = initializeApp(firebaseConfig);
-        getAnalytics(app);
         const auth = getAuth(app);
         window.appState.auth = auth;
         window.appState.db = getFirestore(app);
@@ -320,9 +251,9 @@
             window.appState.user = user;
             document.getElementById('view-login').style.display = 'none';
             document.getElementById('main-app-container').style.display = 'block';
-            document.getElementById('auth-status').innerHTML = `<div class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>`;
-            setupRealtimeListeners();
-            switchTab('view-start');
+            document.getElementById('auth-status').innerHTML = `<div class="h-3 w-3 rounded-full bg-green-500 shadow-sm"></div>`;
+            window.setupRealtimeListeners();
+            window.switchTab('view-start');
             lucide.createIcons();
           } else {
             window.appState.user = null;
@@ -331,134 +262,91 @@
           }
         });
 
+        // Ignora erro no sandbox se houver token inválido
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) {}
         }
       } catch (error) {
-        window.showToast("Falha de conexão.");
+        window.showToast("Falha de conexão com servidor.");
         document.getElementById('view-splash').style.display = 'none';
         document.getElementById('view-login').style.display = 'flex';
       }
     }
 
     window.loginComGoogle = async () => {
-       try { window.showToast("A autenticar..."); await signInWithPopup(window.appState.auth, new GoogleAuthProvider());
-       } catch(e) { window.showToast("Erro ao fazer login."); }
+       try { window.showToast("Autenticando..."); await signInWithPopup(window.appState.auth, new GoogleAuthProvider());
+       } catch(e) { window.showToast("Erro ao fazer login com Google."); }
     };
     window.loginAnonimo = async () => {
-        try { window.showToast("A entrar como visitante..."); await signInAnonymously(window.appState.auth);
+        try { window.showToast("Entrando no modo local..."); await signInAnonymously(window.appState.auth);
         } catch (e) { window.showToast("Erro de autenticação."); }
     }
     window.fazerLogout = async () => {
-       if(confirm("Encerrar sessão no dispositivo?")) { try { await signOut(window.appState.auth); window.location.reload(); } catch (e) {} }
+       if(confirm("Deseja realmente sair da conta?")) { try { await signOut(window.appState.auth); window.location.reload(); } catch (e) {} }
     };
 
-    function getCol(name) {
+    window.getCol = (name) => {
        const { db, appId, user } = window.appState;
        if (!user || !db) return null;
        return collection(db, 'artifacts', appId, 'users', user.uid, name);
     }
 
-    function setupRealtimeListeners() {
+    window.setupRealtimeListeners = () => {
       const { db, appId, user } = window.appState;
-      const startsCol = getCol('starts_producao');
-      if(startsCol) onSnapshot(startsCol, (snapshot) => {
+      
+      onSnapshot(window.getCol('starts_producao'), (snapshot) => {
           window.appState.starts = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
           if(document.getElementById('view-dashboard').classList.contains('active')) window.renderDashboard();
           if(document.getElementById('view-historico').classList.contains('active')) window.renderHistorico();
-          if(document.getElementById('view-teste').classList.contains('active')) renderTestesPendentes(); 
+          if(document.getElementById('view-teste').classList.contains('active')) window.renderTestesPendentes(); 
       });
 
-      const testesCol = getCol('testes_farinha');
-      if(testesCol) onSnapshot(testesCol, (snapshot) => {
+      onSnapshot(window.getCol('testes_farinha'), (snapshot) => {
           window.appState.testes = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-          if(document.getElementById('view-dashboard').classList.contains('active')) window.renderDashboard();
-          if(document.getElementById('view-teste').classList.contains('active')) renderTestesPendentes();
+          if(document.getElementById('view-teste').classList.contains('active')) window.renderTestesPendentes();
       });
 
-      const prodCol = getCol('produtos_cadastro');
-      if(prodCol) onSnapshot(prodCol, (snapshot) => {
+      onSnapshot(window.getCol('produtos_cadastro'), (snapshot) => {
           window.appState.produtos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
           window.renderListaProdutos(); 
       });
 
-      const configDoc = doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'app_config');
-      onSnapshot(configDoc, (docSnap) => {
-          if(docSnap.exists()) { window.appState.config = docSnap.data(); aplicarConfiguracoes(); }
+      onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'app_config'), (docSnap) => {
+          if(docSnap.exists()) { window.appState.config = docSnap.data(); window.aplicarConfiguracoes(); }
       });
     }
     
-    function aplicarConfiguracoes() {
+    window.aplicarConfiguracoes = () => {
         const cfg = window.appState.config;
         if(cfg.logoBase64) {
-            document.getElementById('header-logo').src = cfg.logoBase64;
-            document.getElementById('splash-logo').src = cfg.logoBase64;
-            document.getElementById('login-logo').src = cfg.logoBase64;
+            const hLogo = document.getElementById('header-logo');
+            const sLogo = document.getElementById('splash-logo');
+            const lLogo = document.getElementById('login-logo');
+            if(hLogo) hLogo.src = cfg.logoBase64;
+            if(sLogo) sLogo.src = cfg.logoBase64;
+            if(lLogo) lLogo.src = cfg.logoBase64;
         }
         window.checkLimits(); 
     }
 
-    window.renderConfigForm = () => {
-        const cfg = window.appState.config || {};
-        document.getElementById('cfg_agua_min').value = cfg.aguaMin || ''; document.getElementById('cfg_agua_max').value = cfg.aguaMax || '';
-        document.getElementById('cfg_fermento_min').value = cfg.fermentoMin || ''; document.getElementById('cfg_fermento_max').value = cfg.fermentoMax || '';
-        document.getElementById('cfg_farinha_min').value = cfg.farinhaMin || ''; document.getElementById('cfg_farinha_max').value = cfg.farinhaMax || '';
-        document.getElementById('cfg_massa_min').value = cfg.massaMin || ''; document.getElementById('cfg_massa_max').value = cfg.massaMax || '';
-        if(cfg.logoBase64) { document.getElementById('preview_cfg_logo').src = cfg.logoBase64; document.getElementById('preview_cfg_logo').style.display = 'block'; }
-    };
-
-    window.processarNovaLogo = (event) => {
-       const file = event.target.files[0]; if(!file) return;
-       const reader = new FileReader();
-       reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-             const canvas = document.createElement('canvas'); const scaleSize = 150 / img.height;
-             canvas.height = 150; canvas.width = img.width * scaleSize;
-             canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-             const dataUrl = canvas.toDataURL('image/png');
-             window.appState.currentConfigLogoBase64 = dataUrl;
-             document.getElementById('preview_cfg_logo').src = dataUrl; document.getElementById('preview_cfg_logo').style.display = 'block';
-          };
-          img.src = e.target.result;
-       }; reader.readAsDataURL(file);
-    };
-
-    window.salvarConfiguracoes = async (e) => {
-        e.preventDefault();
-        const { db, appId, user } = window.appState;
-        const configData = {
-            aguaMin: parseFloat(document.getElementById('cfg_agua_min').value), aguaMax: parseFloat(document.getElementById('cfg_agua_max').value),
-            fermentoMin: parseFloat(document.getElementById('cfg_fermento_min').value), fermentoMax: parseFloat(document.getElementById('cfg_fermento_max').value),
-            farinhaMin: parseFloat(document.getElementById('cfg_farinha_min').value), farinhaMax: parseFloat(document.getElementById('cfg_farinha_max').value),
-            massaMin: parseFloat(document.getElementById('cfg_massa_min').value), massaMax: parseFloat(document.getElementById('cfg_massa_max').value),
-            logoBase64: window.appState.currentConfigLogoBase64 || window.appState.config.logoBase64 || null
-        };
-        try { await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'app_config'), configData); window.showToast("Sistema atualizado!");
-        } catch(err) { window.showToast("Erro ao gravar definições."); }
-    };
-
-    // -- BUSCA INTELIGENTE DE PRODUTOS --
+    // -- BUSCA INTELIGENTE --
     window.filtrarProdutos = () => {
         const input = document.getElementById('s_produto_search').value.toLowerCase();
         const dropdown = document.getElementById('dropdown_produtos');
         dropdown.innerHTML = '';
         
         let filtrados = window.appState.produtos;
-        if(input) {
-            filtrados = window.appState.produtos.filter(p => p.nome.toLowerCase().includes(input));
-        }
+        if(input) filtrados = window.appState.produtos.filter(p => p.nome.toLowerCase().includes(input));
 
         if (filtrados.length === 0) {
-            dropdown.innerHTML = '<div class="p-4 text-sm text-gray-400 text-center">Nenhum registo encontrado.</div>';
+            dropdown.innerHTML = '<div class="p-4 text-sm text-stone-500 text-center">Nenhum produto cadastrado com esse nome.</div>';
         } else {
             dropdown.innerHTML = filtrados.map(p => `
-                <div class="p-4 border-b border-gray-700 hover:bg-[#27272a] cursor-pointer text-sm font-semibold flex flex-col transition-colors" onclick="window.selecionarProduto('${p.nome}')">
-                    <span class="text-gray-100 break-words whitespace-normal leading-snug">${p.nome}</span>
-                    ${p.pesoPadrao ? `<span class="text-xs text-blue-400 font-normal mt-1 flex items-center gap-1"><i data-lucide="scale" class="w-3 h-3"></i> Peso Padrão: ${p.pesoPadrao}g</span>` : ''}
+                <div class="busca-item flex flex-col" onclick="window.selecionarProduto('${p.nome}')">
+                    <span class="font-bold text-stone-800">${p.nome}</span>
+                    ${p.pesoPadrao ? `<span class="text-xs text-yellow-600 mt-1 font-semibold">Peso Padrão: ${p.pesoPadrao}g</span>` : ''}
                 </div>
             `).join('');
-            lucide.createIcons();
         }
         dropdown.classList.remove('hidden');
     };
@@ -482,8 +370,12 @@
         const p = window.appState.produtos.find(x => x.nome === prodName);
         window.appState.currentProduto = p;
         const labelPadrao = document.getElementById('lbl_peso_padrao');
-        if(p && p.pesoPadrao) labelPadrao.innerHTML = `Referência: <b class="text-blue-400">${p.pesoPadrao}g</b>`;
-        else labelPadrao.innerHTML = '';
+        if(p && p.pesoPadrao) {
+            labelPadrao.innerHTML = `Padrão: ${p.pesoPadrao}g`;
+            labelPadrao.classList.remove('hidden');
+        } else {
+            labelPadrao.classList.add('hidden');
+        }
         window.checkLimits();
     };
 
@@ -493,11 +385,11 @@
             const el = document.getElementById(id); const warnEl = document.getElementById(warnId);
             if(!el || !warnEl) return;
             const val = parseFloat(el.value);
-            if(isNaN(val)) { el.classList.remove('error-border'); warnEl.classList.add('hidden'); return; }
+            if(isNaN(val)) { el.classList.remove('error'); warnEl.classList.add('hidden'); return; }
             if((min !== undefined && !isNaN(min) && val < min) || (max !== undefined && !isNaN(max) && val > max)) {
-                el.classList.add('error-border'); warnEl.classList.remove('hidden'); warnEl.innerHTML = `<i data-lucide="alert-triangle" class="w-3 h-3 inline"></i> Limite excedido (${min}°C a ${max}°C)`;
-                lucide.createIcons();
-            } else { el.classList.remove('error-border'); warnEl.classList.add('hidden'); }
+                el.classList.add('error'); warnEl.classList.remove('hidden'); 
+                warnEl.innerHTML = `Fora do padrão (${min}° a ${max}°)`;
+            } else { el.classList.remove('error'); warnEl.classList.add('hidden'); }
         };
         checkField('s_temp_agua', cfg.aguaMin, cfg.aguaMax, 'warn_temp_agua');
         checkField('s_temp_fermento', cfg.fermentoMin, cfg.fermentoMax, 'warn_temp_fermento');
@@ -510,15 +402,15 @@
             const valPeso = parseFloat(elPeso.value);
             if(!isNaN(valPeso)) {
                 const diferenca = Math.abs(valPeso - p.pesoPadrao);
-                if(diferenca > 1) { elPeso.classList.add('error-border'); warnPeso.classList.remove('hidden'); warnPeso.innerText = `Atenção: Diferente do padrão (${p.pesoPadrao}g)`; }
-                else { elPeso.classList.remove('error-border'); warnPeso.classList.add('hidden'); }
-            } else { elPeso.classList.remove('error-border'); warnPeso.classList.add('hidden'); }
+                if(diferenca > 1) { elPeso.classList.add('error'); warnPeso.classList.remove('hidden'); warnPeso.innerText = `Atenção: Fugiu do padrão (${p.pesoPadrao}g)`; }
+                else { elPeso.classList.remove('error'); warnPeso.classList.add('hidden'); }
+            } else { elPeso.classList.remove('error'); warnPeso.classList.add('hidden'); }
         }
     };
 
+    // Rascunho
     window.salvarRascunhoStart = () => {
-       const form = document.getElementById('form-start');
-       const draft = {};
+       const form = document.getElementById('form-start'); const draft = {};
        form.querySelectorAll('input').forEach(el => {
            if(el.id) {
                if(el.type === 'checkbox') draft[el.id] = el.checked;
@@ -528,7 +420,7 @@
        localStorage.setItem('draft_start_app', JSON.stringify(draft));
     };
 
-    function carregarRascunhoStart() {
+    window.carregarRascunhoStart = () => {
        const draft = localStorage.getItem('draft_start_app');
        if(draft) {
            try {
@@ -547,56 +439,56 @@
            } catch(e) {}
        }
     }
-    function limparRascunhoStart() { localStorage.removeItem('draft_start_app'); }
     
     document.addEventListener('DOMContentLoaded', () => {
        document.getElementById('form-start').addEventListener('input', () => { window.salvarRascunhoStart(); window.checkLimits(); });
        document.getElementById('form-start').addEventListener('change', () => { window.salvarRascunhoStart(); window.checkLimits(); });
     });
 
-    // -- START DA PRODUÇÃO --
+    // -- SALVAR PRODUÇÃO (START) --
     window.submitStartForm = async (e) => {
       e.preventDefault();
-      const col = getCol('starts_producao'); if (!col) return;
+      const col = window.getCol('starts_producao'); if (!col) return;
       const nomeProduto = document.getElementById('s_produto_hidden').value;
-      if(!nomeProduto) { window.showToast("Selecione um produto da lista de pesquisa!"); return; }
+      if(!nomeProduto) { window.showToast("Selecione uma receita na busca!"); return; }
 
       const btn = document.getElementById('btn-submit-start');
-      btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> A Processar...'; btn.disabled = true; lucide.createIcons();
+      btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Processando...'; btn.disabled = true; lucide.createIcons();
 
       const lenta = parseInt(document.getElementById('s_batida_lenta').value) || 0;
       const rapida = parseInt(document.getElementById('s_batida_rapida').value) || 0;
-      const batidaFim = Date.now() + ((lenta + rapida) * 60 * 1000);
+      const tempoBatidaTotalMin = lenta + rapida;
+      const batidaFimMs = Date.now() + (tempoBatidaTotalMin * 60 * 1000);
+      
       const isTeste = document.getElementById('s_is_teste').checked;
       const loteFar = document.getElementById('s_lote_farinha').value;
-
-      // Cálculo e formatação do tempo de túnel
-      const tunelInput = document.getElementById('s_tempo_tunel');
-      let tunelMs = 0;
-      if(tunelInput && tunelInput.value) {
-         tunelMs = parseInt(tunelInput.value) * 60 * 1000;
-      }
 
       const data = {
         produto: nomeProduto,
         dataFabricacao: document.getElementById('s_data_fab').value,
+        
         tempAmbiente: document.getElementById('s_temp_ambiente').value, 
         tempFarinha: document.getElementById('s_temp_farinha').value,
         tempAgua: document.getElementById('s_temp_agua').value, 
         tempFermento: document.getElementById('s_temp_fermento').value, 
         tempMassa: document.getElementById('s_temp_massa').value,
+        
         insumosOk: document.getElementById('s_insumos_ok').checked, 
         pesoInsumosOk: document.getElementById('s_peso_insumos_ok').checked,
         loteFarinha: loteFar, 
         qtdAgua: document.getElementById('s_qtd_agua').value, 
         qtdGelo: document.getElementById('s_qtd_gelo').value,
+        
         batidaStr: `${lenta}+${rapida}`, 
-        batidaFimMs: batidaFim,
+        batidaFimMs: batidaFimMs,
+        
         tempoCilindro: document.getElementById('s_tempo_cilindro').value, 
         grupoAutomatico: document.getElementById('s_grupo_automatico').value,
         pesoProduto: document.getElementById('s_peso_produto').value,
+        
         tempoTunelConfigurado: document.getElementById('s_tempo_tunel').value,
         tempTunel: document.getElementById('s_temp_tunel').value,
+        
         isTeste: isTeste, 
         timestamp: serverTimestamp(), 
         status: 'Em Andamento'
@@ -604,163 +496,141 @@
 
       try {
         const docRef = await addDoc(col, data);
+        
+        // Se for teste, cria obrigatoriamente um registro no lab
         if(isTeste) {
-            await addDoc(getCol('testes_farinha'), { 
+            await addDoc(window.getCol('testes_farinha'), { 
                 startId: docRef.id, 
                 produtoNome: nomeProduto, 
                 loteFarinhaStart: loteFar, 
                 status: 'Pendente Operador', 
                 dataCriacao: serverTimestamp() 
             });
-            window.showToast("Start Ativo! Rotina de Teste programada.");
+            window.showToast("Start registrado! Produto enviado para Testes.");
         } else { 
-            window.showToast("Linha de Produção Ativada!"); 
+            window.showToast("Produção iniciada com sucesso!"); 
         }
 
+        // Limpa formulário
         document.getElementById('form-start').reset();
         document.getElementById('s_data_fab').value = new Date().toISOString().split('T')[0];
         document.getElementById('s_produto_search').value = '';
         document.getElementById('s_produto_hidden').value = '';
         ['s_insumos_ok', 's_peso_insumos_ok', 's_is_teste'].forEach(id => document.getElementById(id).checked = false);
-        document.querySelectorAll('.error-border').forEach(el => el.classList.remove('error-border'));
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         document.querySelectorAll('[id^="warn_"]').forEach(el => el.classList.add('hidden'));
-        document.getElementById('lbl_peso_padrao').innerText = '';
+        document.getElementById('lbl_peso_padrao').classList.add('hidden');
         
-        limparRascunhoStart(); 
+        localStorage.removeItem('draft_start_app');
         window.switchTab('view-dashboard');
-      } catch (error) { window.showToast("Erro ao comunicar com servidor."); }
-      finally { btn.innerHTML = '<i data-lucide="play"></i> Iniciar Produção'; btn.disabled = false; lucide.createIcons(); }
+      } catch (error) { window.showToast("Erro ao comunicar com o servidor."); }
+      finally { btn.innerHTML = 'Iniciar Produção'; btn.disabled = false; lucide.createIcons(); }
     };
 
+    // -- DASHBOARD E CRONÔMETROS --
     window.excluirStart = async (id) => {
-       if(!confirm("CUIDADO: Tem certeza que deseja ELIMINAR este registo?")) return;
-       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id)); window.showToast("Registo eliminado."); window.renderDashboard(); window.renderHistorico(); } catch(e) { window.showToast("Erro ao eliminar."); }
+       if(!confirm("Atenção: Deseja apagar este registro definitivamente?")) return;
+       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id)); window.showToast("Registro apagado."); } catch(e) {}
     };
 
-    window.iniciarTunel = async (id, minutosConfigurados) => {
-      const ms = parseInt(minutosConfigurados) * 60 * 1000 || (35 * 60 * 1000); // Fallback para 35min se não houver config
+    window.iniciarTunel = async (id, minCfg) => {
+      const ms = (parseInt(minCfg) || 35) * 60 * 1000; 
       await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { tunelFimMs: Date.now() + ms, tunelSaidaMs: null });
-      window.showToast("Processo de túnel iniciado.");
+      window.showToast("Pão entrou no túnel.");
     };
 
     window.finalizarTunelManual = async (id) => {
       await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { tunelSaidaMs: Date.now() });
-      window.showToast("Saída antecipada registada!");
+      window.showToast("Saída antecipada registrada!");
     };
-
-    function calcularStatusTunel() {
-       const now = Date.now();
-       const startsComTunel = window.appState.starts.filter(s => s.tunelFimMs).sort((a,b) => b.tunelFimMs - a.tunelFimMs);
-       if(startsComTunel.length === 0) return { status: 'Livre', obj: null };
-       const last = startsComTunel[0]; const effectiveFimTunel = last.tunelSaidaMs || last.tunelFimMs;
-       if (now < effectiveFimTunel && !last.tunelSaidaMs) return { status: 'Ocupado', obj: last, remaining: effectiveFimTunel };
-       const setupFim = effectiveFimTunel + (10 * 60 * 1000);
-       if (now < setupFim) return { status: 'Setup', obj: last, remaining: setupFim };
-       return { status: 'Livre', obj: null };
-    }
 
     window.abrirModalFinalizacao = (id) => { document.getElementById('modal-finalizar').classList.add('active'); document.getElementById('f_id_producao').value = id; };
     window.abrirEdicaoHistorico = (id) => {
        const start = window.appState.starts.find(s => s.id === id); if(!start) return;
        document.getElementById('modal-finalizar').classList.add('active'); document.getElementById('f_id_producao').value = id;
-       document.getElementById('f_lote').value = start.loteFinal || ''; document.getElementById('f_qtd').value = start.qtdProduzida || '';
+       document.getElementById('f_lote').value = start.loteFinal || ''; 
        document.getElementById('f_balanca_calibrada').checked = start.balancaCalibrada || false; document.getElementById('f_emb_secundaria').checked = start.embSecundariaLigada || false; document.getElementById('f_emb_correta').checked = start.embalagemCorreta || false; document.getElementById('f_detector_ligada').checked = start.detectorLigada || false; document.getElementById('f_detector_calibrada').checked = start.detectorCalibrada || false;
     };
-    window.fecharModal = () => { document.getElementById('modal-finalizar').classList.remove('active'); document.getElementById('f_lote').value = ''; document.getElementById('f_qtd').value = ''; ['f_balanca_calibrada', 'f_emb_secundaria', 'f_emb_correta', 'f_detector_ligada', 'f_detector_calibrada'].forEach(id => document.getElementById(id).checked = false); };
+    window.fecharModal = () => { document.getElementById('modal-finalizar').classList.remove('active'); document.getElementById('f_lote').value = ''; ['f_balanca_calibrada', 'f_emb_secundaria', 'f_emb_correta', 'f_detector_ligada', 'f_detector_calibrada'].forEach(id => document.getElementById(id).checked = false); };
 
     window.confirmarFinalizacao = async () => {
       const id = document.getElementById('f_id_producao').value;
-      const lote = document.getElementById('f_lote').value; const qtd = document.getElementById('f_qtd').value;
-      if(!lote || !qtd) { window.showToast("Campos obrigatórios em falta!"); return; }
+      const lote = document.getElementById('f_lote').value; 
+      if(!lote) { window.showToast("Informe o Lote Final!"); return; }
       try {
         await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'starts_producao', id), { 
-          status: 'Concluída', loteFinal: lote, qtdProduzida: qtd,
+          status: 'Concluída', loteFinal: lote,
           balancaCalibrada: document.getElementById('f_balanca_calibrada').checked, embSecundariaLigada: document.getElementById('f_emb_secundaria').checked,
           embalagemCorreta: document.getElementById('f_emb_correta').checked, detectorLigada: document.getElementById('f_detector_ligada').checked, detectorCalibrada: document.getElementById('f_detector_calibrada').checked,
           dataFinalizacao: serverTimestamp() 
         });
-        window.showToast("Processo concluído com êxito!"); window.fecharModal();
-      } catch (error) { window.showToast("Erro na submissão."); }
+        window.showToast("Produção Finalizada!"); window.fecharModal();
+      } catch (error) { window.showToast("Erro ao salvar."); }
     };
 
-    window.refreshPainel = () => { window.showToast("A sincronizar dados..."); window.renderDashboard(); };
-    window.refreshReceitas = () => { window.showToast("A sincronizar base de dados..."); window.renderListaProdutos(); };
+    window.refreshPainel = () => { window.showToast("Atualizando linha..."); window.renderDashboard(); };
 
     window.renderDashboard = () => {
-      try {
         const { starts } = window.appState;
         const listStarts = document.getElementById('list-starts');
-
-        const tunelStatus = calcularStatusTunel();
-        const banner = document.getElementById('banner-tunel');
-        if(tunelStatus.status === 'Livre') {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-green-500/10 border-green-500/20 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-green-400 font-bold text-lg"><div class="bg-green-500/20 p-2 rounded-full"><i data-lucide="check-circle-2"></i></div> Túnel Livre</div> <span class="text-xs font-bold bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full uppercase tracking-wider">Apto</span>`;
-        } else if (tunelStatus.status === 'Ocupado') {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-blue-500/10 border-blue-500/20 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-blue-400 font-bold text-lg"><div class="bg-blue-500/20 p-2 rounded-full"><i data-lucide="snowflake"></i></div> Em Processo: <span class="font-normal ml-1 text-gray-200">${tunelStatus.obj.produto}</span></div> <div class="bg-[#09090b] px-3 py-1.5 rounded-lg border border-blue-500/30 timer font-mono text-lg text-blue-400 font-bold shadow-sm" data-type="tunel_global" data-id="${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
-        } else {
-            banner.className = "mb-6 p-4 rounded-2xl border bg-orange-500/10 border-orange-500/20 flex justify-between items-center shadow-sm";
-            banner.innerHTML = `<div class="flex items-center gap-3 text-orange-400 font-bold text-lg"><div class="bg-orange-500/20 p-2 rounded-full"><i data-lucide="timer"></i></div> Em Setup</div> <div class="bg-[#09090b] px-3 py-1.5 rounded-lg border border-orange-500/30 timer font-mono text-lg text-orange-400 font-bold shadow-sm" data-type="tunel_setup" data-id="setup_${tunelStatus.obj.id}" data-endtime="${tunelStatus.remaining}">--:--</div>`;
-        }
 
         const emAndamento = starts.filter(s => s.status === 'Em Andamento').sort((a,b) => {
            const tA = a.timestamp?.seconds || 0; const tB = b.timestamp?.seconds || 0; return tB - tA;
         });
         
         if (emAndamento.length === 0) {
-          listStarts.innerHTML = `<div class="p-10 text-center text-gray-400 text-sm bg-[#18181b] rounded-2xl border border-gray-800 flex flex-col items-center gap-3"><i data-lucide="coffee" class="w-8 h-8 text-gray-600"></i> Nenhuma linha ativa no momento.</div>`;
+          listStarts.innerHTML = `<div class="app-card text-center text-stone-500 font-medium py-10">Nenhuma produção rodando na linha.</div>`;
         } else {
-          listStarts.innerHTML = `<div class="tablet-grid gap-6 p-0">` + emAndamento.map(s => {
+          listStarts.innerHTML = emAndamento.map(s => {
             return `
-            <div class="ios-card relative mb-0 hover:border-gray-600 transition-colors">
-              <div class="h-2 w-full ${s.isTeste ? 'bg-[var(--ios-warning)]' : 'bg-blue-600'}"></div>
+            <div class="app-card relative overflow-hidden" style="padding:0;">
+              <div class="h-2 w-full ${s.isTeste ? 'bg-yellow-500' : 'bg-blue-500'}"></div>
               <div class="p-5">
                 <div class="flex justify-between items-start mb-4">
-                  <h3 class="font-bold text-white text-lg flex items-center gap-2">
-                     ${s.isTeste ? '<i data-lucide="flask-conical" class="w-5 h-5 text-[var(--ios-warning)]"></i>' : ''} ${s.produto}
+                  <h3 class="font-bold text-stone-800 text-lg flex items-center gap-2">
+                     ${s.isTeste ? '<i data-lucide="flask-conical" class="w-5 h-5 text-yellow-600"></i>' : ''} ${s.produto}
                   </h3>
-                  <button onclick="window.excluirStart('${s.id}')" class="text-gray-500 hover:text-red-500 transition-colors p-1" title="Eliminar"><i data-lucide="x" class="w-5 h-5"></i></button>
+                  <button onclick="window.excluirStart('${s.id}')" class="text-stone-400 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                 </div>
                 
-                <div class="text-xs text-gray-400 mb-5 grid grid-cols-2 gap-3 bg-[#09090b] p-3 rounded-xl border border-gray-800">
-                   <div class="flex flex-col"><span class="text-gray-500 mb-1">Massa</span><b class="text-sm text-gray-200">${s.tempMassa || '--'}°C</b></div>
-                   <div class="flex flex-col"><span class="text-gray-500 mb-1">Água</span><b class="text-sm text-gray-200">${s.tempAgua || '--'}°C</b></div>
-                   <div class="col-span-2 border-t border-gray-800 pt-2 flex justify-between">
-                     <span class="text-gray-500">Padrão: <b class="text-blue-400">${s.pesoProduto || '--'}g</b></span>
-                     <span class="text-gray-500 text-right w-1/2 truncate" title="${s.grupoAutomatico}">Grp: ${s.grupoAutomatico || '--'}</span>
+                <div class="text-xs text-stone-600 mb-4 grid grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
+                   <div><span class="text-stone-500 block mb-0.5">Massa</span><b class="text-stone-800 text-sm">${s.tempMassa || '--'}°C</b></div>
+                   <div><span class="text-stone-500 block mb-0.5">Água</span><b class="text-stone-800 text-sm">${s.tempAgua || '--'}°C</b></div>
+                   <div class="col-span-2 border-t border-stone-200 pt-2 flex justify-between">
+                     <span class="text-stone-500">Média: <b class="text-stone-800">${s.pesoProduto || '--'}g</b></span>
+                     <span class="text-stone-500 text-right w-1/2 truncate" title="${s.grupoAutomatico}">Grp: ${s.grupoAutomatico || '--'}</span>
                    </div>
                 </div>
 
                 <div class="flex gap-4 mb-5">
-                  <div class="flex-1 bg-[#18181b] p-3 rounded-xl border border-gray-800 text-center">
-                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Batida (${s.batidaStr}m)</div>
-                     <div class="timer text-xl font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-blue-400'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
+                  <div class="flex-1 bg-stone-100 p-3 rounded-xl text-center border border-stone-200">
+                     <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Masseira (${s.batidaStr}m)</div>
+                     <div class="timer text-xl font-mono font-bold ${s.batidaFimMs <= Date.now() ? 'text-red-500' : 'text-stone-800'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
                   </div>
-                  <div class="flex-1 bg-[#18181b] p-3 rounded-xl border border-gray-800 text-center">
-                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Túnel (${s.tempoTunelConfigurado || '--'}m)</div>
+                  <div class="flex-1 bg-stone-100 p-3 rounded-xl text-center border border-stone-200">
+                     <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Túnel (${s.tempoTunelConfigurado || '--'}m)</div>
                      ${!s.tunelFimMs ? 
-                       `<button onclick="window.iniciarTunel('${s.id}', '${s.tempoTunelConfigurado}')" class="mt-1 w-full py-1.5 text-xs bg-blue-600/10 text-blue-400 font-bold rounded-lg border border-blue-500/20 shadow-sm hover:bg-blue-600/20 transition">Iniciar</button>` 
+                       `<button onclick="window.iniciarTunel('${s.id}', '${s.tempoTunelConfigurado}')" class="mt-1 w-full py-1.5 text-xs bg-white text-blue-600 font-bold rounded-lg border border-blue-200 shadow-sm hover:bg-blue-50 transition">Dar Entrada</button>` 
                        : s.tunelSaidaMs ? 
-                       `<div class="text-sm font-bold text-green-400 mt-1"><i data-lucide="check" class="w-4 h-4 inline"></i> Ok</div>`
+                       `<div class="text-sm font-bold text-green-600 mt-1"><i data-lucide="check" class="w-4 h-4 inline"></i> Saiu</div>`
                        : 
-                       `<div class="timer text-xl font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-cyan-400'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
-                        <div class="mt-1 text-[9px] text-blue-400 underline cursor-pointer" onclick="window.finalizarTunelManual('${s.id}')">Saída Antecipada</div>`
+                       `<div class="timer text-xl font-mono font-bold ${s.tunelFimMs <= Date.now() ? 'text-red-500' : 'text-blue-600'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
+                        <div class="mt-1 text-[10px] text-stone-500 underline cursor-pointer" onclick="window.finalizarTunelManual('${s.id}')">Forçar Saída</div>`
                      }
                   </div>
                 </div>
 
-                <button onclick="window.abrirModalFinalizacao('${s.id}')" class="ios-button">
-                  <i data-lucide="package-check" class="w-5 h-5"></i> Registar Fim de Linha
+                <button onclick="window.abrirModalFinalizacao('${s.id}')" class="btn-primary py-3">
+                  Finalizar na Embaladora
                 </button>
               </div>
             </div>
-          `}).join('') + `</div>`;
+          `}).join('');
         }
-        setTimeout(() => lucide.createIcons(), 0);
-      } catch (err) {}
+        lucide.createIcons();
     }
 
+    // -- HISTÓRICO --
     window.renderHistorico = () => {
        const container = document.getElementById('lista-historico-producao');
        const search = document.getElementById('hist_search')?.value.toLowerCase() || '';
@@ -776,98 +646,154 @@
            return tB - tA;
        });
 
-       if(concluidas.length === 0) { container.innerHTML = `<div class="p-10 text-center text-gray-500 text-sm bg-[#18181b] rounded-2xl border border-gray-800">Nenhum registo compatível.</div>`; return; }
+       if(concluidas.length === 0) { container.innerHTML = `<div class="app-card text-center text-stone-500 font-medium py-8">Nenhum registro encontrado.</div>`; return; }
 
        container.innerHTML = concluidas.map(s => {
           const dateStr = s.dataFabricacao ? s.dataFabricacao.split('-').reverse().join('/') : '--';
           return `
-          <div class="ios-card p-5 border-l-4 border-green-500 mb-4 hover:bg-[#27272a] transition-colors">
+          <div class="app-card border-l-4 border-green-500 hover:shadow-md transition">
              <div class="flex justify-between items-start mb-4">
                 <div>
-                   <h3 class="font-bold text-white text-lg">${s.produto}</h3>
-                   <div class="text-xs text-gray-400 flex gap-2 mt-1"><i data-lucide="calendar" class="w-3 h-3"></i> Ref: ${dateStr}</div>
+                   <h3 class="font-bold text-stone-800 text-lg">${s.produto}</h3>
+                   <div class="text-xs text-stone-500 mt-1">${dateStr}</div>
                 </div>
-                <div class="flex flex-col items-end gap-3">
-                   <span class="bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] uppercase px-2.5 py-1 rounded-full font-bold tracking-wider">Finalizado</span>
-                   <div class="flex gap-3">
-                      <button onclick="window.abrirEdicaoHistorico('${s.id}')" class="text-gray-500 hover:text-blue-400 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                      <button onclick="window.excluirStart('${s.id}')" class="text-gray-500 hover:text-red-400 transition" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                   </div>
+                <div class="flex gap-2">
+                   <button onclick="window.abrirEdicaoHistorico('${s.id}')" class="text-stone-400 hover:text-blue-500 transition"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                   <button onclick="window.excluirStart('${s.id}')" class="text-stone-400 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                 </div>
              </div>
-             <div class="bg-[#09090b] p-3 rounded-xl flex gap-6 text-sm mb-4 border border-gray-800">
-                <div><span class="text-gray-500 text-[10px] uppercase tracking-wider block mb-0.5">Lote</span><span class="font-bold text-gray-200">${s.loteFinal || '--'}</span></div>
-                <div><span class="text-gray-500 text-[10px] uppercase tracking-wider block mb-0.5">Qtd</span><span class="font-bold text-gray-200">${s.qtdProduzida || '--'}</span></div>
+             <div class="bg-stone-50 p-3 rounded-xl flex justify-between text-sm mb-4 border border-stone-200">
+                <div><span class="text-stone-500 text-[10px] uppercase font-bold block">Lote Final</span><span class="font-bold text-stone-800">${s.loteFinal || '--'}</span></div>
+                <div class="text-right"><span class="text-stone-500 text-[10px] uppercase font-bold block">Farinha Usada</span><span class="font-bold text-stone-800">${s.loteFarinha || '--'}</span></div>
              </div>
-             <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-blue-400 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition py-3 rounded-xl text-sm font-semibold flex justify-center items-center gap-2">
-                <i data-lucide="file-search" class="w-4 h-4"></i> Analisar Relatório
+             <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-stone-700 bg-stone-100 hover:bg-stone-200 transition py-3 rounded-xl text-sm font-bold flex justify-center items-center gap-2">
+                Ver todos os detalhes
              </button>
           </div>`;
        }).join('');
        lucide.createIcons();
     }
 
-    // Modal de Detalhes Refinado
     window.abrirDetalhesStart = (id) => {
        const start = window.appState.starts.find(s => s.id === id); if(!start) return;
        const content = document.getElementById('conteudo-detalhes-start');
-       const simNao = (val) => val ? '<span class="text-green-500 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Sim</span>' : '<span class="text-red-500 font-bold flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i> Não</span>';
+       const simNao = (val) => val ? '<span class="text-green-600 font-bold">Sim</span>' : '<span class="text-red-500 font-bold">Não</span>';
        
        content.innerHTML = `
-          <div class="mb-6 text-center">
-             <h4 class="font-bold text-xl text-white">${start.produto}</h4>
-             <span class="text-gray-400 text-sm mt-1 block">Referência: ${start.dataFabricacao.split('-').reverse().join('/')}</span>
+          <div class="mb-4 text-center">
+             <h4 class="font-bold text-xl text-stone-800">${start.produto}</h4>
+             <span class="text-stone-500 text-sm">Data: ${start.dataFabricacao.split('-').reverse().join('/')}</span>
           </div>
 
-          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
-             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Ambiente & Formulação</div>
-             <div class="grid grid-cols-2 gap-y-3 gap-x-4">
-               <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Ambiente</span><span class="detalhe-value">${start.tempAmbiente}°C</span></div>
-               <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Farinha</span><span class="detalhe-value">${start.tempFarinha}°C</span></div>
-               <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Água</span><span class="detalhe-value">${start.tempAgua}°C</span></div>
-               <div class="detalhe-row p-0 border-0 flex-col items-start"><span class="detalhe-label">Temp. Fermento</span><span class="detalhe-value">${start.tempFermento}°C</span></div>
-               <div class="detalhe-row p-0 border-0 flex-col items-start col-span-2 bg-blue-500/10 p-2 rounded-lg mt-1 border border-blue-500/20"><span class="detalhe-label text-blue-400">T° FINAL DA MASSA</span><span class="detalhe-value text-blue-400 text-lg">${start.tempMassa}°C</span></div>
+          <div class="bg-stone-50 rounded-xl p-4 mb-4 border border-stone-200">
+             <div class="text-xs font-bold text-stone-500 uppercase mb-2">Temperaturas</div>
+             <div class="grid grid-cols-2 gap-2">
+               <div class="text-sm"><span class="text-stone-500 block text-xs">Ambiente</span><b>${start.tempAmbiente}°C</b></div>
+               <div class="text-sm"><span class="text-stone-500 block text-xs">Farinha</span><b>${start.tempFarinha}°C</b></div>
+               <div class="text-sm"><span class="text-stone-500 block text-xs">Água</span><b>${start.tempAgua}°C</b></div>
+               <div class="text-sm"><span class="text-stone-500 block text-xs">Fermento</span><b>${start.tempFermento}°C</b></div>
+               <div class="col-span-2 text-sm bg-yellow-100 p-2 rounded mt-1 border border-yellow-200"><span class="text-yellow-700 block text-xs font-bold">TEMPERATURA DA MASSA</span><b class="text-lg text-yellow-800">${start.tempMassa}°C</b></div>
              </div>
           </div>
 
-          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
-             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Rastreabilidade & Pesos</div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Farinha (Uso)</span><span class="detalhe-value">${start.loteFarinha || '--'}</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Dosagem Água</span><span class="detalhe-value">${start.qtdAgua || '--'} L</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Dosagem Gelo</span><span class="detalhe-value">${start.qtdGelo || '--'} Kg</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Qualidade Insumos</span><span class="detalhe-value">${simNao(start.insumosOk)}</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Aferição de Balança</span><span class="detalhe-value">${simNao(start.pesoInsumosOk)}</span></div>
+          <div class="bg-stone-50 rounded-xl p-4 mb-4 border border-stone-200 space-y-2 text-sm">
+             <div class="font-bold text-xs text-stone-500 uppercase mb-2">Insumos & Preparo</div>
+             <div class="flex justify-between"><span>Lote Farinha:</span><b>${start.loteFarinha || '--'}</b></div>
+             <div class="flex justify-between"><span>Água:</span><b>${start.qtdAgua || '--'} L</b></div>
+             <div class="flex justify-between"><span>Gelo:</span><b>${start.qtdGelo || '--'} Kg</b></div>
+             <div class="flex justify-between"><span>Insumos OK:</span>${simNao(start.insumosOk)}</div>
+             <div class="flex justify-between"><span>Pesos OK:</span>${simNao(start.pesoInsumosOk)}</div>
+             <div class="flex justify-between mt-2 pt-2 border-t border-stone-200"><span>Tempo Masseira:</span><b>${start.batidaStr} min</b></div>
           </div>
 
-          <div class="bg-[#18181b] rounded-xl p-4 mb-4 border border-gray-800">
-             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Engenharia de Processo</div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Masseira</span><span class="detalhe-value">${start.batidaStr} min</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Tempo Cilindro</span><span class="detalhe-value">${start.tempoCilindro || '--'} min</span></div>
-             <div class="detalhe-row py-1.5 border-0"><span class="detalhe-label">Grupo Automático</span><span class="detalhe-value">${start.grupoAutomatico || '--'}</span></div>
-             <div class="detalhe-row py-1.5 border-0 mt-2"><span class="detalhe-label">Peso Alvo</span><span class="detalhe-value text-blue-400 font-bold">${start.pesoProduto || '--'} g</span></div>
+          <div class="bg-stone-50 rounded-xl p-4 mb-4 border border-stone-200 space-y-2 text-sm">
+             <div class="font-bold text-xs text-stone-500 uppercase mb-2">Modelagem & Túnel</div>
+             <div class="flex justify-between"><span>Tempo Cilindro:</span><b>${start.tempoCilindro || '--'} min</b></div>
+             <div class="flex justify-between"><span>Grupo Auto:</span><b>${start.grupoAutomatico || '--'}</b></div>
+             <div class="flex justify-between text-yellow-600 font-bold"><span>Peso Produto:</span><span>${start.pesoProduto || '--'} g</span></div>
+             <div class="flex justify-between mt-2 pt-2 border-t border-stone-200"><span>Túnel Config:</span><b>${start.tempoTunelConfigurado || '--'} min (${start.tempTunel || '--'}°C)</b></div>
           </div>
 
-          <div class="bg-[#18181b] rounded-xl p-4 border border-gray-800">
-             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 pb-2 border-b border-gray-800">Embalagem & Controlo</div>
-             <div class="grid grid-cols-2 gap-2 mb-4">
-                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Lote</span><span class="font-bold text-sm text-gray-200">${start.loteFinal}</span></div>
-                <div class="bg-[#09090b] p-2 rounded border border-gray-700 flex flex-col items-center"><span class="text-[9px] uppercase text-gray-500 mb-1">Caixas</span><span class="font-bold text-sm text-gray-200">${start.qtdProduzida}</span></div>
-             </div>
-             <div class="space-y-1.5 mt-2">
-                <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Balança Calibrada</span><span class="detalhe-value">${simNao(start.balancaCalibrada)}</span></div>
-                <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Embalagem Conforme</span><span class="detalhe-value">${simNao(start.embalagemCorreta)}</span></div>
-                <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Máq. Secundária ON</span><span class="detalhe-value">${simNao(start.embSecundariaLigada)}</span></div>
-                <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Detectora Perfor ON</span><span class="detalhe-value">${simNao(start.detectorLigada)}</span></div>
-                <div class="detalhe-row py-1 border-0"><span class="detalhe-label text-xs">Detectora Calibrada</span><span class="detalhe-value">${simNao(start.detectorCalibrada)}</span></div>
-             </div>
+          <div class="bg-stone-50 rounded-xl p-4 border border-stone-200 space-y-2 text-sm">
+             <div class="font-bold text-xs text-stone-500 uppercase mb-2">Embalagem</div>
+             <div class="flex justify-between font-bold text-base border-b pb-2 mb-2"><span>Lote Final:</span><span>${start.loteFinal}</span></div>
+             <div class="flex justify-between"><span>Balança Calibrada:</span>${simNao(start.balancaCalibrada)}</div>
+             <div class="flex justify-between"><span>Embalagem OK:</span>${simNao(start.embalagemCorreta)}</div>
+             <div class="flex justify-between"><span>Detectora LIGADA:</span>${simNao(start.detectorLigada)}</div>
+             <div class="flex justify-between"><span>Detectora Calibrada:</span>${simNao(start.detectorCalibrada)}</div>
           </div>
        `;
-       lucide.createIcons();
        document.getElementById('modal-detalhes').classList.add('active');
     }
     window.fecharModalDetalhes = () => { document.getElementById('modal-detalhes').classList.remove('active'); };
 
-    // -- FLUXO DE TESTE DE QUALIDADE --
+    // -- FLUXO DE TESTE E LAUDO LABORATÓRIO --
+    window.renderTestesPendentes = () => {
+       const listaOperador = document.getElementById('lista-testes-pendentes');
+       const listaSupervisor = document.getElementById('lista-testes-supervisor');
+       const historico = document.getElementById('list-testes-historico');
+       
+       const pendentes = window.appState.testes.filter(t => t.status === 'Pendente Operador');
+       const supervisao = window.appState.testes.filter(t => t.status === 'Aguardando Supervisor');
+       const concluidos = window.appState.testes.filter(t => t.status === 'Concluído').sort((a,b) => {
+           const tA = a.dataLiberacao?.seconds || 0; const tB = b.dataLiberacao?.seconds || 0; return tB - tA;
+       });
+
+       if(pendentes.length === 0) { listaOperador.innerHTML = `<div class="p-6 text-center text-stone-500 text-sm bg-white rounded-xl border border-stone-200 shadow-sm">Nenhum teste pendente.</div>`;
+       } else {
+           listaOperador.innerHTML = pendentes.map(t => {
+               const start = window.appState.starts.find(s => s.id === t.startId);
+               const loteFinal = start?.loteFinal || 'Aguardando Embalagem...';
+               return `
+               <div class="app-card border-l-4 border-yellow-500 mb-4">
+                 <div class="flex justify-between items-center mb-3">
+                    <div class="font-bold text-stone-800 text-lg">${t.produtoNome}</div>
+                    <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">Ação Necessária</span>
+                 </div>
+                 <div class="bg-stone-50 p-3 rounded-lg flex justify-between text-sm mb-4 border border-stone-200">
+                    <div><span class="text-stone-500 text-[10px] uppercase font-bold block">Lote Gerado</span><span class="font-bold text-stone-800">${loteFinal}</span></div>
+                    <div class="text-right"><span class="text-stone-500 text-[10px] uppercase font-bold block">Farinha Usada</span><span class="font-bold text-stone-800">${t.loteFarinhaStart || '--'}</span></div>
+                 </div>
+                 <button onclick="window.abrirModalTeste('${t.id}', '${t.produtoNome}', '${t.startId}')" class="btn-primary py-2 text-sm">Preencher Avaliação</button>
+               </div>`
+           }).join('');
+       }
+
+       if(supervisao.length === 0) { listaSupervisor.innerHTML = `<div class="p-6 text-center text-stone-500 text-sm bg-white rounded-xl border border-stone-200 shadow-sm">Nenhum laudo pendente de liberação.</div>`;
+       } else {
+           listaSupervisor.innerHTML = supervisao.map(t => {
+               return `
+               <div class="app-card border-l-4 border-blue-500 mb-4">
+                 <div class="flex justify-between items-center mb-3">
+                    <div class="font-bold text-stone-800 text-lg">${t.produtoNome}</div>
+                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">Revisão</span>
+                 </div>
+                 <div class="text-sm text-stone-600 mb-4"><b>Lote:</b> ${t.loteProduto} | <b>Far:</b> ${t.loteFarinhaUsada}</div>
+                 <button onclick="window.abrirModalSupervisor('${t.id}')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition">Liberar e Gerar PDF</button>
+               </div>`
+           }).join('');
+       }
+
+       if(concluidos.length === 0) { historico.innerHTML = `<div class="p-6 text-center text-stone-500 text-sm">Nenhum histórico.</div>`;
+       } else {
+           historico.innerHTML = concluidos.map(t => `
+             <div class="bg-white p-4 mb-3 rounded-xl border border-stone-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-yellow-400 transition" onclick="window.gerarLaudoPDF(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Refazer Download do Laudo">
+               <div class="flex gap-4 items-center">
+                  ${t.fotoBase64_1 ? `<img src="${t.fotoBase64_1}" class="w-12 h-12 object-cover rounded-lg shadow-sm border border-stone-200">` : `<div class="w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center"><i data-lucide="image" class="w-5 h-5 text-stone-400"></i></div>`}
+                  <div>
+                     <div class="font-bold text-stone-800">${t.produtoNome} <span class="text-xs text-stone-500 font-normal ml-1">Lote: ${t.loteProduto || '--'}</span></div>
+                     <div class="text-xs text-stone-500 mt-1">Nota: <b>${t.notaFinal || '--'}</b> | Farinha: ${t.loteFarinhaUsada}</div>
+                  </div>
+               </div>
+               <div class="flex flex-col items-end gap-2">
+                 <span class="text-[10px] uppercase font-bold px-2 py-1 rounded-full ${t.liberado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.liberado ? 'Aprovado' : 'Retido'}</span>
+                 <i data-lucide="download" class="w-4 h-4 text-blue-500"></i>
+               </div>
+             </div>`).join('');
+       }
+       lucide.createIcons();
+    }
+
     window.processarFotoTeste = (event, num) => {
        const file = event.target.files[0]; if(!file) return;
        const reader = new FileReader();
@@ -887,12 +813,13 @@
 
     window.abrirModalTeste = (id, produtoNome, startId) => {
        document.getElementById('modal-avaliar-teste').classList.add('active');
-       document.getElementById('t_id_teste').value = id; document.getElementById('t_titulo_produto').innerText = `Controlo: ${produtoNome}`;
+       document.getElementById('t_id_teste').value = id; 
+       document.getElementById('t_titulo_produto').innerText = produtoNome;
        
        const startRelacionado = window.appState.starts.find(s => s.id === startId);
        const inLoteProduto = document.getElementById('t_lote_produto');
-       if(startRelacionado && startRelacionado.loteFinal) { inLoteProduto.value = startRelacionado.loteFinal; inLoteProduto.readOnly = true; } 
-       else { inLoteProduto.value = ''; inLoteProduto.readOnly = false; }
+       if(startRelacionado && startRelacionado.loteFinal) { inLoteProduto.value = startRelacionado.loteFinal; } 
+       else { inLoteProduto.value = ''; }
 
        document.getElementById('t_lote_farinha').value = (startRelacionado && startRelacionado.loteFarinha) ? startRelacionado.loteFarinha : '';
 
@@ -907,22 +834,28 @@
        e.preventDefault();
        const id = document.getElementById('t_id_teste').value;
        const foto1 = window.appState.currentTestImageBase64_1;
-       if(!foto1) { window.showToast("Anexe obrigatoriamente a Fotografia Externa (1)."); return; }
+       if(!foto1) { window.showToast("A Foto 1 é obrigatória."); return; }
 
        const docRef = doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id);
        try {
            await updateDoc(docRef, {
                status: 'Aguardando Supervisor', 
-               loteProduto: document.getElementById('t_lote_produto').value, loteFarinhaUsada: document.getElementById('t_lote_farinha').value,
-               craquelamento: document.getElementById('t_craquelamento').value, crocancia: document.getElementById('t_crocancia').value,
-               pestana: document.getElementById('t_pestana').value, volume: document.getElementById('t_volume').value,
-               cor: document.getElementById('t_cor').value, estruturaAlveolar: document.getElementById('t_estrutura').value,
-               corMiolo: document.getElementById('t_cor_miolo').value, conformidadeVisual: document.getElementById('t_conformidade_visual').value,
-               fotoBase64_1: foto1, fotoBase64_2: window.appState.currentTestImageBase64_2 || null,
+               loteProduto: document.getElementById('t_lote_produto').value, 
+               loteFarinhaUsada: document.getElementById('t_lote_farinha').value,
+               craquelamento: document.getElementById('t_craquelamento').value, 
+               crocancia: document.getElementById('t_crocancia').value,
+               pestana: document.getElementById('t_pestana').value, 
+               volume: document.getElementById('t_volume').value,
+               cor: document.getElementById('t_cor').value, 
+               estruturaAlveolar: document.getElementById('t_estrutura').value,
+               corMiolo: document.getElementById('t_cor_miolo').value, 
+               conformidadeVisual: document.getElementById('t_conformidade_visual').value,
+               fotoBase64_1: foto1, 
+               fotoBase64_2: window.appState.currentTestImageBase64_2 || null,
                dataPreenchimento: serverTimestamp()
            });
-           window.showToast("Enviado para validação da Liderança!"); window.fecharModalTeste();
-       } catch (error) { window.showToast("Erro ao comunicar com a nuvem."); }
+           window.showToast("Avaliação enviada com sucesso!"); window.fecharModalTeste();
+       } catch (error) { window.showToast("Erro ao enviar avaliação."); }
     };
 
     window.abrirModalSupervisor = (id) => { document.getElementById('modal-supervisor-liberar').classList.add('active'); document.getElementById('sup_id_teste').value = id; }
@@ -932,7 +865,6 @@
         e.preventDefault();
         const id = document.getElementById('sup_id_teste').value;
         const testeData = window.appState.testes.find(t => t.id === id);
-        
         const nota = document.getElementById('sup_nota').value;
         const aprovado = document.getElementById('sup_aprovar').checked;
         
@@ -945,13 +877,13 @@
 
         try {
             await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id), atualizacao);
-            window.showToast("Laudo emitido e encriptado!"); window.fecharModalSupervisor();
+            window.showToast("Laudo emitido com sucesso!"); window.fecharModalSupervisor();
             window.gerarLaudoPDF({ ...testeData, ...atualizacao });
-        } catch(err) { window.showToast("Falha de gravação de permissão."); }
+        } catch(err) { window.showToast("Erro ao gravar laudo."); }
     };
 
     window.gerarLaudoPDF = async (dados) => {
-        window.showToast("A formatar PDF oficial...");
+        window.showToast("Gerando PDF, aguarde...");
         const start = window.appState.starts.find(s => s.id === dados.startId);
         const dataProducao = start ? start.dataFabricacao.split('-').reverse().join('/') : '--';
         const dataRecebimento = dados.dataRecebimentoFar ? dados.dataRecebimentoFar.split('-').reverse().join('/') : '--';
@@ -977,84 +909,143 @@
         try { await html2pdf().set(opt).from(element).save(); } catch(e) {} finally { element.style.display = 'none'; }
     }
 
+    // Cronômetros (Masseira / Túnel)
     setInterval(() => {
        document.querySelectorAll('.timer').forEach(el => {
           const endTime = parseInt(el.dataset.endtime);
-          const type = el.dataset.type; const id = el.dataset.id;
           if(!endTime) return;
-          const status = formatTimeLeft(endTime);
-          
-          if(status.expired) {
-             if(type === 'tunel_setup') { el.innerText = "LIVRE"; window.renderDashboard(); return; } 
-             if(type === 'tunel_global') { el.innerText = "CONCLUÍDO"; el.classList.replace('text-red-600', 'text-red-500'); }
-             
-             el.innerText = status.text;
-             el.classList.remove('text-red-600', 'text-cyan-600', 'text-blue-600'); el.classList.add('text-red-500');
-             
-             // Emite notificação apenas se já não tiver emitido para esse evento
-             if(type === 'batida') emitirNotificacao(`b_${id}_${endTime}`, "Masseira Concluída!", "Fim do tempo de batida.");
-             if(type === 'tunel_indiv') emitirNotificacao(`t_${id}_${endTime}`, "Atenção: Queda na Embaladora!", "Pão do túnel começou a cair.");
-          } else { el.innerText = status.text; }
+          const diff = endTime - Date.now();
+          if(diff <= 0) {
+             el.innerText = "00:00";
+             el.classList.add('text-red-500'); 
+             el.classList.remove('text-stone-800', 'text-blue-600');
+          } else {
+             const m = Math.floor(diff / 60000).toString().padStart(2, '0'); 
+             const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+             el.innerText = `${m}:${s}`; 
+          }
        });
     }, 1000);
 
+    // Cadastros
+    window.addIngredienteTemp = () => {
+       const nome = document.getElementById('c_ingrediente').value; const peso = document.getElementById('c_peso').value; const unid = document.getElementById('c_unid').value;
+       if(!nome || !peso) { window.showToast("Preencha nome e peso"); return; }
+       window.tempIngredients.push({ nome, peso, unid });
+       document.getElementById('c_ingrediente').value = ''; document.getElementById('c_peso').value = '';
+       window.renderIngredientesTemp();
+    };
+    window.renderIngredientesTemp = () => {
+       document.getElementById('lista-ingredientes-temp').innerHTML = window.tempIngredients.map((ing, idx) => `
+         <div class="flex justify-between items-center text-sm p-2 border-b border-stone-200">
+            <span>${ing.nome}</span>
+            <span class="text-stone-500 font-bold">${ing.peso} ${ing.unid} <i data-lucide="trash-2" class="w-4 h-4 inline ml-2 text-red-500 cursor-pointer" onclick="window.tempIngredients.splice(${idx}, 1); window.renderIngredientesTemp();"></i></span>
+         </div>`).join('');
+       lucide.createIcons();
+    }
+    window.salvarProduto = async (e) => {
+       e.preventDefault();
+       const nome = document.getElementById('c_nome_produto').value; 
+       const pesoPadrao = parseFloat(document.getElementById('c_peso_padrao').value);
+       if(!nome) return;
+       try {
+         if (window.editingProdutoId) {
+            await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', window.editingProdutoId), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null });
+         } else {
+            await addDoc(window.getCol('produtos_cadastro'), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null, timestamp: serverTimestamp() });
+         }
+         window.showToast("Salvo com sucesso!"); window.cancelarEdicaoReceita();
+       } catch (error) { window.showToast("Erro ao salvar."); }
+    };
+    window.cancelarEdicaoReceita = () => {
+       document.getElementById('form-cadastro').reset(); window.tempIngredients = []; window.editingProdutoId = null;
+       document.getElementById('btn-cancelar-edicao').classList.add('hidden');
+       document.getElementById('btn-salvar-produto').innerHTML = 'Salvar Receita';
+       window.renderIngredientesTemp();
+    };
+    window.editProduto = (id) => {
+       const p = window.appState.produtos.find(x => x.id === id); if(!p) return;
+       window.editingProdutoId = id; document.getElementById('c_nome_produto').value = p.nome; document.getElementById('c_peso_padrao').value = p.pesoPadrao || '';
+       window.tempIngredients = p.ingredientes ? [...p.ingredientes] : []; window.renderIngredientesTemp();
+       document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
+       document.getElementById('btn-salvar-produto').innerHTML = 'Atualizar Receita';
+       window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    window.deleteProduto = async (id) => {
+       if(!confirm("Apagar esta receita?")) return;
+       try { await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', id)); window.showToast("Receita apagada."); } catch (e) {}
+    };
+    window.renderListaProdutos = () => {
+       const lista = document.getElementById('lista-produtos-salvos');
+       if(window.appState.produtos.length === 0) { lista.innerHTML = `<div class="p-6 text-center text-stone-500 font-medium">Nenhum produto cadastrado.</div>`; return; }
+       lista.innerHTML = window.appState.produtos.map(p => `
+          <div class="app-card mb-3 p-4 border border-stone-200">
+             <div class="flex justify-between items-start mb-2">
+                <div>
+                   <div class="font-bold text-stone-800 text-lg">${p.nome}</div>
+                   ${p.pesoPadrao ? `<div class="text-xs text-yellow-600 font-bold mt-1">Peso Padrão: ${p.pesoPadrao}g</div>` : ''}
+                </div>
+                <div class="flex gap-2">
+                   <button onclick="window.editProduto('${p.id}')" class="text-stone-400 hover:text-blue-500 transition"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                   <button onclick="window.deleteProduto('${p.id}')" class="text-stone-400 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </div>
+             </div>
+             <div class="text-xs text-stone-500 bg-stone-50 p-2 rounded-lg">${p.ingredientes && p.ingredientes.length > 0 ? p.ingredientes.map(i => `<span class="inline-block mr-2">• ${i.nome}: <b>${i.peso}${i.unid}</b></span>`).join('') : 'Sem ingredientes.'}</div>
+          </div>`).join('');
+       lucide.createIcons();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
       document.getElementById('s_data_fab').value = new Date().toISOString().split('T')[0];
       initFirebase();
       lucide.createIcons();
-      carregarRascunhoStart(); 
+      window.carregarRascunhoStart(); 
     });
   </script>
 </head>
 <body>
 
   <!-- TELA DE SPLASH -->
-  <div id="view-splash" class="flex flex-col items-center justify-center min-h-screen absolute inset-0 z-[10000] screen-bg">
-     <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="splash-logo" alt="Logo" class="mb-8 rounded shadow-2xl max-h-24 object-contain">
-     <div class="flex flex-col items-center gap-3">
-        <i data-lucide="loader-2" class="animate-spin w-8 h-8 text-[var(--ios-primary)]"></i>
-        <span class="text-xs font-semibold text-gray-500 tracking-widest uppercase">Iniciando Ambiente</span>
+  <div id="view-splash" class="flex flex-col items-center justify-center min-h-screen absolute inset-0 z-[10000] bg-stone-100">
+     <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="splash-logo" alt="Logo" class="mb-6 rounded max-h-20 object-contain">
+     <div class="flex flex-col items-center gap-2">
+        <i data-lucide="loader-2" class="animate-spin w-8 h-8 text-yellow-500"></i>
+        <span class="text-sm font-bold text-stone-500">Carregando...</span>
      </div>
   </div>
 
   <!-- Tela de Login -->
-  <section id="view-login" style="display: none;" class="flex flex-col items-center justify-center min-h-screen p-6 w-full z-[9999] absolute inset-0 screen-bg">
-    <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="login-logo" alt="Logo da Empresa" class="mb-12 rounded shadow-2xl max-h-24 object-contain">
+  <section id="view-login" style="display: none;" class="flex flex-col items-center justify-center min-h-screen p-6 w-full z-[9999] absolute inset-0 bg-stone-100">
+    <img src="https://via.placeholder.com/200x60.png?text=LOGO" id="login-logo" alt="Logo da Empresa" class="mb-8 rounded max-h-24 object-contain">
     
-    <div class="ios-card w-full max-w-sm text-center p-8 border border-[#27272a]">
-       <h2 class="text-2xl font-bold text-gray-100 mb-2 tracking-tight">Portal Operacional</h2>
-       <p class="text-gray-500 mb-8 text-sm">Valide a sua credencial para aceder à planta fabril digital.</p>
+    <div class="app-card w-full max-w-sm text-center">
+       <h2 class="text-2xl font-black text-stone-800 mb-2">Acesso ao Sistema</h2>
+       <p class="text-stone-500 mb-8 text-sm">Controle de Produção e Qualidade.</p>
        
-       <button onclick="window.loginComGoogle()" class="ios-button flex items-center justify-center gap-3 w-full bg-[#27272a] border border-gray-700 text-white hover:bg-[#3f3f46] shadow-sm mb-5">
+       <button onclick="window.loginComGoogle()" class="w-full py-3.5 bg-white border border-stone-300 text-stone-800 font-bold rounded-xl flex items-center justify-center gap-3 hover:bg-stone-50 shadow-sm mb-4 transition-colors">
          <svg class="w-5 h-5" viewBox="0 0 48 48">
            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-         </svg> Acesso Google
+         </svg> Entrar com Google
        </button>
-       <button onclick="window.loginAnonimo()" class="text-xs text-gray-500 hover:text-gray-300 transition-colors w-full p-2">Pular (Modo Visitante Local)</button>
+       <button onclick="window.loginAnonimo()" class="text-xs text-stone-400 underline font-bold w-full p-2">Entrar como Visitante (Modo Teste)</button>
     </div>
   </section>
 
   <!-- Estrutura Principal -->
   <div id="main-app-container" style="display: none;">
     
-    <header class="ios-header">
-      <div class="flex items-center gap-4">
-         <img src="https://via.placeholder.com/120x35.png?text=LOGO" alt="Logo" id="header-logo" style="height: 28px; max-width: 140px; object-fit: contain;">
-         <div class="h-5 w-px bg-gray-700"></div>
-         <h1 id="header-title" class="ios-title text-sm tracking-wide text-white">Start Produção</h1>
-      </div>
+    <header class="app-header shadow-sm">
       <div class="flex items-center gap-3">
+         <img src="https://via.placeholder.com/120x35.png?text=LOGO" alt="Logo" id="header-logo" style="height: 28px; max-width: 140px; object-fit: contain;">
+         <h1 id="header-title" class="font-black text-stone-800 text-lg hidden md:block border-l border-stone-200 pl-3 ml-1">Start Produção</h1>
+      </div>
+      <div class="flex items-center gap-4">
          <div id="auth-status"></div>
-         <div onclick="window.switchTab('view-config')" class="cursor-pointer bg-[#27272a] hover:bg-[#3f3f46] transition p-2 rounded-xl border border-gray-800" title="Configurações">
-           <i data-lucide="sliders" class="w-4 h-4 text-gray-300"></i>
-         </div>
-         <div onclick="window.fazerLogout()" class="cursor-pointer bg-red-500/10 hover:bg-red-500/20 transition p-2 rounded-xl border border-red-500/20" title="Sair da Conta">
-           <i data-lucide="power" class="w-4 h-4 text-red-500"></i>
-         </div>
+         <button onclick="window.switchTab('view-config')" class="text-stone-400 hover:text-stone-800 transition"><i data-lucide="settings" class="w-6 h-6"></i></button>
+         <button onclick="window.fazerLogout()" class="text-stone-400 hover:text-red-500 transition"><i data-lucide="log-out" class="w-6 h-6"></i></button>
       </div>
     </header>
 
@@ -1062,47 +1053,45 @@
 
       <!-- View: Configurações Globais -->
       <section id="view-config" class="view-section">
-         <div class="ios-card mb-6 p-6">
-            <h2 class="font-bold text-xl text-gray-100 flex items-center gap-2 mb-6"><i data-lucide="sliders" class="text-blue-500"></i> Painel de Controlo</h2>
+         <div class="app-card">
+            <h2 class="font-black text-xl text-stone-800 mb-6">Configurações do Sistema</h2>
             
-            <div id="pwa-install-container" class="pwa-install-banner mb-6 bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5">
-               <div class="flex items-start gap-4 mb-4">
-                  <div class="bg-blue-500/20 p-2.5 rounded-xl text-blue-400"><i data-lucide="smartphone"></i></div>
+            <div id="pwa-install-container" class="pwa-install-banner mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+               <div class="flex items-start gap-3 mb-3">
+                  <div class="bg-yellow-100 p-2 rounded-lg text-yellow-600"><i data-lucide="smartphone"></i></div>
                   <div>
-                     <h3 class="font-bold text-sm text-gray-100 mb-1">Aplicação Nativa Disponível</h3>
-                     <p class="text-xs text-gray-400 leading-relaxed">Instale para obter experiência full-screen, performance offline e atalho direto no ecrã inicial.</p>
+                     <h3 class="font-bold text-stone-800">Instalar no Tablet</h3>
+                     <p class="text-xs text-stone-600">Baixe o app para usar em tela cheia e mais rápido.</p>
                   </div>
                </div>
-               <button onclick="window.instalarPWA()" class="w-full bg-blue-600 text-white font-bold text-sm py-3 rounded-xl hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-                  Instalar Agora
-               </button>
+               <button onclick="window.instalarPWA()" class="btn-primary py-2 text-sm shadow-sm">Instalar Agora</button>
             </div>
 
             <form onsubmit="window.salvarConfiguracoes(event)">
-               <div class="mb-8 bg-[#09090b] p-5 rounded-2xl border border-gray-800">
-                  <label class="form-label block mb-3 text-gray-300 text-white">Logótipo Corporativo</label>
-                  <input type="file" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 file:font-semibold file:cursor-pointer file:transition-colors" onchange="window.processarNovaLogo(event)">
-                  <img id="preview_cfg_logo" class="image-preview mt-4" src="" alt="Logo">
+               <div class="mb-6">
+                  <label class="app-label">Logo da Empresa</label>
+                  <input type="file" accept="image/*" class="app-input bg-white" onchange="window.processarNovaLogo(event)">
+                  <img id="preview_cfg_logo" class="image-preview mt-2" src="" alt="Logo">
                </div>
 
-               <h3 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Métricas Operacionais Base (°C)</h3>
-               <div class="grid grid-cols-2 gap-x-4 gap-y-4 mb-4">
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Água Mín.</label><input type="number" step="0.1" id="cfg_agua_min" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Água Máx.</label><input type="number" step="0.1" id="cfg_agua_max" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
+               <h3 class="font-bold text-stone-800 mb-4 border-b pb-2">Limites de Temperatura (°C)</h3>
+               <div class="grid-2 mb-4">
+                  <div><label class="app-label">Água (Mín)</label><input type="number" step="0.1" id="cfg_agua_min" class="app-input" placeholder="Ex: 2.0"></div>
+                  <div><label class="app-label">Água (Máx)</label><input type="number" step="0.1" id="cfg_agua_max" class="app-input" placeholder="Ex: 5.0"></div>
                </div>
-               <div class="grid grid-cols-2 gap-x-4 gap-y-4 mb-4">
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Ferm. Mín.</label><input type="number" step="0.1" id="cfg_fermento_min" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Ferm. Máx.</label><input type="number" step="0.1" id="cfg_fermento_max" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
+               <div class="grid-2 mb-4">
+                  <div><label class="app-label">Fermento (Mín)</label><input type="number" step="0.1" id="cfg_fermento_min" class="app-input"></div>
+                  <div><label class="app-label">Fermento (Máx)</label><input type="number" step="0.1" id="cfg_fermento_max" class="app-input"></div>
                </div>
-               <div class="grid grid-cols-2 gap-x-4 gap-y-4 mb-4">
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Fari. Mín.</label><input type="number" step="0.1" id="cfg_farinha_min" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
-                  <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-wide block mb-1">Fari. Máx.</label><input type="number" step="0.1" id="cfg_farinha_max" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-blue-500 transition-colors"></div>
+               <div class="grid-2 mb-4">
+                  <div><label class="app-label">Farinha (Mín)</label><input type="number" step="0.1" id="cfg_farinha_min" class="app-input"></div>
+                  <div><label class="app-label">Farinha (Máx)</label><input type="number" step="0.1" id="cfg_farinha_max" class="app-input"></div>
                </div>
-               <div class="grid grid-cols-2 gap-x-4 gap-y-4 mb-8">
-                  <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20"><label class="text-[10px] text-red-400 uppercase tracking-wide font-bold block mb-1">MASSA ALVO Mín.</label><input type="number" step="0.1" id="cfg_massa_min" class="bg-transparent border-b border-red-500/30 w-full text-white font-bold text-sm pb-1 focus:outline-none focus:border-red-500 transition-colors"></div>
-                  <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20"><label class="text-[10px] text-red-400 uppercase tracking-wide font-bold block mb-1">MASSA ALVO Máx.</label><input type="number" step="0.1" id="cfg_massa_max" class="bg-transparent border-b border-red-500/30 w-full text-white font-bold text-sm pb-1 focus:outline-none focus:border-red-500 transition-colors"></div>
+               <div class="grid-2 mb-6">
+                  <div><label class="app-label text-yellow-600">MASSA (Mín)</label><input type="number" step="0.1" id="cfg_massa_min" class="app-input border-yellow-300"></div>
+                  <div><label class="app-label text-yellow-600">MASSA (Máx)</label><input type="number" step="0.1" id="cfg_massa_max" class="app-input border-yellow-300"></div>
                </div>
-               <button type="submit" class="ios-button bg-blue-600 w-full shadow-[0_0_15px_rgba(37,99,235,0.3)]"><i data-lucide="hard-drive-upload"></i> Escrever Registos</button>
+               <button type="submit" class="btn-primary">Salvar Configurações</button>
             </form>
          </div>
       </section>
@@ -1111,131 +1100,105 @@
       <section id="view-start" class="view-section active">
         <form id="form-start" onsubmit="window.submitStartForm(event)">
           
-          <div class="ios-card mb-5 border-l-4 border-orange-500 bg-orange-500/10">
-             <div class="p-5 flex justify-between items-center">
-                <div>
-                   <span class="font-bold text-orange-400 text-sm block mb-0.5">Este é um teste?</span>
-                </div>
-                <label class="ios-switch test-toggle">
-                  <input type="checkbox" id="s_is_teste">
-                  <span class="ios-slider" style="background-color: #27272a;"></span>
-                </label>
+          <div class="app-card flex justify-between items-center bg-yellow-50 border-yellow-200">
+             <div>
+                <span class="font-black text-yellow-800 block text-lg">Este é um teste?</span>
+                <span class="text-sm text-yellow-700">Envia para avaliação na aba Testes.</span>
              </div>
+             <label class="toggle-switch">
+               <input type="checkbox" id="s_is_teste" class="test-toggle">
+               <span class="toggle-slider"></span>
+             </label>
           </div>
 
-          <div class="ios-card mb-5" style="overflow: visible;">
-            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2" style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
-              <i data-lucide="tag" class="w-4 h-4 text-blue-500"></i> Identificação
-            </div>
-            <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-4 border-0" id="container_busca_produto">
-                 <label class="form-label text-gray-300 text-white">Produto Alvo</label>
-                 <div class="relative mt-1">
-                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="search" class="text-gray-500 w-4 h-4"></i></div>
-                   <input type="text" id="s_produto_search" class="ios-input pl-10 bg-[#09090b]" placeholder="Pesquisar portefólio..." oninput="window.filtrarProdutos()" onfocus="window.filtrarProdutos()" autocomplete="off">
+          <div class="app-card">
+            <h3 class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Dados Principais</h3>
+            <div class="grid-2">
+              <div class="mb-4" id="container_busca_produto">
+                 <label class="app-label">Produto / Receita</label>
+                 <div class="relative">
+                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="search" class="text-stone-400 w-5 h-5"></i></div>
+                   <input type="text" id="s_produto_search" class="app-input pl-10" placeholder="Buscar produto..." oninput="window.filtrarProdutos()" onfocus="window.filtrarProdutos()" autocomplete="off">
                    <input type="hidden" id="s_produto_hidden" required>
-                   <div id="dropdown_produtos" class="absolute z-50 w-full bg-[#18181b] border border-gray-700 hidden"></div>
+                   <div id="dropdown_produtos" class="absolute z-50 w-full bg-white hidden mt-1"></div>
                  </div>
               </div>
-              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">Data Sistema</label><input type="date" id="s_data_fab" class="ios-input mt-1 bg-[#09090b]" required></div>
+              <div class="mb-4"><label class="app-label">Data</label><input type="date" id="s_data_fab" class="app-input bg-white" required></div>
             </div>
           </div>
 
-          <div class="ios-card mb-5">
-            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
-               <i data-lucide="scale" class="w-4 h-4 text-green-500"></i> Balanceamento & Matéria Prima
+          <div class="app-card">
+            <h3 class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Conferência de Insumos</h3>
+            <div class="flex justify-between items-center mb-5 bg-stone-50 p-3 rounded-xl border border-stone-200">
+              <label class="font-bold text-stone-700 m-0">Insumos Conferidos?</label>
+              <label class="toggle-switch"><input type="checkbox" id="s_insumos_ok"><span class="toggle-slider"></span></label>
             </div>
-            <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-5 flex-row justify-between items-center border-0 col-span-full">
-                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Conferência de Insumos</label></div>
-                <label class="ios-switch"><input type="checkbox" id="s_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
+            
+            <div class="mb-4"><label class="app-label">Lote(s) da Farinha</label><input type="text" id="s_lote_farinha" class="app-input" placeholder="Ex: Lote 1, Lote 2..." required></div>
+            
+            <div class="grid-2 mb-4">
+              <div><label class="app-label">Água (L)</label><input type="number" id="s_qtd_agua" class="app-input" step="0.1" required placeholder="0.0"></div>
+              <div><label class="app-label">Gelo (Kg)</label><input type="number" id="s_qtd_gelo" class="app-input" step="0.1" required placeholder="0.0"></div>
+            </div>
+
+            <div class="flex justify-between items-center mt-2 bg-stone-50 p-3 rounded-xl border border-stone-200">
+              <div>
+                 <label class="font-bold text-stone-700 m-0 block">Pesos Conferidos?</label>
+                 <span class="text-xs text-stone-500">Confirmação na balança.</span>
               </div>
-              
-              <div class="form-row p-0 mb-5 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Lote da Farinha (Uso)</label><input type="text" id="s_lote_farinha" class="ios-input mt-1 bg-[#09090b]" placeholder="Ex: Lote 1, Lote 2..." required></div>
-              
-              <div class="form-row p-0 mb-5 border-t border-gray-800 pt-5 flex-row justify-between items-center border-0 col-span-full">
-                <div class="pr-2"><label class="form-label text-gray-300 m-0 text-white">Aferição de Pesos Executada?</label><span class="text-[10px] text-blue-400 block mt-1">Inclui confirmação de gelo/água.</span></div>
-                <label class="ios-switch"><input type="checkbox" id="s_peso_insumos_ok"><span class="ios-slider" style="background-color: #27272a;"></span></label>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4 col-span-full">
-                <div class="form-row p-0 border-0"><label class="form-label text-blue-400">Água (L)</label><input type="number" id="s_qtd_agua" class="ios-input mt-1 bg-[#09090b] border-blue-900/30 focus:border-blue-500" step="0.1" required placeholder="0.0"></div>
-                <div class="form-row p-0 border-0"><label class="form-label text-cyan-400">Gelo (Kg)</label><input type="number" id="s_qtd_gelo" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="0.0"></div>
-              </div>
+              <label class="toggle-switch"><input type="checkbox" id="s_peso_insumos_ok"><span class="toggle-slider"></span></label>
             </div>
           </div>
 
-          <div class="ios-card mb-5">
-            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
-               <i data-lucide="timer" class="w-4 h-4 text-purple-500"></i> Amassadeira
-            </div>
-            <div class="grid grid-cols-2 gap-4 p-4">
-              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">V1. Lenta (min)</label><input type="number" id="s_batida_lenta" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
-              <div class="form-row p-0 border-0"><label class="form-label text-gray-300 text-white">V2. Rápida (min)</label><input type="number" id="s_batida_rapida" class="ios-input mt-1 bg-[#09090b]" required placeholder="0"></div>
+          <div class="app-card">
+            <h3 class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Masseira</h3>
+            <div class="grid-2">
+              <div class="mb-2"><label class="app-label">Lenta (min)</label><input type="number" id="s_batida_lenta" class="app-input" required placeholder="0"></div>
+              <div class="mb-2"><label class="app-label">Rápida (min)</label><input type="number" id="s_batida_rapida" class="app-input" required placeholder="0"></div>
             </div>
           </div>
 
-          <div class="ios-card mb-5">
-            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
-               <i data-lucide="thermometer" class="w-4 h-4 text-red-500"></i> Monitorização Térmica
-            </div>
-            <div class="tablet-grid p-4">
-              <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Ambiente</label>
-                 <input type="number" id="s_temp_ambiente" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
-              </div>
-              <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Farinha</label>
-                 <input type="number" id="s_temp_farinha" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
-                 <span id="warn_temp_farinha" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
-              </div>
-              <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Água</label>
-                 <input type="number" id="s_temp_agua" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
-                 <span id="warn_temp_agua" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
-              </div>
-              <div class="form-row p-0 border-0">
-                 <label class="form-label text-gray-400">Fermento</label>
-                 <input type="number" id="s_temp_fermento" class="ios-input mt-1 bg-[#09090b]" step="0.1" required placeholder="0.0°">
-                 <span id="warn_temp_fermento" class="text-[10px] text-red-400 font-bold hidden mt-1.5 flex items-center gap-1"></span>
-              </div>
+          <div class="app-card">
+            <h3 class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Temperaturas (°C)</h3>
+            <div class="grid-2 gap-4">
+              <div><label class="app-label">Ambiente</label><input type="number" id="s_temp_ambiente" class="app-input" step="0.1" required placeholder="0.0"></div>
+              <div><label class="app-label">Farinha</label><input type="number" id="s_temp_farinha" class="app-input" step="0.1" required placeholder="0.0"><div id="warn_temp_farinha" class="text-xs text-red-500 font-bold hidden mt-1"></div></div>
+              <div><label class="app-label">Água</label><input type="number" id="s_temp_agua" class="app-input" step="0.1" required placeholder="0.0"><div id="warn_temp_agua" class="text-xs text-red-500 font-bold hidden mt-1"></div></div>
+              <div><label class="app-label">Fermento</label><input type="number" id="s_temp_fermento" class="app-input" step="0.1" required placeholder="0.0"><div id="warn_temp_fermento" class="text-xs text-red-500 font-bold hidden mt-1"></div></div>
               
-              <div class="col-span-2 bg-red-500/10 rounded-xl p-4 border border-red-500/20 mt-2">
-                <label class="form-label text-red-400 font-bold text-center block mb-2 text-xs tracking-widest">PONTO CRÍTICO: MASSA</label>
+              <div class="col-span-2 bg-yellow-50 rounded-xl p-4 border border-yellow-200 mt-2">
+                <label class="app-label text-yellow-800 text-center mb-2">TEMPERATURA FINAL DA MASSA</label>
                 <div class="relative">
-                   <input type="number" id="s_temp_massa" class="ios-input font-bold text-2xl text-center py-4 bg-[#09090b] border-red-500/30 focus:border-red-500" step="0.1" required placeholder="0.0">
-                   <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xl">°C</span>
+                   <input type="number" id="s_temp_massa" class="app-input font-bold text-2xl text-center py-4 bg-white border-yellow-300" step="0.1" required placeholder="0.0">
+                   <span class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xl">°C</span>
                 </div>
-                <span id="warn_temp_massa" class="text-xs text-white bg-red-600 px-3 py-1.5 rounded-lg font-bold hidden mt-3 text-center shadow-sm w-full block"></span>
+                <div id="warn_temp_massa" class="text-sm text-red-600 font-bold hidden mt-2 text-center"></div>
               </div>
             </div>
           </div>
 
-          <div class="ios-card mb-5">
-            <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2">
-               <i data-lucide="cogs" class="w-4 h-4 text-indigo-500"></i> Conformação e Congelamento
-            </div>
-            <div class="tablet-grid p-4">
-              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Tempo Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: 5"></div>
-              <div class="form-row p-0 mb-4 border-0 col-span-full"><label class="form-label text-gray-300 text-white">Grupo Automático</label><input type="text" id="s_grupo_automatico" class="ios-input mt-1 bg-[#09090b]" required placeholder="Ex: G1"></div>
+          <div class="app-card">
+            <h3 class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Modelagem e Túnel</h3>
+            <div class="grid-2">
+              <div class="mb-4"><label class="app-label">Tempo Cilindro (min)</label><input type="number" id="s_tempo_cilindro" class="app-input" required placeholder="0"></div>
+              <div class="mb-4"><label class="app-label">Grupo Automático</label><input type="text" id="s_grupo_automatico" class="app-input" required placeholder="Ex: G1"></div>
               
-              <div class="form-row p-0 border-0 col-span-full bg-indigo-500/10 rounded-xl border border-indigo-500/20 p-4 mt-2">
+              <div class="col-span-2 bg-stone-50 rounded-xl border border-stone-200 p-4 mb-4">
                  <div class="flex justify-between items-end mb-2">
-                    <label class="form-label text-indigo-400 font-bold m-0 text-xs">Massa Porcionada (g)</label>
-                    <span id="lbl_peso_padrao" class="text-[10px] text-indigo-300 font-medium bg-indigo-900/40 px-2 py-0.5 rounded"></span>
+                    <label class="app-label m-0 text-stone-800">Peso do Produto (g)</label>
+                    <span id="lbl_peso_padrao" class="text-xs text-yellow-600 font-bold bg-yellow-100 px-2 py-1 rounded hidden"></span>
                  </div>
-                 <input type="number" id="s_peso_produto" class="ios-input bg-[#09090b] border-indigo-500/30 text-lg font-bold" step="0.1" required placeholder="0.0">
-                 <span id="warn_peso_produto" class="text-xs text-white bg-indigo-600 px-3 py-1.5 rounded-lg font-bold hidden mt-3 text-center shadow-sm w-full block"></span>
+                 <input type="number" id="s_peso_produto" class="app-input bg-white text-lg font-bold" step="0.1" required placeholder="0.0">
+                 <div id="warn_peso_produto" class="text-sm text-red-500 font-bold hidden mt-2"></div>
               </div>
 
-              <div class="form-row p-0 mt-4 border-0 col-span-full border-t border-gray-800 pt-4"><label class="form-label text-cyan-400 font-bold">Tempo de Túnel Configurado (min)</label><input type="number" id="s_tempo_tunel" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" required placeholder="Ex: 35"></div>
-              <div class="form-row p-0 border-0 col-span-full"><label class="form-label text-cyan-400 font-bold">Temperatura do Túnel (°C)</label><input type="number" id="s_temp_tunel" class="ios-input mt-1 bg-[#09090b] border-cyan-900/30 focus:border-cyan-500" step="0.1" required placeholder="Ex: -35.0"></div>
-
+              <div class="mb-2"><label class="app-label">Tempo Túnel (min)</label><input type="number" id="s_tempo_tunel" class="app-input" required placeholder="35"></div>
+              <div class="mb-2"><label class="app-label">Temp. Túnel (°C)</label><input type="number" id="s_temp_tunel" class="app-input" step="0.1" required placeholder="-35.0"></div>
             </div>
           </div>
 
-          <button type="submit" id="btn-submit-start" class="ios-button shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-            <i data-lucide="rocket"></i> Despachar Ordem
+          <button type="submit" id="btn-submit-start" class="btn-primary shadow-md">
+            Iniciar Produção
           </button>
         </form>
       </section>
@@ -1243,153 +1206,130 @@
       <!-- View: Dashboard -->
       <section id="view-dashboard" class="view-section">
         <div id="banner-tunel"></div>
-        <div class="mb-6">
-           <div class="flex justify-between items-center mb-5">
-             <h2 class="font-bold text-gray-100 text-xl tracking-tight">Status em Tempo Real</h2>
-             <button type="button" onclick="window.refreshPainel()" class="flex items-center gap-1.5 text-xs text-gray-300 bg-[#27272a] hover:bg-[#3f3f46] border border-gray-700 px-3 py-2 rounded-lg transition shadow-sm font-semibold">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
-             </button>
-           </div>
-           <div id="list-starts"><div class="p-10 text-center text-gray-500 text-sm bg-[#18181b] rounded-2xl border border-gray-800 flex flex-col items-center gap-3"><i data-lucide="loader" class="w-8 h-8 text-gray-600 animate-spin"></i> A obter stream...</div></div>
+        <div class="mb-6 flex justify-between items-center">
+           <h2 class="font-black text-stone-800 text-xl">Linha de Produção</h2>
+           <button type="button" onclick="window.refreshPainel()" class="bg-white border border-stone-300 text-stone-600 px-3 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-stone-50 flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar
+           </button>
         </div>
+        <div id="list-starts"><div class="text-center py-10 text-stone-500">Carregando painel...</div></div>
       </section>
 
       <!-- View: Histórico -->
       <section id="view-historico" class="view-section">
-         <div class="mb-6">
-           <h2 class="font-bold text-gray-100 text-xl tracking-tight mb-5">Arquivo Geral</h2>
-           <div class="flex flex-col md:flex-row gap-3 mb-6 bg-[#18181b] p-4 rounded-xl border border-gray-800 shadow-sm">
-             <div class="w-full md:w-2/3">
-               <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1.5 pl-1">Filtrar Cópia</label>
-               <div class="relative">
-                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="search" class="text-gray-500 w-4 h-4"></i></div>
-                 <input type="text" id="hist_search" oninput="window.renderHistorico()" placeholder="Artigo ou Ref Lote..." class="ios-input pl-10 text-sm py-2.5 bg-[#09090b]">
-               </div>
-             </div>
-             <div class="w-full md:w-1/3">
-               <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1.5 pl-1">Data Ref.</label>
-               <input type="date" id="hist_date" onchange="window.renderHistorico()" class="ios-input text-sm py-2.5 bg-[#09090b]">
+         <h2 class="font-black text-stone-800 text-xl mb-4">Histórico Concluído</h2>
+         <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 mb-6 grid-2">
+           <div>
+             <label class="app-label">Buscar Produto ou Lote</label>
+             <div class="relative">
+               <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"></i>
+               <input type="text" id="hist_search" oninput="window.renderHistorico()" class="app-input pl-10">
              </div>
            </div>
-           <div id="lista-historico-producao"><div class="p-10 text-center text-gray-500 text-sm bg-[#18181b] rounded-2xl border border-gray-800">A processar datalog...</div></div>
+           <div>
+             <label class="app-label">Filtrar por Data</label>
+             <input type="date" id="hist_date" onchange="window.renderHistorico()" class="app-input">
+           </div>
          </div>
+         <div id="lista-historico-producao"></div>
       </section>
 
       <!-- View: Cadastro de Receitas -->
       <section id="view-cadastro" class="view-section">
-        <div class="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-4 rounded-xl mb-6 text-sm leading-relaxed flex items-center gap-2">
-           <i data-lucide="info" class="w-4 h-4"></i> Cadastre os produtos e o Peso Padrão.
-        </div>
-        
-        <div class="ios-card mb-8">
+        <div class="app-card mb-6">
           <form id="form-cadastro" onsubmit="window.salvarProduto(event)">
-             <div id="titulo-form-receita" class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400">Inserção de Artigo</div>
-             <div class="p-5">
-                <div class="mb-4">
-                   <label class="form-label text-gray-300 text-white">Designação Comercial</label>
-                   <input type="text" id="c_nome_produto" class="ios-input bg-[#09090b]" placeholder="Nomenclatura oficial..." required>
-                </div>
-                <div class="mb-6">
-                   <label class="form-label font-bold text-blue-400">Peso Base Porcionamento (g)</label>
-                   <input type="number" id="c_peso_padrao" class="ios-input bg-[#09090b] border-blue-900/30 focus:border-blue-500" placeholder="Ex: 70.0" step="0.1" required>
-                </div>
-                
-                <div class="border border-gray-800 rounded-xl p-4 bg-[#18181b] mb-6">
-                  <label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-3 text-white">Construtor de Fórmula</label>
-                  <div class="flex gap-2 mb-3">
-                     <input type="text" id="c_ingrediente" class="ios-input bg-[#09090b] w-1/2 text-sm" placeholder="Matéria...">
-                     <input type="number" id="c_peso" class="ios-input bg-[#09090b] w-1/4 text-sm" placeholder="0.0" step="0.01">
-                     <select id="c_unid" class="ios-select bg-[#09090b] w-1/4 p-2 text-sm" style="background-position: right 8px center;"><option value="KG">KG</option><option value="L">L</option><option value="g">g</option></select>
-                  </div>
-                  <button type="button" onclick="addIngredienteTemp()" class="w-full py-2.5 bg-[#27272a] text-gray-300 hover:text-white font-semibold rounded-lg text-sm transition-colors flex justify-center items-center gap-1 border border-gray-700"><i data-lucide="plus" class="w-4 h-4"></i> Integrar Material</button>
-                  <div id="lista-ingredientes-temp" class="mt-4 bg-[#09090b] rounded-lg border border-gray-800 min-h-[40px] overflow-hidden"></div>
-                </div>
-                
-                <div class="flex gap-3">
-                  <button type="button" id="btn-cancelar-edicao" onclick="window.cancelarEdicaoReceita()" class="hidden ios-button w-1/3 bg-[#27272a] text-gray-300 hover:bg-[#3f3f46] shadow-none">Abortar</button>
-                  <button type="submit" id="btn-salvar-produto" class="ios-button w-full shadow-[0_0_15px_rgba(220,38,38,0.3)]"><i data-lucide="save"></i> Comitar Registo</button>
-                </div>
+             <h3 id="titulo-form-receita" class="font-black text-stone-800 text-lg mb-4 border-b border-stone-100 pb-2">Cadastrar Receita</h3>
+             <div class="mb-4">
+                <label class="app-label">Nome da Receita</label>
+                <input type="text" id="c_nome_produto" class="app-input" required>
+             </div>
+             <div class="mb-6">
+                <label class="app-label text-yellow-600">Peso Padrão (Unidade em Gramas)</label>
+                <input type="number" id="c_peso_padrao" class="app-input border-yellow-300" step="0.1" required>
+             </div>
+             
+             <div class="bg-stone-50 rounded-xl p-4 border border-stone-200 mb-6">
+               <label class="app-label">Adicionar Ingrediente da Fórmula</label>
+               <div class="flex gap-2 mb-3">
+                  <input type="text" id="c_ingrediente" class="app-input w-1/2" placeholder="Nome">
+                  <input type="number" id="c_peso" class="app-input w-1/4" placeholder="0.0" step="0.01">
+                  <select id="c_unid" class="app-select bg-white w-1/4"><option value="KG">KG</option><option value="L">L</option><option value="g">g</option></select>
+               </div>
+               <button type="button" onclick="addIngredienteTemp()" class="w-full py-3 bg-white border border-stone-300 text-stone-700 font-bold rounded-xl shadow-sm hover:bg-stone-50">Adicionar Ingrediente</button>
+               <div id="lista-ingredientes-temp" class="mt-4"></div>
+             </div>
+             
+             <div class="flex gap-3">
+               <button type="button" id="btn-cancelar-edicao" onclick="window.cancelarEdicaoReceita()" class="hidden w-1/3 py-3 bg-stone-200 text-stone-700 font-bold rounded-xl">Cancelar</button>
+               <button type="submit" id="btn-salvar-produto" class="btn-primary flex-1">Salvar Receita</button>
              </div>
           </form>
         </div>
         
-        <div class="ios-card">
-           <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400 flex justify-between items-center">
-             <span>Base de Conhecimento</span>
-             <button type="button" onclick="window.renderListaProdutos()" class="text-gray-400 hover:text-white text-xs flex items-center gap-1 transition-colors">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
-             </button>
-           </div>
-           <div id="lista-produtos-salvos" class="max-h-96 overflow-y-auto p-0 bg-[#09090b]"><div class="p-8 text-center text-gray-600 text-sm"><i data-lucide="database" class="w-6 h-6 mx-auto mb-2 opacity-50"></i> A aguardar sincronização...</div></div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-black text-stone-800 text-lg">Receitas Salvas</h3>
+          <button onclick="window.renderListaProdutos()" class="text-stone-500 hover:text-stone-800"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
         </div>
+        <div id="lista-produtos-salvos"></div>
       </section>
 
       <!-- View: Teste Qualidade -->
       <section id="view-teste" class="view-section">
-        <div class="mb-8">
-           <h2 class="font-bold text-gray-100 text-xl tracking-tight mb-4 flex items-center gap-2"><i data-lucide="microscope" class="text-orange-500 w-5 h-5"></i> Backlog Laboratório</h2>
-           <div id="lista-testes-pendentes"></div>
-        </div>
-        <div class="mb-8 relative">
-           <div class="absolute -left-4 top-0 bottom-0 w-1 bg-blue-500/20 rounded-r-lg"></div>
-           <h2 class="font-bold text-gray-100 text-xl tracking-tight mb-4 flex items-center gap-2"><i data-lucide="shield-check" class="text-blue-500 w-5 h-5"></i> Crivo Liderança</h2>
-           <div id="lista-testes-supervisor"></div>
-        </div>
-        <div class="ios-card border-gray-800">
-           <div class="p-4 bg-[#18181b] border-b border-gray-800 font-bold text-xs uppercase tracking-widest text-gray-400">Vault Digital de Laudos</div>
-           <div id="list-testes-historico" class="max-h-[500px] overflow-y-auto bg-[#09090b]"></div>
-        </div>
+        <h2 class="font-black text-stone-800 text-xl mb-4 flex items-center gap-2"><span class="bg-yellow-100 text-yellow-600 p-2 rounded-lg"><i data-lucide="microscope" class="w-5 h-5"></i></span> Pendentes de Avaliação</h2>
+        <div id="lista-testes-pendentes" class="mb-8"></div>
+        
+        <h2 class="font-black text-stone-800 text-xl mb-4 flex items-center gap-2"><span class="bg-blue-100 text-blue-600 p-2 rounded-lg"><i data-lucide="shield-check" class="w-5 h-5"></i></span> Para Aprovação (Supervisor)</h2>
+        <div id="lista-testes-supervisor" class="mb-8"></div>
+        
+        <h2 class="font-black text-stone-800 text-xl mb-4">Laudos Emitidos</h2>
+        <div id="list-testes-historico" class="mb-4"></div>
       </section>
 
     </main>
 
-    <!-- Modais  -->
-    
-    <!-- Modal Operador (Avaliação) -->
+    <!-- MODAIS -->
+
+    <!-- Modal Operador (Avaliação e Fotos) -->
     <div id="modal-avaliar-teste" class="modal-overlay">
        <div class="modal-content">
-          <div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
-             <h3 id="t_titulo_produto" class="font-bold text-xl text-orange-500 tracking-tight">Avaliação Técnica</h3>
-             <button onclick="window.fecharModalTeste()" class="bg-[#27272a] hover:bg-[#3f3f46] p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4 text-gray-400"></i></button>
+          <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-3">
+             <h3 id="t_titulo_produto" class="font-black text-xl text-stone-800">Avaliando...</h3>
+             <button onclick="window.fecharModalTeste()" class="text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-6 h-6"></i></button>
           </div>
           <form id="form-avaliar-teste" onsubmit="window.submitAvaliacaoTeste(event)">
              <input type="hidden" id="t_id_teste">
-             <div class="grid grid-cols-2 gap-4 mb-6 bg-[#09090b] p-3 rounded-xl border border-gray-800">
-               <div><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Lote F. Linha</label><input type="text" id="t_lote_produto" class="ios-input py-2 text-sm bg-[#18181b] border-gray-700 font-mono" required></div>
-               <div><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Far. Engine</label><input type="text" id="t_lote_farinha" class="ios-input py-2 text-sm bg-[#18181b] border-gray-700 font-mono" required></div>
+             <div class="grid-2 mb-4 bg-stone-50 p-3 rounded-xl border border-stone-200">
+               <div><label class="app-label">Lote Produto</label><input type="text" id="t_lote_produto" class="app-input" required></div>
+               <div><label class="app-label">Lote Farinha</label><input type="text" id="t_lote_farinha" class="app-input" required></div>
              </div>
              
              <div class="mb-6">
-                <label class="form-label block mb-3 text-gray-200 font-bold flex items-center gap-2"><i data-lucide="camera" class="w-4 h-4 text-gray-400"></i> Evidências Óticas</label>
-                <div class="mb-4 bg-[#18181b] p-3 rounded-xl border border-gray-800">
-                   <span class="text-[11px] font-bold text-orange-400 uppercase tracking-widest block mb-2">Externa (Mandatória)</span>
-                   <input type="file" accept="image/*" capture="environment" id="t_foto_1" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500/10 file:text-orange-400 hover:file:bg-orange-500/20 file:font-semibold cursor-pointer transition-colors" onchange="window.processarFotoTeste(event, 1)" required>
-                   <img id="preview_foto_teste_1" class="image-preview" src="" alt="View">
+                <label class="app-label text-stone-800 mb-3"><i data-lucide="camera" class="w-4 h-4 inline mb-0.5"></i> Fotos (Obrigatório Foto 1)</label>
+                <div class="mb-3 p-3 border border-stone-200 rounded-xl bg-white">
+                   <span class="text-xs font-bold text-stone-500 block mb-2">Foto Externa</span>
+                   <input type="file" accept="image/*" capture="environment" id="t_foto_1" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-50 file:text-yellow-700 file:font-bold" onchange="window.processarFotoTeste(event, 1)" required>
+                   <img id="preview_foto_teste_1" class="image-preview" src="">
                 </div>
-                <div class="bg-[#18181b] p-3 rounded-xl border border-gray-800">
-                   <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Interna (Facultativo)</span>
-                   <input type="file" accept="image/*" capture="environment" id="t_foto_2" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700 file:font-semibold cursor-pointer transition-colors" onchange="window.processarFotoTeste(event, 2)">
-                   <img id="preview_foto_teste_2" class="image-preview" src="" alt="View">
+                <div class="p-3 border border-stone-200 rounded-xl bg-white">
+                   <span class="text-xs font-bold text-stone-500 block mb-2">Foto do Miolo (Opcional)</span>
+                   <input type="file" accept="image/*" capture="environment" id="t_foto_2" class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-600 file:font-bold" onchange="window.processarFotoTeste(event, 2)">
+                   <img id="preview_foto_teste_2" class="image-preview" src="">
                 </div>
              </div>
              
-             <h4 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Dimensão Externa</h4>
-             <div class="grid grid-cols-2 gap-x-4 gap-y-4 mb-6">
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Craquelamento</label><select id="t_craquelamento" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Padrão Ouro (>80%)</option><option value="regular">Tolerável (70-79%)</option><option value="ruim">Não Conf. (<69%)</option></select></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Crocância</label><select id="t_crocancia" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Padrão Ouro (>80%)</option><option value="regular">Tolerável (60-79%)</option><option value="ruim">Não Conf. (<60%)</option></select></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Abertura Pestana</label><select id="t_pestana" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Padrão Ouro (>80%)</option><option value="regular">Tolerável (70-79%)</option><option value="ruim">Não Conf. (<69%)</option></select></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Rendimento (Vol)</label><select id="t_volume" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Ideal (10-13)</option><option value="regular">Excesso (>14)</option><option value="ruim">Défice (<10)</option></select></div>
-               <div class="col-span-2 bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Tonalidade Capa</label><select id="t_cor" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Conforme Padrão</option><option value="regular">Desvio Aceitável</option><option value="ruim">Desvio Crítico</option></select></div>
+             <h4 class="font-bold text-sm text-stone-800 mb-3">Parâmetros de Qualidade</h4>
+             <div class="grid-2 mb-6">
+               <div><label class="app-label">Craquelamento</label><select id="t_craquelamento" class="app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option></select></div>
+               <div><label class="app-label">Crocância</label><select id="t_crocancia" class="app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<60%)</option></select></div>
+               <div><label class="app-label">Pestana</label><select id="t_pestana" class="app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option></select></div>
+               <div><label class="app-label">Volume (cm/g)</label><select id="t_volume" class="app-select" required><option value="bom">Bom (10-13)</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
+               <div class="col-span-2"><label class="app-label">Cor da Capa</label><select id="t_cor" class="app-select" required><option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
+               <div class="col-span-2"><label class="app-label">Malha Alveolar</label><select id="t_estrutura" class="app-select" required><option value="bom">Sedosa / Densa</option><option value="regular">Desuniforme</option><option value="ruim">Seca / Falhas</option></select></div>
+               <div><label class="app-label">Cor Miolo</label><select id="t_cor_miolo" class="app-select" required><option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
+               <div><label class="app-label">Uniformidade Assadeira</label><select id="t_conformidade_visual" class="app-select" required><option value="bom">Conforme</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
              </div>
              
-             <h4 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Dimensão Interna & Forma</h4>
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-               <div class="col-span-full bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Malha Alveolar</label><select id="t_estrutura" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Sedosa / Densa / Uniforme</option><option value="regular">Áspera / Desuniforme</option><option value="ruim">Seca / Com Rasgos</option></select></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Miolo Tonalidade</label><select id="t_cor_miolo" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Conforme</option><option value="regular">Aceitável</option><option value="ruim">Crítico</option></select></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase block mb-1.5 px-1">Uniformidade Ass.</label><select id="t_conformidade_visual" class="ios-select py-2 text-sm bg-[#18181b] border-0" required><option value="bom">Conforme</option><option value="regular">Aceitável</option><option value="ruim">Crítico</option></select></div>
-             </div>
-             
-             <button type="submit" class="ios-button bg-orange-600 hover:bg-orange-500 w-full shadow-[0_0_15px_rgba(234,88,12,0.3)] text-white"><i data-lucide="upload-cloud"></i> Submeter a Quality Assurance</button>
+             <button type="submit" class="btn-primary">Enviar Avaliação</button>
           </form>
        </div>
     </div>
@@ -1397,93 +1337,78 @@
     <!-- Modal Supervisor (Laudo) -->
     <div id="modal-supervisor-liberar" class="modal-overlay">
        <div class="modal-content">
-          <div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
-             <h3 class="font-bold text-xl text-blue-500 tracking-tight">Emissão de Certificado</h3>
-             <button onclick="window.fecharModalSupervisor()" class="bg-[#27272a] hover:bg-[#3f3f46] p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4 text-gray-400"></i></button>
+          <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-3">
+             <h3 class="font-black text-xl text-blue-600">Emitir Laudo (Supervisor)</h3>
+             <button onclick="window.fecharModalSupervisor()" class="text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-6 h-6"></i></button>
           </div>
           <form id="form-supervisor" onsubmit="window.submitLiberacaoSupervisor(event)">
              <input type="hidden" id="sup_id_teste">
-             <p class="text-xs text-gray-400 mb-6 bg-[#09090b] p-3 rounded-lg border border-gray-800 border-l-2 border-l-blue-500 leading-relaxed">Insira a ficha técnica laboratorial da matéria prima para consolidação criptográfica do Laudo.</p>
-             
-             <div class="grid grid-cols-2 gap-4 mb-6">
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-blue-400 uppercase tracking-widest font-bold block mb-1.5 px-1">Elasticidade (P/L)</label><input type="number" step="0.01" id="sup_pl" class="ios-input py-2 text-sm bg-[#18181b] border-0 focus:ring-1 focus:ring-blue-500" required placeholder="Ex: 1.82"></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-blue-400 uppercase tracking-widest font-bold block mb-1.5 px-1">Força (W)</label><input type="number" id="sup_w" class="ios-input py-2 text-sm bg-[#18181b] border-0 focus:ring-1 focus:ring-blue-500" required placeholder="Ex: 261"></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1.5 px-1">Data Recção.</label><input type="date" id="sup_data_rec_far" class="ios-input py-2 text-sm bg-[#18181b] border-0 text-gray-300" required></div>
-               <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1.5 px-1">Limite Validade</label><input type="date" id="sup_validade_prod" class="ios-input py-2 text-sm bg-[#18181b] border-0 text-gray-300" required></div>
+             <div class="grid-2 mb-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
+               <div><label class="app-label text-blue-800">P/L (Farinha)</label><input type="number" step="0.01" id="sup_pl" class="app-input bg-white" required></div>
+               <div><label class="app-label text-blue-800">W (Farinha)</label><input type="number" id="sup_w" class="app-input bg-white" required></div>
+               <div><label class="app-label text-blue-800">Recebimento Farinha</label><input type="date" id="sup_data_rec_far" class="app-input bg-white" required></div>
+               <div><label class="app-label text-blue-800">Validade do Pão</label><input type="date" id="sup_validade_prod" class="app-input bg-white" required></div>
              </div>
              
-             <div class="mb-8 relative flex justify-center">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-gray-800"></div></div>
-                <div class="relative bg-[var(--ios-surface)] px-4">
-                  <div class="bg-[#09090b] rounded-2xl border-2 border-blue-500/30 p-4 text-center shadow-lg relative overflow-hidden">
-                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
-                     <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold block mb-2">Score de Avaliação (0-100)</label>
-                     <input type="number" id="sup_nota" class="bg-transparent border-0 text-center font-black text-4xl w-32 focus:outline-none text-white placeholder-gray-700" required placeholder="00" max="100" min="0">
-                  </div>
-                </div>
+             <div class="mb-6 flex flex-col items-center">
+                <label class="font-black text-stone-800 text-sm uppercase mb-2">Nota Final (0 a 100)</label>
+                <input type="number" id="sup_nota" class="app-input text-center text-4xl font-black w-32 h-20" required max="100" min="0">
              </div>
              
-             <div class="flex justify-between items-center mb-8 bg-gradient-to-r from-blue-900/20 to-transparent p-4 rounded-xl border border-blue-500/20">
-                <div>
-                   <span class="font-bold text-blue-400 text-sm block mb-0.5">Assinatura de Aprovação</span>
-                   <span class="text-[10px] text-gray-500 block">Autoriza consumo do lote em ambiente Fabril.</span>
-                </div>
-                <label class="ios-switch transform scale-110 origin-right"><input type="checkbox" id="sup_aprovar" checked><span class="ios-slider" style="background-color:#18181b;"></span></label>
+             <div class="flex justify-between items-center mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                <span class="font-bold text-stone-800">Aprovar e Liberar Farinha?</span>
+                <label class="toggle-switch"><input type="checkbox" id="sup_aprovar" checked><span class="toggle-slider"></span></label>
              </div>
-             <button type="submit" class="ios-button bg-blue-600 hover:bg-blue-500 w-full shadow-[0_0_20px_rgba(37,99,235,0.4)] text-white"><i data-lucide="printer"></i> Executar Print PDF</button>
+             <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl text-lg hover:bg-blue-700 transition">Salvar e Gerar PDF</button>
           </form>
        </div>
     </div>
 
-    <!-- Modal Embalagem (Fim Linha) -->
+    <!-- Modal Embalagem -->
     <div id="modal-finalizar" class="modal-overlay">
        <div class="modal-content">
-          <div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
-             <h3 class="font-bold text-xl text-gray-100 tracking-tight flex items-center gap-2"><i data-lucide="box" class="w-5 h-5 text-gray-400"></i> Checkout Logístico</h3>
-             <button onclick="window.fecharModal()" class="bg-[#27272a] hover:bg-[#3f3f46] p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4 text-gray-400"></i></button>
+          <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-3">
+             <h3 class="font-black text-xl text-stone-800">Finalizar Produção</h3>
+             <button onclick="window.fecharModal()" class="text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-6 h-6"></i></button>
           </div>
           <input type="hidden" id="f_id_producao">
           
-          <div class="grid grid-cols-2 gap-4 mb-6">
-             <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Lote</label><input type="text" id="f_lote" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-red-500 font-mono placeholder-gray-700" placeholder="L-001" required></div>
-             <div class="bg-[#09090b] p-3 rounded-xl border border-gray-800"><label class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1">Volume Real</label><input type="text" id="f_qtd" class="bg-transparent border-b border-gray-700 w-full text-white text-sm pb-1 focus:outline-none focus:border-red-500 placeholder-gray-700" placeholder="Ex: 50 cx" required></div>
+          <div class="mb-4">
+             <label class="app-label">Lote Gerado Final</label>
+             <input type="text" id="f_lote" class="app-input font-bold" placeholder="Digite o lote..." required>
           </div>
           
-          <h4 class="font-bold text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Protocolo de Máquina</h4>
-             
-          <div class="bg-[#09090b] p-2 rounded-xl border border-gray-800 mb-8 space-y-1">
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] rounded-t-lg transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Balança (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_balanca_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Equip. Secundário Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_secundaria"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Bobina / Filme Correto</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_emb_correta"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 border-b border-gray-800 hover:bg-[#18181b] transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Detetor Metais Status</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_ligada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
-             <div class="flex justify-between items-center py-2 px-3 hover:bg-[#18181b] rounded-b-lg transition-colors"><span class="text-xs text-gray-300 font-medium text-white">Detetor (Teste Padrão Ok)</span><label class="ios-switch transform scale-75 origin-right"><input type="checkbox" id="f_detector_calibrada"><span class="ios-slider" style="background-color:#27272a;"></span></label></div>
+          <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 space-y-3">
+             <div class="font-bold text-xs text-stone-500 uppercase mb-2">Checklist da Linha</div>
+             <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Balança (Teste Padrão Ok)</span><label class="toggle-switch"><input type="checkbox" id="f_balanca_calibrada"><span class="toggle-slider"></span></label></div>
+             <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Embaladora Secundária Lig.</span><label class="toggle-switch"><input type="checkbox" id="f_emb_secundaria"><span class="toggle-slider"></span></label></div>
+             <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Bobina / Filme Correto</span><label class="toggle-switch"><input type="checkbox" id="f_emb_correta"><span class="toggle-slider"></span></label></div>
+             <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Detectora Metais Ligada</span><label class="toggle-switch"><input type="checkbox" id="f_detector_ligada"><span class="toggle-slider"></span></label></div>
+             <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Detectora (Teste Padrão Ok)</span><label class="toggle-switch"><input type="checkbox" id="f_detector_calibrada"><span class="toggle-slider"></span></label></div>
           </div>
           
-          <div class="flex gap-3">
-             <button onclick="window.fecharModal()" class="w-1/3 py-3.5 rounded-xl bg-[#27272a] text-gray-300 font-semibold text-sm hover:bg-[#3f3f46] transition-colors text-white">Abortar</button>
-             <button onclick="window.confirmarFinalizacao()" class="w-2/3 py-3.5 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-500 shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all">Consolidar Info</button>
+          <div class="flex gap-2">
+             <button onclick="window.fecharModal()" class="w-1/3 py-3 bg-stone-200 text-stone-700 font-bold rounded-xl">Cancelar</button>
+             <button onclick="window.confirmarFinalizacao()" class="flex-1 py-3 bg-stone-800 text-white font-bold rounded-xl">Salvar Tudo</button>
           </div>
        </div>
     </div>
 
-    <!-- Modal Detalhes (Read Only) -->
+    <!-- Modal Detalhes -->
     <div id="modal-detalhes" class="modal-overlay">
        <div class="modal-content">
-          <div class="flex items-center justify-between mb-4 border-b border-gray-800 pb-4">
-             <h3 class="font-bold text-lg text-gray-100 flex items-center gap-2"><i data-lucide="fingerprint" class="w-5 h-5 text-blue-500"></i> Dossier de Lote</h3>
-             <button onclick="window.fecharModalDetalhes()" class="bg-[#27272a] hover:bg-[#3f3f46] p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4 text-gray-400"></i></button>
+          <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-3">
+             <h3 class="font-black text-xl text-stone-800">Relatório de Produção</h3>
+             <button onclick="window.fecharModalDetalhes()" class="text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-6 h-6"></i></button>
           </div>
-          <div id="conteudo-detalhes-start" class="mt-2"></div>
+          <div id="conteudo-detalhes-start"></div>
        </div>
     </div>
 
-    <!-- PDF ESTRUTURA OCULTA (CLARO) -->
+    <!-- PDF -->
     <div id="pdf-container-hidden">
        <div class="pdf-mode" id="pdf-template">
-          <div style="text-align: center; margin-bottom: 20px;">
-             <h1>CERTIFICADO DE GARANTIA DA QUALIDADE</h1>
-          </div>
-          
+          <div style="text-align: center; margin-bottom: 20px;"><h1>CERTIFICADO DE GARANTIA DA QUALIDADE</h1></div>
           <div style="display: flex; flex-wrap: wrap; margin-bottom: 20px; font-weight: bold;">
              <div class="info-row" style="width: 50%;">Produto: <span style="font-weight: normal" id="pdf-produto"></span></div>
              <div class="info-row" style="width: 50%;">Lote: <span style="font-weight: normal" id="pdf-lote"></span></div>
@@ -1495,15 +1420,8 @@
              <div class="info-row" style="width: 25%;">P/L: <span style="font-weight: normal" id="pdf-pl"></span></div>
              <div class="info-row" style="width: 25%;">W: <span style="font-weight: normal" id="pdf-w"></span></div>
           </div>
-
           <table>
-             <thead>
-                <tr>
-                   <th style="width: 30%">Grupo</th>
-                   <th style="width: 40%">Característica</th>
-                   <th style="width: 30%; text-align: center;">Resultado</th>
-                </tr>
-             </thead>
+             <thead><tr><th style="width: 30%">Grupo</th><th style="width: 40%">Característica</th><th style="width: 30%; text-align: center;">Resultado</th></tr></thead>
              <tbody>
                 <tr><td rowspan="4" style="font-weight:bold;">Características Externas</td><td>Craquelamento</td><td style="text-align: center;" id="pdf-craquelamento"></td></tr>
                 <tr><td>Abertura de pestana</td><td style="text-align: center;" id="pdf-pestana"></td></tr>
@@ -1514,48 +1432,32 @@
                 <tr><td style="font-weight:bold;">Uniformidade na assadeira</td><td>Conformidade Visual</td><td style="text-align: center;" id="pdf-visual"></td></tr>
              </tbody>
           </table>
-
-          <div style="text-align: center; margin: 30px 0;">
-             <p style="margin:0; font-weight: bold;">NOTA</p>
-             <div class="nota-box" id="pdf-nota"></div>
-          </div>
-
+          <div style="text-align: center; margin: 30px 0;"><p style="margin:0; font-weight: bold;">NOTA</p><div class="nota-box" id="pdf-nota"></div></div>
           <div style="text-align: center; margin-top: 10px;">
              <img id="pdf-foto-1" src="" style="max-width: 45%; max-height: 200px; display: none; margin: 5px; border: 1px solid #ccc;">
              <img id="pdf-foto-2" src="" style="max-width: 45%; max-height: 200px; display: none; margin: 5px; border: 1px solid #ccc;">
           </div>
-
-          <div class="text-block" style="margin-top: 30px;">
-             <strong>DESCRIÇÃO DO ENSAIO</strong><br>
-             Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.
-          </div>
-          
-          <div class="text-block">
-             <strong>LEGISLAÇÃO E REFERÊNCIAS</strong><br>
-             - ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. ABNT NBR 16170: Panificação - Pão tipo francês - Diretrizes para avaliação da qualidade e classificação.<br>
-             - BRASIL, Ministério da Saúde. ANVISA. Instrução Normativa n. 161, de 1º de julho de 2022.<br>
-             - BRASIL, Ministério da Saúde. ANVISA. Resolução da Diretoria Colegiada n. 711, de 1º de julho de 2022.<br>
-             - BRASIL, Ministério da Saúde. ANVISA. Resolução da Diretoria Colegiada n. 727, de 1º de julho de 2022.
-          </div>
+          <div class="text-block" style="margin-top: 30px;"><strong>DESCRIÇÃO DO ENSAIO</strong><br>Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.</div>
+          <div class="text-block"><strong>LEGISLAÇÃO E REFERÊNCIAS</strong><br>- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. NBR 16170: Panificação - Pão francês - Diretrizes para avaliação da qualidade.<br>- BRASIL, ANVISA. IN n. 161, RDC n. 711, RDC n. 727 de 1º de julho de 2022.</div>
        </div>
     </div>
 
-    <!-- Menus Tabs Inferior (Traduzido para PT-BR) -->
+    <!-- Menus Tabs Inferior -->
     <nav class="tab-bar">
       <a href="javascript:void(0)" class="tab-item active" onclick="switchTab('view-start')">
-        <i data-lucide="play-circle" class="tab-icon w-5 h-5"></i><span>Start</span>
+        <i data-lucide="play-circle" class="w-6 h-6 mb-1"></i><span>Start</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-dashboard')">
-        <i data-lucide="activity" class="tab-icon w-5 h-5"></i><span>Painel</span>
+        <i data-lucide="activity" class="w-6 h-6 mb-1"></i><span>Painel</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-historico')">
-        <i data-lucide="archive" class="tab-icon w-5 h-5"></i><span>Histórico</span>
+        <i data-lucide="archive" class="w-6 h-6 mb-1"></i><span>Histórico</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-cadastro')">
-        <i data-lucide="book-open" class="tab-icon w-5 h-5"></i><span>Receitas</span>
+        <i data-lucide="book-open" class="w-6 h-6 mb-1"></i><span>Receitas</span>
       </a>
       <a href="javascript:void(0)" class="tab-item" onclick="switchTab('view-teste')">
-        <i data-lucide="flask-conical" class="tab-icon w-5 h-5"></i><span>Testes</span>
+        <i data-lucide="flask-conical" class="w-6 h-6 mb-1"></i><span>Testes</span>
       </a>
     </nav>
   </div>
