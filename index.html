@@ -833,6 +833,16 @@
     window.fecharModalDetalhes = () => { document.getElementById('modal-detalhes').classList.remove('active'); };
 
     // -- FLUXO DE TESTE E LAUDO LABORATÓRIO --
+    window.excluirLaudoTeste = async (id) => {
+        if(!confirm("Atenção: Deseja apagar permanentemente este Laudo de Qualidade?")) return;
+        try {
+            await deleteDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id));
+            window.showToast("Laudo excluído com sucesso!");
+        } catch(e) {
+            window.showToast("Erro ao excluir.");
+        }
+    };
+
     window.renderTestesPendentes = () => {
        const listaOperador = document.getElementById('lista-testes-pendentes');
        const listaSupervisor = document.getElementById('lista-testes-supervisor');
@@ -895,20 +905,65 @@
        if(concluidos.length === 0) { historico.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 shadow-sm font-medium">Nenhum histórico de laudo encontrado.</div>`;
        } else {
            historico.innerHTML = concluidos.map(t => `
-             <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-yellow-400 hover:shadow-md transition-all active:scale-95 group" onclick="window.gerarLaudoPDF(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Refazer Download do Laudo">
-               <div class="flex gap-5 items-center">
+             <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex justify-between items-center hover:border-yellow-400 hover:shadow-md transition-all group">
+               <div class="flex gap-5 items-center flex-1 cursor-pointer active:scale-95" onclick="window.gerarLaudoPDF(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Refazer Download do Laudo">
                   ${t.fotoBase64_1 ? `<img src="${t.fotoBase64_1}" class="w-16 h-16 object-cover rounded-xl shadow-sm border border-stone-200">` : `<div class="w-16 h-16 bg-stone-50 rounded-xl flex items-center justify-center border border-stone-200"><i data-lucide="image" class="w-6 h-6 text-stone-300"></i></div>`}
                   <div>
                      <div class="font-black text-stone-800 text-lg">${t.produtoNome} <span class="text-[10px] text-stone-500 font-bold uppercase ml-2 border border-stone-200 bg-stone-50 px-2 py-0.5 rounded-md">Lote ${t.loteProduto || '--'}</span></div>
                      <div class="text-sm text-stone-500 mt-1 font-medium">Score: <b class="${t.notaFinal >= 70 ? 'text-green-600' : 'text-red-600'}">${t.notaFinal}% (Nota ${(t.notaFinal/10).toFixed(1)})</b> <span class="mx-2 text-stone-300">|</span> Farinha: ${t.loteFarinhaUsada}</div>
                   </div>
                </div>
-               <div class="flex flex-col items-end gap-3">
+               <div class="flex flex-col items-end justify-between h-16 ml-4">
                  <span class="text-[10px] uppercase font-bold px-3 py-1 rounded-full border ${t.liberado ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}">${t.liberado ? 'Aprovado' : 'Retido'}</span>
-                 <div class="flex items-center gap-1 text-stone-400 group-hover:text-yellow-600 transition-colors font-bold text-xs uppercase"><i data-lucide="download" class="w-4 h-4"></i> PDF</div>
+                 <div class="flex gap-3 mt-2">
+                    <button onclick="window.excluirLaudoTeste('${t.id}')" class="text-stone-300 hover:text-red-500 transition-colors" title="Excluir Laudo Permanentemente"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                    <button onclick="window.gerarLaudoPDF(${JSON.stringify(t).replace(/"/g, '&quot;')})" class="text-stone-400 group-hover:text-yellow-600 transition-colors" title="Baixar PDF"><i data-lucide="download" class="w-5 h-5"></i></button>
+                 </div>
                </div>
              </div>`).join('');
        }
+
+       // ÁREA DE INDICADORES DA FARINHA
+       const farinhaStats = {};
+       concluidos.forEach(t => {
+           const lote = t.loteFarinhaUsada || 'Desconhecido';
+           if(!farinhaStats[lote]) {
+               farinhaStats[lote] = { lote: lote, pl: t.fatorPL || '--', w: t.fatorW || '--', diasTeste: new Set(), notas: [], qtd: 0 };
+           }
+           if(t.fatorPL) farinhaStats[lote].pl = t.fatorPL;
+           if(t.fatorW) farinhaStats[lote].w = t.fatorW;
+           
+           if(t.dataRealizacaoTeste) {
+               const date = new Date(t.dataRealizacaoTeste + 'T12:00:00');
+               const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+               farinhaStats[lote].diasTeste.add(dias[date.getDay()]);
+           }
+           farinhaStats[lote].notas.push(parseFloat(t.notaFinal) || 0);
+           farinhaStats[lote].qtd++;
+       });
+
+       let farinhaHTML = `<table class="w-full text-left text-sm"><thead class="bg-stone-50 text-stone-500 uppercase text-[10px] tracking-widest border-b border-stone-200"><tr><th class="p-4 rounded-tl-xl">Lote Farinha</th><th class="p-4">P/L</th><th class="p-4">W</th><th class="p-4">Dias na Linha</th><th class="p-4 text-center">Testes</th><th class="p-4 text-right rounded-tr-xl">Nota Média Gerada</th></tr></thead><tbody class="divide-y divide-stone-100">`;
+       
+       const sortedFarinhas = Object.values(farinhaStats).sort((a,b) => b.qtd - a.qtd);
+       
+       sortedFarinhas.forEach(f => {
+           const media = (f.notas.reduce((a,b)=>a+b, 0) / f.qtd).toFixed(1);
+           const diasArr = Array.from(f.diasTeste).join(', ');
+           farinhaHTML += `<tr class="hover:bg-stone-50 transition-colors">
+               <td class="p-4 font-black text-stone-800">${f.lote}</td>
+               <td class="p-4 font-medium text-stone-600">${f.pl}</td>
+               <td class="p-4 font-medium text-stone-600">${f.w}</td>
+               <td class="p-4 font-medium text-stone-600">${diasArr || '--'}</td>
+               <td class="p-4 text-center font-bold text-stone-700">${f.qtd}</td>
+               <td class="p-4 text-right font-black ${media >= 70 ? 'text-green-600' : 'text-red-600'}">${media}% <span class="text-xs font-bold text-stone-400 ml-1">(Nota ${(media/10).toFixed(1)})</span></td>
+           </tr>`;
+       });
+       farinhaHTML += `</tbody></table>`;
+       if(sortedFarinhas.length === 0) farinhaHTML = `<div class="text-center text-stone-500 text-sm py-6">Nenhum dado de farinha correlacionado ainda.</div>`;
+       
+       const containerDesempenho = document.getElementById('lista-desempenho-farinha');
+       if(containerDesempenho) containerDesempenho.innerHTML = farinhaHTML;
+
        lucide.createIcons();
     }
 
@@ -927,6 +982,55 @@
              document.getElementById(`preview_foto_teste_${num}`).style.display = 'block';
           }; img.src = e.target.result;
        }; reader.readAsDataURL(file);
+    };
+
+    // Dinâmica de Cálculo de Nota no Modal do Operador
+    window.calcularNotasOperador = (param, isManual) => {
+        const cfg = window.appState.config || {};
+        const pesos = cfg.pesos || { craquelamento: 15, crocancia: 15, pestana: 15, volume: 15, cor: 10, estrutura: 10, corMiolo: 10, visual: 10 };
+        
+        const paramMap = {
+           'craquelamento': 'craquelamento',
+           'crocancia': 'crocancia',
+           'pestana': 'pestana',
+           'volume': 'volume',
+           'cor': 'cor',
+           'estrutura': 'estrutura',
+           'cor_miolo': 'corMiolo',
+           'conformidade_visual': 'visual'
+        };
+
+        if (param) {
+            const selectEl = document.getElementById(`t_${param}`);
+            const inputEl = document.getElementById(`t_nota_${param}`);
+            
+            if (selectEl && inputEl) {
+                const val = selectEl.value;
+                const maxPeso = pesos[paramMap[param]];
+                
+                if (!isManual) {
+                    let note = 0;
+                    if (val === 'bom') note = maxPeso;
+                    else if (val === 'regular') note = maxPeso * 0.5;
+                    else note = 0;
+                    inputEl.value = note;
+                }
+            }
+        }
+        
+        // Somar Total
+        let total = 0;
+        ['craquelamento', 'crocancia', 'pestana', 'volume', 'cor', 'estrutura', 'cor_miolo', 'conformidade_visual'].forEach(p => {
+            const v = parseFloat(document.getElementById(`t_nota_${p}`)?.value) || 0;
+            total += v;
+        });
+        
+        const displayTotal = Math.round(total);
+        const elTotal = document.getElementById('t_nota_total_display');
+        if (elTotal) {
+            elTotal.innerText = `${displayTotal}%`;
+            elTotal.className = displayTotal >= 70 ? 'text-green-600 font-black text-4xl tracking-tighter' : 'text-red-600 font-black text-4xl tracking-tighter';
+        }
     };
 
     window.abrirModalTeste = (id, produtoNome, startId) => {
@@ -952,6 +1056,24 @@
        document.getElementById('t_foto_1').value = ''; 
        document.getElementById('t_foto_2').value = '';
        document.getElementById('t_foto_3').value = '';
+
+       // Setar Pesos e valores iniciais para os inputs
+       const cfg = window.appState.config || {};
+       const pesos = cfg.pesos || { craquelamento: 15, crocancia: 15, pestana: 15, volume: 15, cor: 10, estrutura: 10, corMiolo: 10, visual: 10 };
+       
+       document.getElementById('lbl_peso_craquelamento').innerText = `Máx: ${pesos.craquelamento}`;
+       document.getElementById('lbl_peso_crocancia').innerText = `Máx: ${pesos.crocancia}`;
+       document.getElementById('lbl_peso_pestana').innerText = `Máx: ${pesos.pestana}`;
+       document.getElementById('lbl_peso_volume').innerText = `Máx: ${pesos.volume}`;
+       document.getElementById('lbl_peso_cor').innerText = `Máx: ${pesos.cor}`;
+       document.getElementById('lbl_peso_estrutura').innerText = `Máx: ${pesos.estrutura}`;
+       document.getElementById('lbl_peso_cor_miolo').innerText = `Máx: ${pesos.corMiolo}`;
+       document.getElementById('lbl_peso_conformidade_visual').innerText = `Máx: ${pesos.visual}`;
+
+       ['craquelamento', 'crocancia', 'pestana', 'volume', 'cor', 'estrutura', 'cor_miolo', 'conformidade_visual'].forEach(p => {
+           document.getElementById(`t_${p}`).value = 'bom';
+           window.calcularNotasOperador(p, false);
+       });
     };
     
     window.fecharModalTeste = () => { document.getElementById('modal-avaliar-teste').classList.remove('active'); document.getElementById('form-avaliar-teste').reset(); };
@@ -977,6 +1099,8 @@
                fatorW: document.getElementById('t_w').value || '',
                dataRecebimentoFar: document.getElementById('t_data_rec_far').value || '',
                validadeProduto: document.getElementById('t_validade_prod').value || '',
+               
+               // Respostas Textuais
                craquelamento: document.getElementById('t_craquelamento').value || '', 
                crocancia: document.getElementById('t_crocancia').value || '',
                pestana: document.getElementById('t_pestana').value || '', 
@@ -985,6 +1109,17 @@
                estruturaAlveolar: document.getElementById('t_estrutura').value || '',
                corMiolo: document.getElementById('t_cor_miolo').value || '', 
                conformidadeVisual: document.getElementById('t_conformidade_visual').value || '',
+               
+               // Notas Pontuais Salvas
+               notaCraquelamento: document.getElementById('t_nota_craquelamento').value || 0,
+               notaCrocancia: document.getElementById('t_nota_crocancia').value || 0,
+               notaPestana: document.getElementById('t_nota_pestana').value || 0,
+               notaVolume: document.getElementById('t_nota_volume').value || 0,
+               notaCor: document.getElementById('t_nota_cor').value || 0,
+               notaEstrutura: document.getElementById('t_nota_estrutura').value || 0,
+               notaCorMiolo: document.getElementById('t_nota_cor_miolo').value || 0,
+               notaVisual: document.getElementById('t_nota_conformidade_visual').value || 0,
+
                fotoBase64_1: foto1, 
                fotoBase64_2: foto2,
                fotoBase64_3: foto3 || null,
@@ -1009,14 +1144,14 @@
         document.getElementById('sup_dados_view').innerHTML = `
             <div class="font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Resumo da Avaliação:</div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-6">
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Craquelamento</b> <span class="uppercase font-bold text-stone-800">${testeData.craquelamento || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Crocância</b> <span class="uppercase font-bold text-stone-800">${testeData.crocancia || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Pestana</b> <span class="uppercase font-bold text-stone-800">${testeData.pestana || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Volume</b> <span class="uppercase font-bold text-stone-800">${testeData.volume || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Cor Capa</b> <span class="uppercase font-bold text-stone-800">${testeData.cor || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Alvéolos</b> <span class="uppercase font-bold text-stone-800">${testeData.estruturaAlveolar || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Cor Miolo</b> <span class="uppercase font-bold text-stone-800">${testeData.corMiolo || '--'}</span></div>
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Conf. Visual</b> <span class="uppercase font-bold text-stone-800">${testeData.conformidadeVisual || '--'}</span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Craquelamento</b> <span class="uppercase font-bold text-stone-800">${testeData.craquelamento || '--'} <span class="text-yellow-600">(${testeData.notaCraquelamento || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Crocância</b> <span class="uppercase font-bold text-stone-800">${testeData.crocancia || '--'} <span class="text-yellow-600">(${testeData.notaCrocancia || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Pestana</b> <span class="uppercase font-bold text-stone-800">${testeData.pestana || '--'} <span class="text-yellow-600">(${testeData.notaPestana || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Volume</b> <span class="uppercase font-bold text-stone-800">${testeData.volume || '--'} <span class="text-yellow-600">(${testeData.notaVolume || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Cor Capa</b> <span class="uppercase font-bold text-stone-800">${testeData.cor || '--'} <span class="text-yellow-600">(${testeData.notaCor || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Alvéolos</b> <span class="uppercase font-bold text-stone-800">${testeData.estruturaAlveolar || '--'} <span class="text-yellow-600">(${testeData.notaEstrutura || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Cor Miolo</b> <span class="uppercase font-bold text-stone-800">${testeData.corMiolo || '--'} <span class="text-yellow-600">(${testeData.notaCorMiolo || 0} pts)</span></span></div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Conf. Visual</b> <span class="uppercase font-bold text-stone-800">${testeData.conformidadeVisual || '--'} <span class="text-yellow-600">(${testeData.notaVisual || 0} pts)</span></span></div>
             </div>
             <div class="flex gap-4 mb-4 overflow-x-auto pb-2">
                 ${testeData.fotoBase64_1 ? `<img src="${testeData.fotoBase64_1}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm" title="Assadeira 1">` : ''}
@@ -1025,20 +1160,16 @@
             </div>
         `;
 
-        // Cálculo da Nota Automática baseada nos Pesos do Config
-        const cfg = window.appState.config || {};
-        const pesos = cfg.pesos || { craquelamento: 15, crocancia: 15, pestana: 15, volume: 15, cor: 10, estrutura: 10, corMiolo: 10, visual: 10 };
-        const calcVal = (val) => val === 'bom' ? 1 : (val === 'regular' ? 0.5 : 0);
-        
+        // Calculo Final (Soma os dados que vieram dos inputs numéricos)
         let nota = 0;
-        nota += pesos.craquelamento * calcVal(testeData.craquelamento);
-        nota += pesos.crocancia * calcVal(testeData.crocancia);
-        nota += pesos.pestana * calcVal(testeData.pestana);
-        nota += pesos.volume * calcVal(testeData.volume);
-        nota += pesos.cor * calcVal(testeData.cor);
-        nota += pesos.estrutura * calcVal(testeData.estruturaAlveolar);
-        nota += pesos.corMiolo * calcVal(testeData.corMiolo);
-        nota += pesos.visual * calcVal(testeData.conformidadeVisual);
+        nota += parseFloat(testeData.notaCraquelamento) || 0;
+        nota += parseFloat(testeData.notaCrocancia) || 0;
+        nota += parseFloat(testeData.notaPestana) || 0;
+        nota += parseFloat(testeData.notaVolume) || 0;
+        nota += parseFloat(testeData.notaCor) || 0;
+        nota += parseFloat(testeData.notaEstrutura) || 0;
+        nota += parseFloat(testeData.notaCorMiolo) || 0;
+        nota += parseFloat(testeData.notaVisual) || 0;
         
         nota = Math.round(nota);
         const colorClass = nota >= 70 ? 'text-green-600' : 'text-red-600';
@@ -1351,7 +1482,7 @@
         <!-- Telas de Rolagem (Scroll Nativo do Conteúdo) -->
         <main id="main-content-scroll" class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar relative">
 
-          <!-- View: Start Produção (Utilizando GRID para Paisagem) -->
+          <!-- View: Start Produção -->
           <section id="view-start" class="view-section active animate-fade-in">
             <div class="mb-8">
                 <h2 class="font-black text-3xl text-stone-800 mb-2">Novo Start de Produção</h2>
@@ -1493,7 +1624,7 @@
             </form>
           </section>
 
-          <!-- View: Dashboard (Painel de Andamento em Grid) -->
+          <!-- View: Dashboard (Painel de Andamento) -->
           <section id="view-dashboard" class="view-section animate-fade-in">
             <div class="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                <div>
@@ -1505,7 +1636,6 @@
                </button>
             </div>
             
-            <!-- Grid Layout para Landscape -->
             <div id="list-starts" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
                 <div class="col-span-full text-center py-20 text-stone-500 animate-pulse font-bold text-lg">Carregando painel da linha...</div>
             </div>
@@ -1532,7 +1662,6 @@
                </div>
              </div>
              
-             <!-- Grid Layout para Histórico -->
              <div id="lista-historico-producao" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"></div>
           </section>
 
@@ -1590,7 +1719,6 @@
               <button onclick="window.renderListaProdutos()" class="text-stone-500 hover:text-stone-800 transition-colors bg-white border border-stone-200 p-2 rounded-lg shadow-sm"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
             </div>
             
-            <!-- Grid Layout para Receitas -->
             <div id="lista-produtos-salvos" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"></div>
           </section>
 
@@ -1598,7 +1726,7 @@
           <section id="view-teste" class="view-section animate-fade-in">
             <div class="mb-8">
                  <h2 class="font-black text-stone-800 text-3xl mb-2">Controle de Qualidade</h2>
-                 <p class="text-stone-500 font-medium">Avaliações de laboratório e emissão de laudos técnicos.</p>
+                 <p class="text-stone-500 font-medium">Avaliações de laboratório, notas com peso visual e emissão de laudos.</p>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -1615,7 +1743,14 @@
                 </div>
             </div>
 
-            <div class="flex justify-between items-end mt-12 mb-6 border-b border-stone-200 pb-3">
+            <!-- SEÇÃO NOVA: CORRELAÇÃO DE FARINHA E NOTA -->
+            <h2 class="font-black text-stone-800 text-xl mt-12 mb-6 border-b border-stone-200 pb-3 flex items-center gap-3"><i data-lucide="bar-chart-2" class="w-6 h-6 text-stone-400"></i> Desempenho por Lote de Farinha</h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-x-auto mb-12">
+               <div id="lista-desempenho-farinha"></div>
+            </div>
+
+            <!-- Laudos Emitidos -->
+            <div class="flex justify-between items-end mb-6 border-b border-stone-200 pb-3">
                 <h2 class="font-black text-stone-800 text-xl flex items-center gap-3"><i data-lucide="file-badge" class="w-6 h-6 text-stone-400"></i> Laudos Emitidos</h2>
                 <div class="relative w-64">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"></i>
@@ -1623,7 +1758,6 @@
                 </div>
             </div>
             
-            <!-- Grid Layout para Histórico de Testes -->
             <div id="list-testes-historico" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"></div>
           </section>
 
@@ -1708,13 +1842,13 @@
 
   <!-- Modal Operador (Avaliação e Fotos) -->
   <div id="modal-avaliar-teste" class="modal-overlay">
-     <div class="modal-content animate-fade-in">
+     <div class="modal-content animate-fade-in !max-w-4xl">
         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
            <div>
                <h3 id="t_titulo_produto" class="font-black text-2xl text-stone-800">Avaliando Qualidade</h3>
                <span class="text-xs text-stone-500 font-bold uppercase tracking-widest">Preencha os dados laboratoriais</span>
            </div>
-           <button onclick="window.fecharModalTeste()" class="text-stone-400 hover:text-stone-800 transition-colors bg-stone-100 p-2 rounded-lg"><i data-lucide="x" class="w-6 h-6"></i></button>
+           <button type="button" onclick="window.fecharModalTeste()" class="text-stone-400 hover:text-stone-800 transition-colors bg-stone-100 p-2 rounded-lg"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
         <form id="form-avaliar-teste" onsubmit="window.submitAvaliacaoTeste(event)">
            <input type="hidden" id="t_id_teste">
@@ -1724,30 +1858,27 @@
            </div>
            
            <h4 class="font-black text-lg text-stone-800 mb-4 border-b border-stone-100 pb-2">Dados Analíticos</h4>
-           <div class="grid grid-cols-2 gap-4 mb-8">
+           <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">P/L (Farinha)</label><input type="number" step="0.01" id="t_pl" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all" required placeholder="Ex: 1.82"></div>
                <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">W (Farinha)</label><input type="number" id="t_w" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all" required placeholder="Ex: 261"></div>
                <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Rec. Farinha</label><input type="date" id="t_data_rec_far" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-sm" required></div>
                <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Validade Pão</label><input type="date" id="t_validade_prod" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-sm" required></div>
-               <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Data da Avaliação</label><input type="date" id="t_data_teste" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-sm" required></div>
+               <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Data Avaliação</label><input type="date" id="t_data_teste" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-sm" required></div>
            </div>
            
            <div class="mb-8">
               <label class="block text-lg font-black text-stone-800 mb-4 border-b border-stone-100 pb-2"><i data-lucide="camera" class="w-5 h-5 inline mb-1 text-stone-400"></i> Registro Fotográfico</label>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <!-- Foto 1 -->
                   <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
                      <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Assadeira 1 <b class="text-red-500">*</b></span>
                      <input type="file" accept="image/*" id="t_foto_1" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-100 file:text-yellow-800 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 1)" required>
                      <img id="preview_foto_teste_1" class="h-32 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden mt-auto" src="">
                   </div>
-                  <!-- Foto 2 -->
                   <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
                      <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Assadeira 2 <b class="text-red-500">*</b></span>
                      <input type="file" accept="image/*" id="t_foto_2" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-100 file:text-yellow-800 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 2)" required>
                      <img id="preview_foto_teste_2" class="h-32 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden mt-auto" src="">
                   </div>
-                  <!-- Foto 3 -->
                   <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
                      <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Miolo Interno (Opcional)</span>
                      <input type="file" accept="image/*" id="t_foto_3" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-700 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 3)">
@@ -1757,18 +1888,124 @@
            </div>
            
            <h4 class="font-black text-lg text-stone-800 mb-4 border-b border-stone-100 pb-2">Atributos Sensoriais e Visuais</h4>
-           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Craquelamento</label><select id="t_craquelamento" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Crocância</label><select id="t_crocancia" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<60%)</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Pestana</label><select id="t_pestana" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Volume (cm/g)</label><select id="t_volume" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom (10-13)</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Cor da Capa</label><select id="t_cor" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Malha Alveolar</label><select id="t_estrutura" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Sedosa / Densa</option><option value="regular">Desuniforme</option><option value="ruim">Seca / Falhas</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Cor Miolo</label><select id="t_cor_miolo" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
-             <div class="col-span-2"><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Unif. Assadeira</label><select id="t_conformidade_visual" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select" required><option value="bom">Conforme</option><option value="regular">Regular</option><option value="ruim">Ruim</option></select></div>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+             
+             <!-- Atributo 1 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Craquelamento <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_craquelamento">Máx: 15</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_craquelamento" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('craquelamento', false)">
+                     <option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option>
+                  </select>
+                  <input type="number" id="t_nota_craquelamento" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('craquelamento', true)" required>
+               </div>
+             </div>
+             
+             <!-- Atributo 2 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Crocância <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_crocancia">Máx: 15</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_crocancia" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('crocancia', false)">
+                     <option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<60%)</option>
+                  </select>
+                  <input type="number" id="t_nota_crocancia" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('crocancia', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 3 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Pestana <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_pestana">Máx: 15</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_pestana" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('pestana', false)">
+                     <option value="bom">Bom (>80%)</option><option value="regular">Regular</option><option value="ruim">Ruim (<69%)</option>
+                  </select>
+                  <input type="number" id="t_nota_pestana" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('pestana', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 4 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Volume (cm/g) <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_volume">Máx: 15</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_volume" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('volume', false)">
+                     <option value="bom">Bom (10-13)</option><option value="regular">Regular</option><option value="ruim">Ruim</option>
+                  </select>
+                  <input type="number" id="t_nota_volume" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('volume', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 5 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Cor da Capa <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_cor">Máx: 10</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_cor" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('cor', false)">
+                     <option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option>
+                  </select>
+                  <input type="number" id="t_nota_cor" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('cor', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 6 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Malha Alveolar <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_estrutura">Máx: 10</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_estrutura" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('estrutura', false)">
+                     <option value="bom">Sedosa / Densa</option><option value="regular">Desuniforme</option><option value="ruim">Seca / Falhas</option>
+                  </select>
+                  <input type="number" id="t_nota_estrutura" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('estrutura', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 7 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Cor do Miolo <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_cor_miolo">Máx: 10</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_cor_miolo" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('cor_miolo', false)">
+                     <option value="bom">Bom</option><option value="regular">Regular</option><option value="ruim">Ruim</option>
+                  </select>
+                  <input type="number" id="t_nota_cor_miolo" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('cor_miolo', true)" required>
+               </div>
+             </div>
+
+             <!-- Atributo 8 -->
+             <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
+               <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                  Unif. Assadeira <span class="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded font-bold" id="lbl_peso_conformidade_visual">Máx: 10</span>
+               </label>
+               <div class="flex gap-2">
+                  <select id="t_conformidade_visual" class="w-full p-3.5 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select flex-1" required onchange="window.calcularNotasOperador('conformidade_visual', false)">
+                     <option value="bom">Conforme</option><option value="regular">Regular</option><option value="ruim">Ruim</option>
+                  </select>
+                  <input type="number" id="t_nota_conformidade_visual" class="w-20 p-3.5 bg-yellow-50 border border-yellow-300 rounded-xl text-yellow-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-inner" step="0.1" oninput="window.calcularNotasOperador('conformidade_visual', true)" required>
+               </div>
+             </div>
+             
+           </div>
+
+           <!-- Score Final Dinâmico -->
+           <div class="mb-8 flex justify-between items-center bg-stone-900 text-white p-6 rounded-2xl shadow-xl">
+               <div>
+                   <h4 class="font-bold uppercase tracking-widest text-xs text-stone-400">Nota Total Estimada</h4>
+                   <p class="text-sm font-medium text-stone-300">Pode ser ajustada pelo Supervisor</p>
+               </div>
+               <div id="t_nota_total_display" class="text-4xl font-black text-green-500 tracking-tighter">100%</div>
            </div>
            
-           <button type="submit" class="w-full py-5 bg-yellow-500 text-stone-900 rounded-2xl font-black shadow-lg shadow-yellow-500/20 hover:bg-yellow-400 transition-colors active:scale-95 text-lg flex justify-center items-center gap-2"><i data-lucide="send" class="w-5 h-5"></i> Registrar Avaliação</button>
+           <button type="submit" class="w-full py-5 bg-yellow-500 text-stone-900 rounded-2xl font-black shadow-lg shadow-yellow-500/20 hover:bg-yellow-400 transition-colors active:scale-95 text-lg flex justify-center items-center gap-2"><i data-lucide="send" class="w-5 h-5"></i> Registrar Avaliação na Fila</button>
         </form>
      </div>
   </div>
@@ -1781,7 +2018,7 @@
                <h3 class="font-black text-2xl text-blue-700">Emissão de Laudo Técnico</h3>
                <span class="text-xs text-stone-500 font-bold uppercase tracking-widest">Revisão final de qualidade</span>
            </div>
-           <button onclick="window.fecharModalSupervisor()" class="text-stone-400 hover:text-stone-800 transition-colors bg-stone-100 p-2 rounded-lg"><i data-lucide="x" class="w-6 h-6"></i></button>
+           <button type="button" onclick="window.fecharModalSupervisor()" class="text-stone-400 hover:text-stone-800 transition-colors bg-stone-100 p-2 rounded-lg"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
         <form id="form-supervisor" onsubmit="window.submitLiberacaoSupervisor(event)">
            <input type="hidden" id="sup_id_teste">
@@ -1790,9 +2027,9 @@
            <div id="sup_dados_view"></div>
            
            <div class="mb-6 text-center bg-stone-50 p-6 rounded-2xl border border-stone-200">
-              <label class="font-black text-stone-500 text-xs uppercase tracking-widest mb-2 block">Cálculo de Score Final</label>
-              <div id="sup_nota_display" class="text-6xl font-black py-2 tracking-tighter">00</div>
-              <input type="hidden" id="sup_nota" required>
+              <label class="font-black text-stone-500 text-xs uppercase tracking-widest mb-2 block">Aprovação de Score Final (Ajustável)</label>
+              <div id="sup_nota_display" class="text-6xl font-black py-2 tracking-tighter mb-2">00%</div>
+              <input type="number" id="sup_nota" class="w-32 p-3 bg-white border border-stone-300 rounded-xl text-stone-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 text-xl mx-auto" required>
            </div>
 
            <div class="mb-8">
