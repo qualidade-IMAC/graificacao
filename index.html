@@ -96,7 +96,7 @@
 
     /* PDF Oculto */
     #pdf-container-hidden { display: none; }
-    .pdf-mode { background: #fff; color: #000; padding: 40px; font-family: Arial, sans-serif; }
+    .pdf-mode { background: #fff; color: #000; padding: 20px; font-family: Arial, sans-serif; }
     .pdf-mode table { width: 100%; border-collapse: collapse; margin: 15px 0; }
     .pdf-mode th, .pdf-mode td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
     .pdf-mode th { background-color: #f5f5f4; font-weight: bold; }
@@ -1285,7 +1285,7 @@
         }
 
         const element = document.getElementById('pdf-container-hidden'); element.style.display = 'block'; 
-        const opt = { margin: 10, filename: `Laudo_CQ_${dados.produtoNome}_L${dados.loteProduto}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        const opt = { margin: [5, 10, 5, 10], filename: `Laudo_CQ_${dados.produtoNome}_L${dados.loteProduto}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
         try { await html2pdf().set(opt).from(element).save(); } catch(e) {} finally { element.style.display = 'none'; }
     }
 
@@ -2109,11 +2109,11 @@
   <!-- PDF -->
   <div id="pdf-container-hidden">
      <div class="pdf-mode" id="pdf-template">
-        <div style="text-align: center; margin-bottom: 20px;">
+        <div style="text-align: center; margin-bottom: 10px;">
            <img id="pdf-logo-img" src="" style="max-height: 80px; margin-bottom: 10px; display: none; margin-left: auto; margin-right: auto;">
            <h1>CERTIFICADO DE GARANTIA DA QUALIDADE</h1>
         </div>
-        <div style="display: flex; flex-wrap: wrap; margin-bottom: 20px; font-weight: bold;">
+        <div style="display: flex; flex-wrap: wrap; margin-bottom: 15px; font-weight: bold;">
            <div class="info-row" style="width: 50%;">Produto: <span style="font-weight: normal" id="pdf-produto"></span></div>
            <div class="info-row" style="width: 50%;">Lote: <span style="font-weight: normal" id="pdf-lote"></span></div>
            <div class="info-row" style="width: 50%;">Produção: <span style="font-weight: normal" id="pdf-producao"></span></div>
@@ -2136,7 +2136,7 @@
               <tr><td style="font-weight:bold;">Uniformidade na assadeira</td><td>Conformidade Visual</td><td style="text-align: center;" id="pdf-visual"></td></tr>
            </tbody>
         </table>
-        <div style="text-align: center; margin: 30px 0;"><p style="margin:0; font-weight: bold;">SCORE / NOTA</p><div class="nota-box" id="pdf-nota" style="font-size: 24px; font-weight: bold; margin-top: 5px;"></div></div>
+        <div style="text-align: center; margin: 15px 0;"><p style="margin:0; font-weight: bold;">SCORE / NOTA</p><div class="nota-box" id="pdf-nota" style="font-size: 24px; font-weight: bold; margin-top: 5px;"></div></div>
         
         <!-- Bloco de 3 Imagens Lado a Lado -->
         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
@@ -2145,11 +2145,11 @@
            <img id="pdf-foto-3" src="" style="width: 30%; max-height: 180px; object-fit: cover; display: none; border: 1px solid #ccc; border-radius: 4px;">
         </div>
 
-        <div class="text-block" style="margin-top: 30px; font-size: 11px;"><strong>DESCRIÇÃO DO ENSAIO</strong><br>Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.</div>
+        <div class="text-block" style="margin-top: 15px; font-size: 11px;"><strong>DESCRIÇÃO DO ENSAIO</strong><br>Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.</div>
         <div class="text-block" style="font-size: 11px; margin-top: 10px;"><strong>LEGISLAÇÃO E REFERÊNCIAS</strong><br>- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. NBR 16170: Panificação - Pão francês - Diretrizes para avaliação da qualidade.<br>- BRASIL, ANVISA. IN n. 161, RDC n. 711, RDC n. 727 de 1º de julho de 2022.</div>
         
-        <div style="margin-top: 60px; text-align: center;">
-           <img id="pdf-assinatura-img" src="" style="max-height: 80px; margin: 0 auto; display: none; border-bottom: 1px solid #000; padding-bottom: 5px; width: 60%; object-fit: contain;">
+        <div style="margin-top: 25px; text-align: center;">
+           <img id="pdf-assinatura-img" src="" style="max-height: 70px; margin: 0 auto; display: none; border-bottom: 1px solid #000; padding-bottom: 5px; width: 60%; object-fit: contain;">
            <div id="pdf-nome-supervisor" style="font-size: 14px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"></div>
            <div style="font-size: 12px; margin-top: 2px;">Controle e Garantia da Qualidade</div>
         </div>
