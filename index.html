@@ -121,6 +121,7 @@
       notifiedTimers: new Set(),
       currentTestImageBase64_1: null,
       currentTestImageBase64_2: null,
+      currentTestImageBase64_3: null,
       currentConfigLogoBase64: null,
       currentProduto: null 
     };
@@ -357,7 +358,10 @@
             dropdown.innerHTML = filtrados.map(p => `
                 <div class="busca-item flex flex-col" onclick="window.selecionarProduto('${p.nome}')">
                     <span class="font-bold text-stone-800">${p.nome}</span>
-                    ${p.pesoPadrao ? `<span class="text-[10px] text-stone-500 font-bold uppercase mt-1">Padrão: ${p.pesoPadrao}g</span>` : ''}
+                    <div class="flex gap-2 mt-1">
+                        ${p.pesoPadrao ? `<span class="text-[10px] text-stone-500 font-bold uppercase">Padrão: ${p.pesoPadrao}g</span>` : ''}
+                        <span class="text-[10px] text-yellow-600 font-bold uppercase bg-yellow-50 px-1 rounded">${p.tipoLinha === 'Estatico' ? 'Estático' : 'Helicoidal'}</span>
+                    </div>
                 </div>
             `).join('');
         }
@@ -382,6 +386,7 @@
     window.onProdutoChange = (prodName) => {
         const p = window.appState.produtos.find(x => x.nome === prodName);
         window.appState.currentProduto = p;
+        
         const labelPadrao = document.getElementById('lbl_peso_padrao');
         if(p && p.pesoPadrao) {
             labelPadrao.innerHTML = `Padrão: ${p.pesoPadrao}g`;
@@ -389,6 +394,22 @@
         } else {
             labelPadrao.classList.add('hidden');
         }
+
+        // Lógica: Se Estático, esconde o bloco de Túnel no Start da Produção
+        const tunelContainer = document.getElementById('container_tunel_start');
+        const tunelTempo = document.getElementById('s_tempo_tunel');
+        const tunelTemp = document.getElementById('s_temp_tunel');
+
+        if(p && p.tipoLinha === 'Estatico') {
+            tunelContainer.style.display = 'none';
+            tunelTempo.removeAttribute('required');
+            tunelTemp.removeAttribute('required');
+        } else {
+            tunelContainer.style.display = 'block';
+            tunelTempo.setAttribute('required', 'true');
+            tunelTemp.setAttribute('required', 'true');
+        }
+
         window.checkLimits();
     };
 
@@ -513,8 +534,11 @@
       const isTeste = document.getElementById('s_is_teste').checked;
       const loteFar = document.getElementById('s_lote_farinha').value;
 
+      const tipoLinha = window.appState.currentProduto?.tipoLinha || 'Helicoidal';
+
       const data = {
         produto: nomeProduto,
+        tipoLinha: tipoLinha,
         dataFabricacao: document.getElementById('s_data_fab').value,
         
         tempAmbiente: document.getElementById('s_temp_ambiente').value, 
@@ -536,8 +560,8 @@
         grupoAutomatico: document.getElementById('s_grupo_automatico').value,
         pesoProduto: document.getElementById('s_peso_produto').value,
         
-        tempoTunelConfigurado: document.getElementById('s_tempo_tunel').value,
-        tempTunel: document.getElementById('s_temp_tunel').value,
+        tempoTunelConfigurado: tipoLinha === 'Helicoidal' ? document.getElementById('s_tempo_tunel').value : null,
+        tempTunel: tipoLinha === 'Helicoidal' ? document.getElementById('s_temp_tunel').value : null,
         
         isTeste: isTeste, 
         timestamp: serverTimestamp(), 
@@ -630,6 +654,7 @@
             </div>`;
         } else {
           listStarts.innerHTML = emAndamento.map(s => {
+            const isEstatico = s.tipoLinha === 'Estatico';
             return `
             <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative animate-fade-in transition-all flex flex-col h-full hover:shadow-md">
               <div class="h-1.5 w-full ${s.isTeste ? 'bg-yellow-500' : 'bg-blue-500'}"></div>
@@ -644,9 +669,9 @@
                 <div class="text-sm text-stone-600 mb-6 grid grid-cols-2 gap-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
                    <div><span class="text-stone-400 block mb-1 font-bold uppercase tracking-widest text-[10px]">T. Massa</span><b class="text-stone-800 text-base">${s.tempMassa || '--'}°C</b></div>
                    <div><span class="text-stone-400 block mb-1 font-bold uppercase tracking-widest text-[10px]">T. Água</span><b class="text-stone-800 text-base">${s.tempAgua || '--'}°C</b></div>
-                   <div class="col-span-2 border-t border-stone-200 pt-3 flex justify-between mt-1">
+                   <div class="col-span-2 border-t border-stone-200 pt-3 flex justify-between mt-1 items-center">
                      <span class="text-stone-500">Média: <b class="text-stone-800">${s.pesoProduto || '--'}g</b></span>
-                     <span class="text-stone-500 text-right w-1/2 truncate" title="${s.grupoAutomatico}">Grp: <b class="text-stone-800">${s.grupoAutomatico || '--'}</b></span>
+                     ${isEstatico ? '<span class="text-[10px] uppercase font-bold bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Estático</span>' : ''}
                    </div>
                 </div>
 
@@ -656,18 +681,26 @@
                      <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Masseira (${s.batidaStr}m)</div>
                      <div class="timer text-2xl font-mono font-black tracking-tight ${s.batidaFimMs <= Date.now() ? 'text-red-600' : 'text-stone-800'}" data-type="batida" data-id="${s.id}" data-endtime="${s.batidaFimMs}">--:--</div>
                   </div>
-                  <div class="flex-1 bg-white p-3 rounded-xl text-center border border-stone-200 shadow-sm relative overflow-hidden">
-                     <div class="absolute top-0 left-0 w-1 h-full bg-blue-300"></div>
-                     <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Túnel (${s.tempoTunelConfigurado || '--'}m)</div>
-                     ${!s.tunelFimMs ? 
-                       `<button onclick="window.iniciarTunel('${s.id}', '${s.tempoTunelConfigurado}')" class="mt-1 w-full py-1.5 text-xs bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 hover:bg-blue-100 transition active:scale-95">Dar Entrada</button>` 
-                       : s.tunelSaidaMs ? 
-                       `<div class="text-sm font-bold text-green-600 mt-1 flex items-center justify-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Saiu</div>`
-                       : 
-                       `<div class="timer text-2xl font-mono font-black tracking-tight ${s.tunelFimMs <= Date.now() ? 'text-red-600' : 'text-blue-600'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
-                        <div class="mt-2 text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer font-bold uppercase transition" onclick="window.finalizarTunelManual('${s.id}')">Forçar Saída</div>`
-                     }
-                  </div>
+                  
+                  ${isEstatico ? 
+                    `<div class="flex-1 bg-stone-50 p-3 rounded-xl text-center border border-stone-200 shadow-inner flex flex-col items-center justify-center">
+                        <i data-lucide="snowflake" class="w-5 h-5 text-stone-400 mb-1"></i>
+                        <span class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Sem Túnel</span>
+                    </div>`
+                    :
+                    `<div class="flex-1 bg-white p-3 rounded-xl text-center border border-stone-200 shadow-sm relative overflow-hidden">
+                       <div class="absolute top-0 left-0 w-1 h-full bg-blue-300"></div>
+                       <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Túnel (${s.tempoTunelConfigurado || '--'}m)</div>
+                       ${!s.tunelFimMs ? 
+                         `<button onclick="window.iniciarTunel('${s.id}', '${s.tempoTunelConfigurado}')" class="mt-1 w-full py-1.5 text-xs bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 hover:bg-blue-100 transition active:scale-95">Dar Entrada</button>` 
+                         : s.tunelSaidaMs ? 
+                         `<div class="text-sm font-bold text-green-600 mt-1 flex items-center justify-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Saiu</div>`
+                         : 
+                         `<div class="timer text-2xl font-mono font-black tracking-tight ${s.tunelFimMs <= Date.now() ? 'text-red-600' : 'text-blue-600'}" data-type="tunel_indiv" data-id="indiv_${s.id}" data-endtime="${s.tunelFimMs}">--:--</div>
+                          <div class="mt-2 text-[10px] text-stone-400 hover:text-stone-600 cursor-pointer font-bold uppercase transition" onclick="window.finalizarTunelManual('${s.id}')">Forçar Saída</div>`
+                       }
+                    </div>`
+                  }
                 </div>
 
                 <button onclick="window.abrirModalFinalizacao('${s.id}')" class="w-full py-4 bg-yellow-500 text-stone-900 rounded-xl font-bold shadow hover:bg-yellow-400 transition-colors active:scale-95 flex justify-center items-center gap-2">
@@ -681,6 +714,19 @@
     }
 
     // -- HISTÓRICO --
+    window.solicitarNovoTeste = async (startId, produtoNome, loteFarinha) => {
+        if(!confirm(`Deseja enviar o lote de "${produtoNome}" para avaliação na fila da Qualidade?`)) return;
+        try {
+            await addDoc(window.getCol('testes_farinha'), { 
+                startId: startId, produtoNome: produtoNome, loteFarinhaStart: loteFarinha || '', status: 'Pendente Operador', dataCriacao: serverTimestamp() 
+            });
+            window.showToast("Lote enviado para testes de qualidade!");
+            window.switchTab('view-teste');
+        } catch(e) {
+            window.showToast("Erro ao solicitar teste.");
+        }
+    };
+
     window.renderHistorico = () => {
        const container = document.getElementById('lista-historico-producao');
        const search = document.getElementById('hist_search')?.value.toLowerCase() || '';
@@ -716,9 +762,15 @@
                 <div><span class="text-stone-400 text-[10px] uppercase font-bold block mb-1">Lote Final</span><span class="font-black text-stone-800 text-base">${s.loteFinal || '--'}</span></div>
                 <div class="text-right"><span class="text-stone-400 text-[10px] uppercase font-bold block mb-1">Farinha Usada</span><span class="font-bold text-stone-700">${s.loteFarinha || '--'}</span></div>
              </div>
-             <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 transition-colors py-3 rounded-xl text-sm font-bold flex justify-center items-center gap-2 active:scale-95 shadow-sm">
-                <i data-lucide="file-search" class="w-4 h-4"></i> Relatório Completo
-             </button>
+             
+             <div class="grid grid-cols-2 gap-2">
+                 <button onclick="window.abrirDetalhesStart('${s.id}')" class="w-full text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 transition-colors py-3 rounded-xl text-xs font-bold flex justify-center items-center gap-2 active:scale-95 shadow-sm">
+                    <i data-lucide="file-search" class="w-4 h-4"></i> Relatório
+                 </button>
+                 <button onclick="window.solicitarNovoTeste('${s.id}', '${s.produto}', '${s.loteFarinha}')" class="w-full text-yellow-700 bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition-colors py-3 rounded-xl text-xs font-bold flex justify-center items-center gap-2 active:scale-95 shadow-sm">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i> Testar Lote
+                 </button>
+             </div>
           </div>`;
        }).join('');
        lucide.createIcons();
@@ -732,7 +784,7 @@
        content.innerHTML = `
           <div class="mb-6 text-center">
              <h4 class="font-black text-2xl text-stone-800">${start.produto}</h4>
-             <span class="text-stone-500 text-sm font-medium bg-stone-100 px-3 py-1 rounded-full mt-2 inline-block">Data: ${start.dataFabricacao.split('-').reverse().join('/')}</span>
+             <span class="text-stone-500 text-sm font-medium bg-stone-100 px-3 py-1 rounded-full mt-2 inline-block">Data: ${start.dataFabricacao.split('-').reverse().join('/')} | Linha: ${start.tipoLinha === 'Estatico' ? 'Estática' : 'Helicoidal'}</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -761,7 +813,10 @@
                  <div class="flex justify-between items-center border-b border-stone-200 pb-2"><span class="text-stone-500 font-medium">Tempo Cilindro:</span><b class="text-stone-800">${start.tempoCilindro || '--'} min</b></div>
                  <div class="flex justify-between items-center border-b border-stone-200 pb-2"><span class="text-stone-500 font-medium">Grupo Auto:</span><b class="text-stone-800">${start.grupoAutomatico || '--'}</b></div>
                  <div class="flex justify-between items-center border-b border-stone-200 pb-2"><span class="text-stone-500 font-medium">Peso Produto:</span><b class="text-stone-800">${start.pesoProduto || '--'} g</b></div>
-                 <div class="flex justify-between items-center pt-1"><span class="text-stone-500 font-medium">Túnel Configurado:</span><b class="text-stone-800">${start.tempoTunelConfigurado || '--'} min a ${start.tempTunel || '--'}°C</b></div>
+                 <div class="flex justify-between items-center pt-1">
+                    <span class="text-stone-500 font-medium">Túnel Configurado:</span>
+                    <b class="text-stone-800">${start.tipoLinha === 'Estatico' ? 'N/A (Estático)' : `${start.tempoTunelConfigurado || '--'} min a ${start.tempTunel || '--'}°C`}</b>
+                 </div>
               </div>
 
               <div class="bg-stone-50 rounded-xl p-5 border border-stone-200 space-y-3 text-sm">
@@ -782,10 +837,16 @@
        const listaOperador = document.getElementById('lista-testes-pendentes');
        const listaSupervisor = document.getElementById('lista-testes-supervisor');
        const historico = document.getElementById('list-testes-historico');
+       const searchLaudos = document.getElementById('search_laudos')?.value.toLowerCase() || '';
        
        const pendentes = window.appState.testes.filter(t => t.status === 'Pendente Operador');
        const supervisao = window.appState.testes.filter(t => t.status === 'Aguardando Supervisor');
-       const concluidos = window.appState.testes.filter(t => t.status === 'Concluído').sort((a,b) => {
+       
+       const concluidos = window.appState.testes.filter(t => {
+           if(t.status !== 'Concluído') return false;
+           if(searchLaudos && !t.produtoNome.toLowerCase().includes(searchLaudos) && !(t.loteProduto || '').toLowerCase().includes(searchLaudos)) return false;
+           return true;
+       }).sort((a,b) => {
            const tA = a.dataLiberacao?.seconds || 0; const tB = b.dataLiberacao?.seconds || 0; return tB - tA;
        });
 
@@ -831,7 +892,7 @@
            }).join('');
        }
 
-       if(concluidos.length === 0) { historico.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 shadow-sm font-medium">Nenhum histórico de laudo.</div>`;
+       if(concluidos.length === 0) { historico.innerHTML = `<div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 shadow-sm font-medium">Nenhum histórico de laudo encontrado.</div>`;
        } else {
            historico.innerHTML = concluidos.map(t => `
              <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex justify-between items-center cursor-pointer hover:border-yellow-400 hover:shadow-md transition-all active:scale-95 group" onclick="window.gerarLaudoPDF(${JSON.stringify(t).replace(/"/g, '&quot;')})" title="Refazer Download do Laudo">
@@ -839,7 +900,7 @@
                   ${t.fotoBase64_1 ? `<img src="${t.fotoBase64_1}" class="w-16 h-16 object-cover rounded-xl shadow-sm border border-stone-200">` : `<div class="w-16 h-16 bg-stone-50 rounded-xl flex items-center justify-center border border-stone-200"><i data-lucide="image" class="w-6 h-6 text-stone-300"></i></div>`}
                   <div>
                      <div class="font-black text-stone-800 text-lg">${t.produtoNome} <span class="text-[10px] text-stone-500 font-bold uppercase ml-2 border border-stone-200 bg-stone-50 px-2 py-0.5 rounded-md">Lote ${t.loteProduto || '--'}</span></div>
-                     <div class="text-sm text-stone-500 mt-1 font-medium">Nota: <b class="${t.notaFinal >= 70 ? 'text-green-600' : 'text-red-600'}">${t.notaFinal || '--'}</b> <span class="mx-2 text-stone-300">|</span> Farinha: ${t.loteFarinhaUsada}</div>
+                     <div class="text-sm text-stone-500 mt-1 font-medium">Score: <b class="${t.notaFinal >= 70 ? 'text-green-600' : 'text-red-600'}">${t.notaFinal}% (Nota ${(t.notaFinal/10).toFixed(1)})</b> <span class="mx-2 text-stone-300">|</span> Farinha: ${t.loteFarinhaUsada}</div>
                   </div>
                </div>
                <div class="flex flex-col items-end gap-3">
@@ -882,9 +943,15 @@
        
        document.getElementById('t_data_teste').value = new Date().toISOString().split('T')[0];
 
-       window.appState.currentTestImageBase64_1 = null; window.appState.currentTestImageBase64_2 = null;
-       document.getElementById('preview_foto_teste_1').style.display = 'none'; document.getElementById('preview_foto_teste_2').style.display = 'none';
-       document.getElementById('t_foto_1').value = ''; document.getElementById('t_foto_2').value = '';
+       window.appState.currentTestImageBase64_1 = null; 
+       window.appState.currentTestImageBase64_2 = null;
+       window.appState.currentTestImageBase64_3 = null;
+       document.getElementById('preview_foto_teste_1').style.display = 'none'; 
+       document.getElementById('preview_foto_teste_2').style.display = 'none';
+       document.getElementById('preview_foto_teste_3').style.display = 'none';
+       document.getElementById('t_foto_1').value = ''; 
+       document.getElementById('t_foto_2').value = '';
+       document.getElementById('t_foto_3').value = '';
     };
     
     window.fecharModalTeste = () => { document.getElementById('modal-avaliar-teste').classList.remove('active'); document.getElementById('form-avaliar-teste').reset(); };
@@ -894,8 +961,10 @@
        try {
            const id = document.getElementById('t_id_teste').value;
            const foto1 = window.appState.currentTestImageBase64_1;
+           const foto2 = window.appState.currentTestImageBase64_2;
+           const foto3 = window.appState.currentTestImageBase64_3;
            
-           if(!foto1) { window.showToast("A Foto 1 é obrigatória."); return; }
+           if(!foto1 || !foto2) { window.showToast("As fotos das duas assadeiras são obrigatórias."); return; }
 
            const docRef = doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'testes_farinha', id);
            
@@ -917,7 +986,8 @@
                corMiolo: document.getElementById('t_cor_miolo').value || '', 
                conformidadeVisual: document.getElementById('t_conformidade_visual').value || '',
                fotoBase64_1: foto1, 
-               fotoBase64_2: window.appState.currentTestImageBase64_2 || null,
+               fotoBase64_2: foto2,
+               fotoBase64_3: foto3 || null,
                dataPreenchimento: serverTimestamp()
            });
            
@@ -949,8 +1019,9 @@
                 <div class="bg-stone-50 p-3 rounded-lg border border-stone-200"><b class="block text-stone-400 uppercase text-[9px] tracking-widest mb-1">Conf. Visual</b> <span class="uppercase font-bold text-stone-800">${testeData.conformidadeVisual || '--'}</span></div>
             </div>
             <div class="flex gap-4 mb-4 overflow-x-auto pb-2">
-                ${testeData.fotoBase64_1 ? `<img src="${testeData.fotoBase64_1}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm">` : ''}
-                ${testeData.fotoBase64_2 ? `<img src="${testeData.fotoBase64_2}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm">` : ''}
+                ${testeData.fotoBase64_1 ? `<img src="${testeData.fotoBase64_1}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm" title="Assadeira 1">` : ''}
+                ${testeData.fotoBase64_2 ? `<img src="${testeData.fotoBase64_2}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm" title="Assadeira 2">` : ''}
+                ${testeData.fotoBase64_3 ? `<img src="${testeData.fotoBase64_3}" class="h-32 w-32 object-cover rounded-xl border border-stone-200 shadow-sm" title="Miolo">` : ''}
             </div>
         `;
 
@@ -971,7 +1042,7 @@
         
         nota = Math.round(nota);
         const colorClass = nota >= 70 ? 'text-green-600' : 'text-red-600';
-        document.getElementById('sup_nota_display').innerHTML = `<span class="${colorClass}">${nota}</span>`;
+        document.getElementById('sup_nota_display').innerHTML = `<span class="${colorClass}">${nota}% <span class="text-2xl text-stone-400 block mt-2 tracking-widest">(Nota ${(nota/10).toFixed(1)})</span></span>`;
         document.getElementById('sup_nota').value = nota;
         
         document.getElementById('sup_aprovar').checked = (nota >= 70);
@@ -1054,7 +1125,7 @@
         document.getElementById('pdf-craquelamento').innerText = verificaStatus(dados.craquelamento); document.getElementById('pdf-pestana').innerText = verificaStatus(dados.pestana);
         document.getElementById('pdf-volume').innerText = verificaStatus(dados.volume); document.getElementById('pdf-cor').innerText = verificaStatus(dados.cor);
         document.getElementById('pdf-alveolar').innerText = verificaStatus(dados.estruturaAlveolar); document.getElementById('pdf-cormiolo').innerText = verificaStatus(dados.corMiolo); document.getElementById('pdf-visual').innerText = verificaStatus(dados.conformidadeVisual);
-        document.getElementById('pdf-nota').innerText = dados.notaFinal || '--';
+        document.getElementById('pdf-nota').innerText = `${dados.notaFinal}% (Nota ${(dados.notaFinal/10).toFixed(1)})`;
 
         // Set signature image
         if(dados.assinaturaSupervisorBase64) {
@@ -1064,8 +1135,9 @@
              document.getElementById('pdf-assinatura-img').style.display = 'none';
         }
         
-        if(dados.fotoBase64_1) { document.getElementById('pdf-foto-1').src = dados.fotoBase64_1; document.getElementById('pdf-foto-1').style.display='inline-block'; } else { document.getElementById('pdf-foto-1').style.display='none'; }
-        if(dados.fotoBase64_2) { document.getElementById('pdf-foto-2').src = dados.fotoBase64_2; document.getElementById('pdf-foto-2').style.display='inline-block'; } else { document.getElementById('pdf-foto-2').style.display='none'; }
+        if(dados.fotoBase64_1) { document.getElementById('pdf-foto-1').src = dados.fotoBase64_1; document.getElementById('pdf-foto-1').style.display='block'; } else { document.getElementById('pdf-foto-1').style.display='none'; }
+        if(dados.fotoBase64_2) { document.getElementById('pdf-foto-2').src = dados.fotoBase64_2; document.getElementById('pdf-foto-2').style.display='block'; } else { document.getElementById('pdf-foto-2').style.display='none'; }
+        if(dados.fotoBase64_3) { document.getElementById('pdf-foto-3').src = dados.fotoBase64_3; document.getElementById('pdf-foto-3').style.display='block'; } else { document.getElementById('pdf-foto-3').style.display='none'; }
 
         // Inject Config Logo into PDF if exists
         const logoConfig = window.appState.config?.logoBase64;
@@ -1122,12 +1194,14 @@
        e.preventDefault();
        const nome = document.getElementById('c_nome_produto').value; 
        const pesoPadrao = parseFloat(document.getElementById('c_peso_padrao').value);
+       const tipoLinha = document.getElementById('c_tipo_linha').value;
+
        if(!nome) return;
        try {
          if (window.editingProdutoId) {
-            await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', window.editingProdutoId), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null });
+            await updateDoc(doc(window.appState.db, 'artifacts', window.appState.appId, 'users', window.appState.user.uid, 'produtos_cadastro', window.editingProdutoId), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null, tipoLinha: tipoLinha });
          } else {
-            await addDoc(window.getCol('produtos_cadastro'), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null, timestamp: serverTimestamp() });
+            await addDoc(window.getCol('produtos_cadastro'), { nome: nome, ingredientes: window.tempIngredients, pesoPadrao: pesoPadrao || null, tipoLinha: tipoLinha, timestamp: serverTimestamp() });
          }
          window.showToast("Salvo com sucesso!"); window.cancelarEdicaoReceita();
        } catch (error) { window.showToast("Erro ao salvar."); }
@@ -1135,12 +1209,15 @@
     window.cancelarEdicaoReceita = () => {
        document.getElementById('form-cadastro').reset(); window.tempIngredients = []; window.editingProdutoId = null;
        document.getElementById('btn-cancelar-edicao').classList.add('hidden');
-       document.getElementById('btn-salvar-produto').innerHTML = 'Salvar Receita';
+       document.getElementById('btn-salvar-produto').innerHTML = 'Salvar Receita Oficial';
        window.renderIngredientesTemp();
     };
     window.editProduto = (id) => {
        const p = window.appState.produtos.find(x => x.id === id); if(!p) return;
-       window.editingProdutoId = id; document.getElementById('c_nome_produto').value = p.nome; document.getElementById('c_peso_padrao').value = p.pesoPadrao || '';
+       window.editingProdutoId = id; 
+       document.getElementById('c_nome_produto').value = p.nome; 
+       document.getElementById('c_peso_padrao').value = p.pesoPadrao || '';
+       if (p.tipoLinha) document.getElementById('c_tipo_linha').value = p.tipoLinha;
        window.tempIngredients = p.ingredientes ? [...p.ingredientes] : []; window.renderIngredientesTemp();
        document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
        document.getElementById('btn-salvar-produto').innerHTML = 'Atualizar Receita';
@@ -1158,7 +1235,10 @@
              <div class="flex justify-between items-start mb-4">
                 <div>
                    <div class="font-black text-stone-800 text-lg leading-tight mb-1">${p.nome}</div>
-                   ${p.pesoPadrao ? `<div class="text-[10px] text-yellow-700 font-bold uppercase tracking-widest bg-yellow-50 inline-block px-2.5 py-1 rounded-md border border-yellow-200">Peso Padrão: ${p.pesoPadrao}g</div>` : ''}
+                   <div class="flex gap-2 mt-1">
+                      ${p.pesoPadrao ? `<div class="text-[10px] text-yellow-700 font-bold uppercase tracking-widest bg-yellow-50 inline-block px-2.5 py-1 rounded-md border border-yellow-200">Padrão: ${p.pesoPadrao}g</div>` : ''}
+                      <div class="text-[10px] text-stone-600 font-bold uppercase tracking-widest bg-stone-100 inline-block px-2.5 py-1 rounded-md border border-stone-200">${p.tipoLinha === 'Estatico' ? 'Estático' : 'Helicoidal'}</div>
+                   </div>
                 </div>
                 <div class="flex gap-2">
                    <button onclick="window.editProduto('${p.id}')" class="p-2 bg-stone-50 rounded-lg text-stone-400 hover:text-blue-600 transition-colors border border-stone-100"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
@@ -1392,7 +1472,7 @@
                     </div>
 
                     <!-- Túnel -->
-                    <div class="col-span-1">
+                    <div class="col-span-1" id="container_tunel_start">
                         <h3 class="font-black text-stone-800 text-lg mb-5 border-b border-stone-100 pb-3 flex items-center gap-2"><i data-lucide="snowflake" class="w-5 h-5 text-stone-400"></i> Túnel</h3>
                         <div class="space-y-4">
                             <div><label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1.5">Tempo (min)</label><input type="number" id="s_tempo_tunel" class="w-full p-3.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-white transition-all" required placeholder="35"></div>
@@ -1460,7 +1540,7 @@
           <section id="view-cadastro" class="view-section animate-fade-in">
             <div class="mb-8">
                  <h2 class="font-black text-stone-800 text-3xl mb-2">Gestão de Receitas</h2>
-                 <p class="text-stone-500 font-medium">Cadastre padrões de produto e listas de insumos.</p>
+                 <p class="text-stone-500 font-medium">Cadastre padrões de produto, lista de insumos e tipo de linha.</p>
             </div>
 
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 mb-10 max-w-4xl">
@@ -1468,12 +1548,19 @@
                  <h3 id="titulo-form-receita" class="font-black text-stone-800 text-xl mb-6 border-b border-stone-100 pb-3 flex items-center gap-3"><i data-lucide="book-open" class="w-6 h-6 text-yellow-500"></i> Formulário de Cadastro</h3>
                  
                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                     <div class="md:col-span-2">
+                     <div class="md:col-span-1">
                         <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Nome da Receita</label>
                         <input type="text" id="c_nome_produto" class="w-full p-4 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all" required>
                      </div>
                      <div class="md:col-span-1">
-                        <label class="block text-xs font-black text-yellow-700 uppercase tracking-widest mb-2">Peso Padrão (Gramas)</label>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Tipo de Linha</label>
+                        <select id="c_tipo_linha" class="w-full p-4 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all app-select">
+                            <option value="Helicoidal">Helicoidal (C/ Túnel)</option>
+                            <option value="Estatico">Estático (S/ Túnel)</option>
+                        </select>
+                     </div>
+                     <div class="md:col-span-1">
+                        <label class="block text-xs font-black text-yellow-700 uppercase tracking-widest mb-2">Peso Padrão (g)</label>
                         <input type="number" id="c_peso_padrao" class="w-full p-4 bg-white border-2 border-yellow-400 rounded-xl text-stone-900 font-black text-lg outline-none focus:ring-4 focus:ring-yellow-500/20 transition-all shadow-sm" step="0.1" required>
                      </div>
                  </div>
@@ -1528,7 +1615,13 @@
                 </div>
             </div>
 
-            <h2 class="font-black text-stone-800 text-xl mt-12 mb-6 border-b border-stone-200 pb-3 flex items-center gap-3"><i data-lucide="file-badge" class="w-6 h-6 text-stone-400"></i> Laudos Emitidos</h2>
+            <div class="flex justify-between items-end mt-12 mb-6 border-b border-stone-200 pb-3">
+                <h2 class="font-black text-stone-800 text-xl flex items-center gap-3"><i data-lucide="file-badge" class="w-6 h-6 text-stone-400"></i> Laudos Emitidos</h2>
+                <div class="relative w-64">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"></i>
+                    <input type="text" id="search_laudos" oninput="window.renderTestesPendentes()" placeholder="Buscar laudo (produto/lote)..." class="w-full pl-9 p-2 bg-white border border-stone-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+            </div>
             
             <!-- Grid Layout para Histórico de Testes -->
             <div id="list-testes-historico" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"></div>
@@ -1611,7 +1704,7 @@
     </div>
   </div>
 
-  <!-- MODAIS (Inalterados, apenas estilizados para consistência de cantos arredondados) -->
+  <!-- MODAIS -->
 
   <!-- Modal Operador (Avaliação e Fotos) -->
   <div id="modal-avaliar-teste" class="modal-overlay">
@@ -1641,16 +1734,24 @@
            
            <div class="mb-8">
               <label class="block text-lg font-black text-stone-800 mb-4 border-b border-stone-100 pb-2"><i data-lucide="camera" class="w-5 h-5 inline mb-1 text-stone-400"></i> Registro Fotográfico</label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm">
-                     <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Capa Externa <b class="text-red-500">*</b></span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <!-- Foto 1 -->
+                  <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
+                     <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Assadeira 1 <b class="text-red-500">*</b></span>
                      <input type="file" accept="image/*" id="t_foto_1" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-100 file:text-yellow-800 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 1)" required>
-                     <img id="preview_foto_teste_1" class="h-40 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden" src="">
+                     <img id="preview_foto_teste_1" class="h-32 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden mt-auto" src="">
                   </div>
-                  <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm">
+                  <!-- Foto 2 -->
+                  <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
+                     <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Assadeira 2 <b class="text-red-500">*</b></span>
+                     <input type="file" accept="image/*" id="t_foto_2" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-100 file:text-yellow-800 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 2)" required>
+                     <img id="preview_foto_teste_2" class="h-32 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden mt-auto" src="">
+                  </div>
+                  <!-- Foto 3 -->
+                  <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex flex-col h-full">
                      <span class="text-[10px] font-bold text-stone-500 block mb-3 uppercase tracking-widest">Miolo Interno (Opcional)</span>
-                     <input type="file" accept="image/*" id="t_foto_2" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-700 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 2)">
-                     <img id="preview_foto_teste_2" class="h-40 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden" src="">
+                     <input type="file" accept="image/*" id="t_foto_3" class="text-sm file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-stone-100 file:text-stone-700 file:font-bold file:cursor-pointer w-full" onchange="window.processarFotoTeste(event, 3)">
+                     <img id="preview_foto_teste_3" class="h-32 w-full object-cover mt-4 rounded-xl border border-stone-200 hidden mt-auto" src="">
                   </div>
               </div>
            </div>
@@ -1674,7 +1775,7 @@
 
   <!-- Modal Supervisor (Laudo) -->
   <div id="modal-supervisor-liberar" class="modal-overlay">
-     <div class="modal-content animate-fade-in">
+     <div class="modal-content animate-fade-in !max-w-4xl">
         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
            <div>
                <h3 class="font-black text-2xl text-blue-700">Emissão de Laudo Técnico</h3>
@@ -1735,7 +1836,7 @@
            <div class="font-black text-[11px] text-stone-400 uppercase tracking-widest mb-2 border-b border-stone-200 pb-3 flex items-center gap-2"><i data-lucide="list-checks" class="w-4 h-4"></i> Checklist da Linha Final</div>
            <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Balança (Teste Padrão Ok)</span><label class="toggle-switch"><input type="checkbox" id="f_balanca_calibrada"><span class="toggle-slider"></span></label></div>
            <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Embaladora Sec. Ligada</span><label class="toggle-switch"><input type="checkbox" id="f_emb_secundaria"><span class="toggle-slider"></span></label></div>
-           <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Bobina / Filme Correto</span><label class="toggle-switch"><input type="checkbox" id="f_emb_correta"><span class="toggle-slider"></span></label></div>
+           <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Bobina / Filme Correto</span><label class="toggle-switch"><input type="checkbox" id="f_emb_correta"><span class="toggle-switch"><span class="toggle-slider"></span></label></div>
            <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Detectora Metais Ligada</span><label class="toggle-switch"><input type="checkbox" id="f_detector_ligada"><span class="toggle-slider"></span></label></div>
            <div class="flex justify-between items-center"><span class="text-sm font-bold text-stone-700">Detectora (Teste Padrão Ok)</span><label class="toggle-switch"><input type="checkbox" id="f_detector_calibrada"><span class="toggle-slider"></span></label></div>
         </div>
@@ -1758,7 +1859,7 @@
      </div>
   </div>
 
-  <!-- PDF (Inalterado da Estrutura Original) -->
+  <!-- PDF -->
   <div id="pdf-container-hidden">
      <div class="pdf-mode" id="pdf-template">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -1788,11 +1889,15 @@
               <tr><td style="font-weight:bold;">Uniformidade na assadeira</td><td>Conformidade Visual</td><td style="text-align: center;" id="pdf-visual"></td></tr>
            </tbody>
         </table>
-        <div style="text-align: center; margin: 30px 0;"><p style="margin:0; font-weight: bold;">NOTA</p><div class="nota-box" id="pdf-nota" style="font-size: 24px; font-weight: bold; margin-top: 5px;"></div></div>
-        <div style="text-align: center; margin-top: 10px;">
-           <img id="pdf-foto-1" src="" style="max-width: 45%; max-height: 200px; display: none; margin: 5px; border: 1px solid #ccc;">
-           <img id="pdf-foto-2" src="" style="max-width: 45%; max-height: 200px; display: none; margin: 5px; border: 1px solid #ccc;">
+        <div style="text-align: center; margin: 30px 0;"><p style="margin:0; font-weight: bold;">SCORE / NOTA</p><div class="nota-box" id="pdf-nota" style="font-size: 24px; font-weight: bold; margin-top: 5px;"></div></div>
+        
+        <!-- Bloco de 3 Imagens Lado a Lado -->
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+           <img id="pdf-foto-1" src="" style="width: 30%; max-height: 180px; object-fit: cover; display: none; border: 1px solid #ccc; border-radius: 4px;">
+           <img id="pdf-foto-2" src="" style="width: 30%; max-height: 180px; object-fit: cover; display: none; border: 1px solid #ccc; border-radius: 4px;">
+           <img id="pdf-foto-3" src="" style="width: 30%; max-height: 180px; object-fit: cover; display: none; border: 1px solid #ccc; border-radius: 4px;">
         </div>
+
         <div class="text-block" style="margin-top: 30px; font-size: 11px;"><strong>DESCRIÇÃO DO ENSAIO</strong><br>Os ensaios para garantia da qualidade foram estabelecidos nas condições de processamento da IMAC, elaborados em conformidade com padrões de identidade e qualidade (PIQ) e boas práticas de fabricação (BPF), atendem a requisitos específicos de composição, características sensoriais e segurança, além de seguir procedimentos padronizados para garantir sua qualidade ao longo do processo produtivo.</div>
         <div class="text-block" style="font-size: 11px; margin-top: 10px;"><strong>LEGISLAÇÃO E REFERÊNCIAS</strong><br>- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. NBR 16170: Panificação - Pão francês - Diretrizes para avaliação da qualidade.<br>- BRASIL, ANVISA. IN n. 161, RDC n. 711, RDC n. 727 de 1º de julho de 2022.</div>
         
