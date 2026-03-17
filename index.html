@@ -1178,6 +1178,8 @@
         
         document.getElementById('sup_aprovar').checked = (nota >= 70);
 
+        document.getElementById('sup_nome').value = '';
+
         // Prepara e ajusta o Canvas de Assinatura
         if(sigCanvas) {
             const rect = sigCanvas.parentElement.getBoundingClientRect();
@@ -1203,6 +1205,7 @@
         
         const nota = document.getElementById('sup_nota').value;
         const aprovado = document.getElementById('sup_aprovar').checked;
+        const nomeSupervisor = document.getElementById('sup_nome').value;
         
         // Captura a assinatura do Canvas para imagem base64
         const assinaturaBase64 = (sigCanvas && isCanvasDrawn(sigCanvas)) ? sigCanvas.toDataURL('image/png') : null;
@@ -1217,6 +1220,7 @@
             liberado: aprovado,
             notaFinal: nota, 
             assinaturaSupervisorBase64: assinaturaBase64,
+            nomeSupervisor: nomeSupervisor,
             dataLiberacao: serverTimestamp()
         };
 
@@ -1257,6 +1261,7 @@
         document.getElementById('pdf-volume').innerText = verificaStatus(dados.volume); document.getElementById('pdf-cor').innerText = verificaStatus(dados.cor);
         document.getElementById('pdf-alveolar').innerText = verificaStatus(dados.estruturaAlveolar); document.getElementById('pdf-cormiolo').innerText = verificaStatus(dados.corMiolo); document.getElementById('pdf-visual').innerText = verificaStatus(dados.conformidadeVisual);
         document.getElementById('pdf-nota').innerText = `${dados.notaFinal}% (Nota ${(dados.notaFinal/10).toFixed(1)})`;
+        document.getElementById('pdf-nome-supervisor').innerText = dados.nomeSupervisor || 'Responsável Técnico';
 
         // Set signature image
         if(dados.assinaturaSupervisorBase64) {
@@ -2032,6 +2037,11 @@
               <input type="number" id="sup_nota" class="w-32 p-3 bg-white border border-stone-300 rounded-xl text-stone-900 font-black text-center outline-none focus:ring-2 focus:ring-yellow-500 text-xl mx-auto" required>
            </div>
 
+           <div class="mb-6">
+              <label class="block text-sm font-black text-stone-800 uppercase tracking-widest mb-2"><i data-lucide="user" class="w-4 h-4 inline text-stone-400"></i> Nome do Responsável / Supervisor</label>
+              <input type="text" id="sup_nome" class="w-full p-4 bg-white border border-stone-300 rounded-xl text-stone-900 font-bold outline-none focus:ring-2 focus:ring-yellow-500 transition-all shadow-sm" required placeholder="Digite o seu nome...">
+           </div>
+
            <div class="mb-8">
               <div class="flex justify-between items-center mb-3">
                   <label class="block text-sm font-black text-stone-800 uppercase tracking-widest m-0"><i data-lucide="pen-tool" class="w-4 h-4 inline text-stone-400"></i> Assinatura Digital Responsável</label>
@@ -2140,7 +2150,8 @@
         
         <div style="margin-top: 60px; text-align: center;">
            <img id="pdf-assinatura-img" src="" style="max-height: 80px; margin: 0 auto; display: none; border-bottom: 1px solid #000; padding-bottom: 5px; width: 60%; object-fit: contain;">
-           <div style="font-size: 12px; margin-top: 5px;">Assinatura do Responsável (Aprovado Digitalmente)</div>
+           <div id="pdf-nome-supervisor" style="font-size: 14px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"></div>
+           <div style="font-size: 12px; margin-top: 2px;">Assinatura do Responsável (Aprovado Digitalmente)</div>
         </div>
      </div>
   </div>
